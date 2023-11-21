@@ -101,7 +101,7 @@ public class CopyTableExtract {
 	                                }
 
 	                                // Check if the entry is a log file and does not contain "Truncate" in its name
-	                                if (entryName.toLowerCase().endsWith(".log") && !entryName.toLowerCase().contains("truncate")) {
+	                                if (entryName.toLowerCase().endsWith(".log") && !entryName.toLowerCase().contains("truncate")&& !entryName.toLowerCase().contains("email_report") && !entryName.toLowerCase().contains("TaccountInfo")) {
 	                                    // Process the log file and extract date and time
 	                                	//String lastLine=null;
 	                                    Date runDate = extractDateFromLogFile(newFile);
@@ -123,16 +123,17 @@ public class CopyTableExtract {
 	                                    // Add log data to Excel file
                                          BufferedReader bufferReader=new BufferedReader(new FileReader(newFile));
                                          String lastLine = null,line;
-                                         int recordCount=0;
+                                         String keyword="successful";
+                                        // int recordCount=0;
                                          if(bufferReader !=null){
                                         	 while((line=bufferReader.readLine()) !=null){
                                         		 lastLine=line;
                                         	 }
-                                        	 String keyword="successful";
-                                        	 recordCount=extractNumberBeforeSuccessful(lastLine,keyword);
+                                        	 
+                                        	
                                         	 
                                          }
-                                         
+                                        int recordCount=extractNumberBeforeSuccessful(lastLine,keyword);
 	                                    addLogDataToExcel(sheet, rowNum++, runDate, tableName, startDate,endDate,weeklyDaily,recordCount);
 	                                }
 	                                }
@@ -218,7 +219,7 @@ private static Date extractEndDate(File logFile,Sheet sheet,int rowNum){
 	
 }
 private static int extractNumberBeforeSuccessful(String lastLine, String keyword){
-	String regex=keyword+"\\D*(\\d+)";
+	String regex="(\\d+)\\s*successful";
 	Pattern pattern=Pattern.compile(regex);
 	Matcher matcher=pattern.matcher(lastLine);
 	if(matcher.find()){
@@ -231,7 +232,7 @@ private static int extractNumberBeforeSuccessful(String lastLine, String keyword
 			e.printStackTrace();
 		}
 	}
-	return -1;
+	  return 0;
 }
 private static Map<String, Integer> countOccurrences(File[] zipFiles, String targetString) {
     Map<String, Integer> zipFileNameCount = new HashMap<>();
