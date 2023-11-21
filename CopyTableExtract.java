@@ -114,16 +114,16 @@ public class CopyTableExtract {
                                         	 
                                          }
                                         int recordCount=extractNumberBeforeSuccessful(lastLine,keyword);
-                                        String table = "SFDC_W_TR_REGISTRATION_MAP";
-                                        
+                                       // String table = "SFDC_W_TR_REGISTRATION_MAP";
+                                        String table=mapTableName(newFile.getName());
                                	     // Map the target string based on the provided conditions
                                	        String targetString1 = mapTargetString(table);
 
                                	        // Count the occurrences of the target string in zip file names
-                               	        Map<String, Integer> occurrences = countOccurrencesInZipFileNames(folderPath, targetString);
+                               	        Map<String, Integer> occurrences = countOccurrencesInZipFileNames(folderPath, targetString1);
 
                                	        // Print the result
-                               	        System.out.println("Occurrences: " + occurrences.getOrDefault(targetString, 0));
+                               	        System.out.println("Occurrences: " + occurrences.getOrDefault(targetString1, 0));
 	                                    addLogDataToExcel(sheet, rowNum++, runDate, tableName, startDate,endDate,weeklyDaily,recordCount,occurrences.getOrDefault(targetString, 0));
 	                                }
 	                                }
@@ -247,23 +247,22 @@ private static String mapTargetString(String table) {
 }
 private static Map<String, Integer> countOccurrencesInZipFileNames(String folderPath, String targetString) {
     File folder = new File(folderPath);
-    File[] zipFiles = folder.listFiles((dir, name) -> name.endsWith(".zip"));
+    File[] zipFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".zip"));
 
     Map<String, Integer> occurrences = new HashMap<>();
-   int count=0;
+    int count = 0;
+
     if (zipFiles != null) {
         for (File zipFile : zipFiles) {
             String zipFileName = zipFile.getName();
-           // int count = occurrences.getOrDefault(targetString, 0);
-//System.out.println("zipFileName"+count);
+
             if (zipFileName.contains(targetString)) {
-            	count++;
-            	
-                occurrences.put(targetString, count);
+                count++;
             }
         }
     }
 
+    occurrences.put(targetString, count);
     return occurrences;
 }
 
