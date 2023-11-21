@@ -121,7 +121,19 @@ public class CopyTableExtract {
                                        //  }
                                         // }
 	                                    // Add log data to Excel file
-	                                    addLogDataToExcel(sheet, rowNum++, runDate, tableName, startDate,endDate,weeklyDaily);
+                                         BufferedReader bufferReader=new BufferedReader(new FileReader(newFile));
+                                         String lastLine = null,line;
+                                         int recordCount=0;
+                                         if(bufferReader !=null){
+                                        	 while((line=bufferReader.readLine()) !=null){
+                                        		 lastLine=line;
+                                        	 }
+                                        	 String keyword="successful";
+                                        	 recordCount=extractNumberBeforeSuccessful(lastLine,keyword);
+                                        	 
+                                         }
+                                         
+	                                    addLogDataToExcel(sheet, rowNum++, runDate, tableName, startDate,endDate,weeklyDaily,recordCount);
 	                                }
 	                                }
 	                          //  }
@@ -176,14 +188,14 @@ private static Date extractEndDate(File logFile,Sheet sheet,int rowNum){
 			}
 			String keyword="successful";
 			int recordCountCell=extractNumberBeforeSuccessful(lastLine,keyword);
-			if(recordCountCell!=-1){
+			//if(recordCountCell!=-1){
 				Row row=sheet.getRow(rowNum);
-				Cell setRecordCount=row.createCell(4);
-				setRecordCount.setCellValue(recordCountCell);
-				System.out.println("Extracted number before 'successful':"+recordCountCell);
-			}else{
-				System.out.println("No number found before 'successful'in the line.");
-			}
+				//Cell setRecordCount=row.createCell(4);
+				//setRecordCount.setCellValue(recordCountCell);
+				//System.out.println("Extracted number before 'successful':"+recordCountCell);
+			//}else{
+				//System.out.println("No number found before 'successful'in the line.");
+			//}
 			if(!lastLine.isEmpty()){
 			SimpleDateFormat dateFormat=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			try{
@@ -371,7 +383,7 @@ private static int extractRecordCount(String lastLine){
 	        return "";
 	    }
 
-	    private static void addLogDataToExcel(Sheet sheet, int rowNum, Date runDate, String tableName,Date startDate,Date endDate,String weeklyDaily) {
+	    private static void addLogDataToExcel(Sheet sheet, int rowNum, Date runDate, String tableName,Date startDate,Date endDate,String weeklyDaily,int recordCount) {
 	        Row row = sheet.createRow(rowNum);
 
 	        // Add the extracted run date to the RUN_DATE column
@@ -393,6 +405,7 @@ private static int extractRecordCount(String lastLine){
 	        cellTableName.setCellValue(tableName);
 	        Cell cellStartDate=row.createCell(5);
 	        Cell cellWeeklyDaily=row.createCell(3);
+	        Cell setRecordCount=row.createCell(4);
 	        cellWeeklyDaily.setCellValue(weeklyDaily);
 	        if(startDate!=null){
 	        	SimpleDateFormat dateFormat=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -403,6 +416,7 @@ private static int extractRecordCount(String lastLine){
 	         if(endDate!=null){
 	        	SimpleDateFormat dateFormate=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	        	cellEndDate.setCellValue(dateFormate.format(endDate));
-	        }
+	        }setRecordCount.setCellValue(recordCount);
+	         
 	    }
 	}
