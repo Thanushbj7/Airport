@@ -90,7 +90,7 @@ public class CopyTableExtract {
 	                                }
 
 	                                // Check if the entry is a log file and does not contain "Truncate" in its name
-	                                if (entryName.toLowerCase().endsWith(".log") && !entryName.toLowerCase().contains("truncate")&& !entryName.toLowerCase().contains("email_report") && !entryName.toLowerCase().contains("TaccountInfo")) {
+	                                if (entryName.toLowerCase().endsWith(".log") && !entryName.toLowerCase().contains("truncate")&& !entryName.toLowerCase().contains("email_report") && !entryName.contains("TaccountInfo")) {
 	                                    
 	                                    Date runDate = extractDateFromLogFile(newFile);
                                        
@@ -114,6 +114,10 @@ public class CopyTableExtract {
                                         	 
                                          }
                                         int recordCount=extractNumberBeforeSuccessful(lastLine,keyword);
+                                     // int  i=0,j=0;
+                                        //if(zipFileName.contains("Copy_Tables_extract_log")){
+                                       // int	runcycle=i+1;
+                                      //  }
                                        // String table = "SFDC_W_TR_REGISTRATION_MAP";
                                         String table=mapTableName(newFile.getName());
                                	     // Map the target string based on the provided conditions
@@ -124,7 +128,7 @@ public class CopyTableExtract {
 
                                	        // Print the result
                                	        System.out.println("Occurrences: " + occurrences.getOrDefault(targetString1, 0));
-	                                    addLogDataToExcel(sheet, rowNum++, runDate, tableName, startDate,endDate,weeklyDaily,recordCount,occurrences.getOrDefault(targetString, 0));
+	                                    addLogDataToExcel(sheet, rowNum++, runDate, tableName, startDate,endDate,weeklyDaily,recordCount,occurrences.getOrDefault(targetString1, 0));
 	                                }
 	                                }
 	                          //  }
@@ -241,6 +245,10 @@ private static String mapTargetString(String table) {
         targetString = "SFDC_History";
     } else if (table.equals("SFDC_CHECKS") || table.equals("SFDC_TRADES")) {
         targetString = "sfdcEBlotter";
+    }else if(table.equals("SFDC_USER")){
+    	targetString="sfdc_emailload_log";
+    }else if(table.equals("SFDC_W_FINANCIAL_ACCOUNT") || table.equals("SFDC_W_FINANCIAL_ACCOUNT_TEAM")){
+    	targetString="FA and FA Team Job";
     }
 
     return targetString;
