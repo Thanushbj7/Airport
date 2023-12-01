@@ -467,11 +467,11 @@ public class Final {
  
  
  
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ParseException {
         // Specify the folder containing the zip files
-        String folderPath = "C:\\smarkworksfiles";
+        String folderPath = "C:\\Users\\USER\\Downloads\\ZipFiles";
         // Specify the path for the Excel file
-        String excelFilePath = "C:\\smarkworksfiles\\SFDC_COPY_TABLE_COUNT.csv";
+        String excelFilePath = "C:\\Users\\USER\\Downloads\\SFDC_COPY_TABLE_COUNT.csv";
  
         // Call the method to unzip files, read logs, and create the Excel file
         unzipAndReadLogsAndCreateExcel(folderPath, excelFilePath);
@@ -479,7 +479,7 @@ public class Final {
  
     }
  
-    private static  void unzipAndReadLogsAndCreateExcel(String folderPath, String excelFilePath) {
+    private static  void unzipAndReadLogsAndCreateExcel(String folderPath, String excelFilePath) throws ParseException {
         File folder = new File(folderPath);
         File[] zipFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".zip"));
  
@@ -543,9 +543,9 @@ public class Final {
                                     String tableName = mapTableName(newFile.getName());
                                     String table=null;
                                     String targetString1 = null;
-                                    var dt1 = "02:00:00",
-                                    var dt2 = "04:00:00",
-                                    var dt3 = "20:00:00",
+                                    var dt1 = "02:00:00";
+                                    var dt2 = "04:00:00";
+                                    var dt3 = "20:00:00";
                                    
  
                                     if("SFDC_USER".equals(tableName) && SFDC_USER_COUNT ==0 ){
@@ -575,8 +575,28 @@ public class Final {
                                         SFDC_USERRECORD_COUNT = SFDC_USERRECORD_COUNT + extractNumberBeforeSuccessful(lastLine,keyword);
                                         table=mapTableName(newFile.getName());
                                         targetString1 = mapTargetString(table);
+                                        Date runDate = extractDateFromLogFile(newFile);
                                        Map<String, Integer> occurrences = countOccurrencesInZipFileNames(folderPath, targetString1);
-                                        addLogDataToExcel(sheet, rowNum++, SFDC_USERrunDate, tableName, SFDC_USERstartDate,SFDC_USERENdDate,weeklyDaily,SFDC_USERRECORD_COUNT,occurrences.getOrDefault(targetString1, 0));
+                                       SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+                                       String runTimeStr = timeFormat.format(runDate);
+                                       Date runTime = timeFormat.parse(runTimeStr);
+                                       Date startTime12hrs=timeFormat.parse("02:00:00");
+                                       Date endTime12hrs=timeFormat.parse("04:00:00");
+                                       Date startTime24hrs = timeFormat.parse("13:00:00");
+                                       Date endTime24hrs = timeFormat.parse("16:00:00");
+                                       Date startTime12hrsfrm4to8=timeFormat.parse("04:00:00");
+                                       Date endTime12hrsfrm4to8=timeFormat.parse("08:00:00");
+                                       Date startTime24hrsfrm4to8 = timeFormat.parse("16:00:00");
+                                       Date endTime24hrsfrm4to8 = timeFormat.parse("20:00:00");
+                                       int runCycleCount=0;
+                                       if (!(runTime.before(startTime12hrs) || runTime.after(endTime12hrs)) || runTime.before(startTime24hrs)  || runTime.after(endTime12hrs)) {
+                                       	
+                                           // Set the value of RUN_CYCLE to 1
+                                       	  runCycleCount=1;
+                                       }else if(!(runTime.before(startTime12hrsfrm4to8) || runTime.after(endTime12hrsfrm4to8)) || runTime.before(startTime24hrs)  || runTime.after(endTime12hrs)) {
+                                       	runCycleCount=2;
+                                       }
+                                        addLogDataToExcel(sheet, rowNum++, SFDC_USERrunDate, tableName, SFDC_USERstartDate,SFDC_USERENdDate,weeklyDaily,SFDC_USERRECORD_COUNT,runCycleCount);
  
                                     }else{
                                         Date runDate = extractDateFromLogFile(newFile);
@@ -594,24 +614,39 @@ public class Final {
                                         int recordCount=extractNumberBeforeSuccessful(lastLine,keyword);
                                         table=mapTableName(newFile.getName());
                                         targetString1 = mapTargetString(table);
-                                        datetext = runDate.toTimeString();
-                                        datetext = datetext.split(' ')[0];
-                                        system.out.println(datetext);
-                                        var formatteddatestr = moment(runDate).format('hh:mm:ss a');
-                                        system.out.println(formatteddatestr);
-                                        if(dt1>formatteddatestr && formatteddatestr<dt2){
-                                            system.out.println('1');
+										/*
+										 * datetext = runDate.toTimeString(); datetext = datetext.split(' ')[0];
+										 * system.out.println(datetext); var formatteddatestr =
+										 * moment(runDate).format("hh:mm:ss a"); system.out.println(formatteddatestr);
+										 * if(dt1>formatteddatestr && formatteddatestr<dt2){ system.out.println('1'); }
+										 * // if(dt2>=datetext && datetexdt3){ system.out.println('2'); // }
+										 * if(dt3>datetext){ system.out.println('3'); }
+										 */
+                                      //
+                                        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+                                        String runTimeStr = timeFormat.format(runDate);
+                                        Date runTime = timeFormat.parse(runTimeStr);
+                                        Date startTime12hrs=timeFormat.parse("02:00:00");
+                                        Date endTime12hrs=timeFormat.parse("04:00:00");
+                                        Date startTime24hrs = timeFormat.parse("13:00:00");
+                                        Date endTime24hrs = timeFormat.parse("16:00:00");
+                                        Date startTime12hrsfrm4to8=timeFormat.parse("04:00:00");
+                                        Date endTime12hrsfrm4to8=timeFormat.parse("08:00:00");
+                                        Date startTime24hrsfrm4to8 = timeFormat.parse("16:00:00");
+                                        Date endTime24hrsfrm4to8 = timeFormat.parse("20:00:00");
+                                        int runCycleCount=0;
+                                        if (!(runTime.before(startTime12hrs) || runTime.after(endTime12hrs)) || runTime.before(startTime24hrs)  || runTime.after(endTime12hrs)) {
+                                        	
+                                            // Set the value of RUN_CYCLE to 1
+                                        	  runCycleCount=1;
+                                        }else if(!(runTime.before(startTime12hrsfrm4to8) || runTime.after(endTime12hrsfrm4to8)) || runTime.before(startTime24hrs)  || runTime.after(endTime12hrs)) {
+                                        	runCycleCount=2;
                                         }
-                                        if(dt2>=datetext && datetext=<dt3){
-                                            system.out.println('2');
-                                        }
-                                        if(dt3>datetext){
-                                            system.out.println('3');
-                                        }
+
  
                                         Map<String, Integer> occurrences = countOccurrencesInZipFileNames(folderPath, targetString1);
                                         //addLogDataToExcel(sheet, rowNum++, runDate, tableName, startDate,endDate,weeklyDaily,recordCount,occurrences.getOrDefault(targetString1, 0));
-                                        addLogDataToExcel(sheet, rowNum++, runDate, tableName, startDate,endDate,weeklyDaily,recordCount,occurrences.getOrDefault(targetString1, 0));
+                                        addLogDataToExcel(sheet, rowNum++, runDate, tableName, startDate,endDate,weeklyDaily,recordCount,runCycleCount);
                                     }
                                    
                                    
@@ -806,7 +841,7 @@ public class Final {
                
                 try {
                     return dateFormat.parse(firstLine);
-                    system.out.println(dateFormat.parse(firstLine));
+                    //System.out.println(dateFormat.parse(firstLine));
                 } catch (ParseException e) {
                     System.out.println("Error parsing date from log file: " + logFile.getName());
                     e.printStackTrace();
@@ -900,7 +935,7 @@ public class Final {
         return "";
     }
  
-    private static void addLogDataToExcel(Sheet sheet, int rowNum, Date runDate, String tableName,Date startDate,Date endDate,String weeklyDaily,int recordCount, Integer runCycleCount) {
+    private static void addLogDataToExcel(Sheet sheet, int rowNum, Date runDate, String tableName,Date startDate,Date endDate,String weeklyDaily,int recordCount,int runCycleCount) throws ParseException {
         Row row = sheet.createRow(rowNum);
  
         // Add the extracted run date to the RUN_DATE column
@@ -910,8 +945,18 @@ public class Final {
             cellRunDate.setCellValue(dateFormat.format(runDate));
  
         }
- 
- 
+     // Extract the time from the runDate
+        
+
+        // Check if the time is greater than or equal to 13:00 and less than or equal to 16:00
+        
+            
+            
+                //Cell cellRunCycle = row.createCell(1);
+                //cellRunCycle.setCellValue(runCycleCount);
+            
+        
+           
         // Add the mapped table name to the TABLE_NAME column
         Cell cellTableName = row.createCell(2);
         cellTableName.setCellValue(tableName);
