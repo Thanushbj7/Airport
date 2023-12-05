@@ -605,22 +605,10 @@ public class Final {
         Cell cellRunDate = row.createCell(0);
         if (runDate != null) {
             SimpleDateFormat logDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            SimpleDateFormat excelDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            SimpleDateFormat excelDateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
             cellRunDate.setCellValue(excelDateFormat.format(logDateFormat.parse(logDateFormat.format(runDate))));
         }
-     // Extract the time from the runDate
-        
-
-        // Check if the time is greater than or equal to 13:00 and less than or equal to 16:00
-        
-            
-            
-                //Cell cellRunCycle = row.createCell(1);
-                //cellRunCycle.setCellValue(runCycleCount);
-            
-        
-           
-        // Add the mapped table name to the TABLE_NAME column
+    
         Cell cellTableName = row.createCell(2);
         cellTableName.setCellValue(tableName);
         Cell cellStartDate=row.createCell(5);
@@ -630,13 +618,13 @@ public class Final {
         cellWeeklyDaily.setCellValue(weeklyDaily);
         if (startDate != null) {
             SimpleDateFormat logDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            SimpleDateFormat excelDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            SimpleDateFormat excelDateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
             cellStartDate.setCellValue(excelDateFormat.format(logDateFormat.parse(logDateFormat.format(startDate))));
         }
         Cell cellEndDate=row.createCell(6);
         if (endDate != null) {
             SimpleDateFormat logDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            SimpleDateFormat excelDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            SimpleDateFormat excelDateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
             cellEndDate.setCellValue(excelDateFormat.format(logDateFormat.parse(logDateFormat.format(endDate))));
         }
         setRecordCount.setCellValue(recordCount);
