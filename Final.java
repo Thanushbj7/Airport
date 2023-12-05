@@ -348,6 +348,7 @@ public class Final {
                 try (FileOutputStream fileOut = new FileOutputStream(excelFilePath)) {
                     workbook.write(fileOut);
                     System.out.println("Excel file created successfully at: " + excelFilePath);
+                    deleteFilesWithExtensions(folderPath, ".zip", ".log");
  
                 }
  
@@ -603,9 +604,9 @@ public class Final {
         // Add the extracted run date to the RUN_DATE column
         Cell cellRunDate = row.createCell(0);
         if (runDate != null) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            cellRunDate.setCellValue(dateFormat.format(runDate));
- 
+            SimpleDateFormat logDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat excelDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            cellRunDate.setCellValue(excelDateFormat.format(logDateFormat.parse(logDateFormat.format(runDate))));
         }
      // Extract the time from the runDate
         
@@ -627,20 +628,54 @@ public class Final {
         Cell setRecordCount=row.createCell(4);
         Cell setRunCycle=row.createCell(1);
         cellWeeklyDaily.setCellValue(weeklyDaily);
-        if(startDate!=null){
-            SimpleDateFormat dateFormat=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
- 
-            cellStartDate.setCellValue(dateFormat.format(startDate));
+        if (startDate != null) {
+            SimpleDateFormat logDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat excelDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            cellStartDate.setCellValue(excelDateFormat.format(logDateFormat.parse(logDateFormat.format(startDate))));
         }
         Cell cellEndDate=row.createCell(6);
-        if(endDate!=null){
-            SimpleDateFormat dateFormate=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            cellEndDate.setCellValue(dateFormate.format(endDate));
-        }setRecordCount.setCellValue(recordCount);
+        if (endDate != null) {
+            SimpleDateFormat logDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat excelDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            cellEndDate.setCellValue(excelDateFormat.format(logDateFormat.parse(logDateFormat.format(endDate))));
+        }
+        setRecordCount.setCellValue(recordCount);
         if (setRunCycle != null) {
             setRunCycle.setCellValue(runCycleCount);
         }
     }
+    private static void deleteFilesWithExtensions(String folderPath, String... extensions) {
+        File folder = new File(folderPath);
+
+        
+        deleteFilesRecursive(folder, extensions);
+    }
+
+    private static void deleteFilesRecursive(File folder, String... extensions) {
+        File[] files = folder.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    
+                    deleteFilesRecursive(file, extensions);
+                } else {
+                    
+                    for (String extension : extensions) {
+                        if (file.getName().toLowerCase().endsWith(extension)) {
+                            if (file.delete()) {
+                                System.out.println("Deleted file: " + file.getAbsolutePath());
+                            } else {
+                                System.out.println("Failed to delete file: " + file.getAbsolutePath());
+                            }
+                            break;  
+                        }
+                    }
+                }
+            }
+        }
+    }
+
  
  
 }
