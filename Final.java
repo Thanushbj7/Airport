@@ -33,7 +33,7 @@ public class Final {
 	
     public static void main(String[] args) throws ParseException {
         // Specify the folder containing the zip files
-        String folderPath = "C:\\Users\\USER\\Downloads\\ZipFiles";
+        String folderPath = "C:\\Users\\USER\\Downloads\\NewZip";
         // Specify the path for the Excel file
         String excelFilePath = "C:\\Users\\USER\\Downloads\\SFDC_COPY_TABLE_COUNT.csv";
  
@@ -69,6 +69,7 @@ public class Final {
                 Date SFDC_USERENdDate = null;
                 int runCycleCount  = 0;
                 int i=0;
+                int j=0;
                 for (File zipFile : zipFiles) {
                     String zipFileName = zipFile.getName();
                     String targetString = "";
@@ -248,22 +249,51 @@ public class Final {
                                         if(entryName.contains("sfdcRegistrationMapExtractProcess")) {
                                             
                                            	try {
-    												runCycleCount++;
-    												if(runCycleCount==4) {
-    												runCycleCount=0;
-    												}
+                                           		if(runCycleCount==0) {
+                                           			runCycleCount=3;
+                                           		}else {
+                                           			if(runCycleCount==3) {
+                                           				runCycleCount=0;
+                                           			}
+                                           			runCycleCount++;
+                                           			if(runCycleCount==4) {
+        												runCycleCount=0;
+        												}
+                                           		}
+    												
+    												
     												
     											}
                                            	catch (Exception e) {
     							
     												e.printStackTrace();
     											}
-                                           	}else if(!zipFileName.contains("Copy_Tables_extract_log_files") && !zipFileName.contains("trade_review_extract_log_files")) {
+                                        }
+                                           	else if(zipFileName.contains("EblotterExtract__log_files")) {
+                                           		j=1;
+                                           		runCycleCount=1;
+                                           	}
+                                           	
+                                           	else if(!zipFileName.contains("Copy_Tables_extract_log_files") && !zipFileName.contains("trade_review_extract_log_files")) {
+                                           		 if(zipFileName.contains("sfdcEBlotter") && j==1) {
+                                               		
+                                           			runCycleCount=2;
+                                           		
+                                           	}else {
  												runCycleCount=1;
+                                           	}
  											}
+                                           	
                                            	else if(entryName.contains("sfdcClientDisclosureExtractProcess")) {
+												if(i==0) {
+													i=3;
+												}else {
+													if(i==3) {
+														i=0;
+													}
+													i++;
+												}
 												
-												i++;
 												runCycleCount=i;
 												//System.out.println(i);
 												
