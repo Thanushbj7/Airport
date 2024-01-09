@@ -43,6 +43,44 @@ import java.io.File;
         </table>
     </div>
 </aura:component>
+
+
+
+
+
+    <!-- CaseHistoryPage.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes,force:appHostable">
+    <aura:attribute name="pageTitle" type="String" default="CASE HISTORY"/>
+    
+    <!-- Header Section -->
+    <div style="float: left; width: 20%; padding: 10px; background-color: #f2f2f2;">
+        <h1>{!v.pageTitle}</h1>
+    </div>
+    
+    <!-- Main Content Section -->
+    <div style="float: left; width: 80%; padding: 10px;">
+        <!-- Table Section -->
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Case Number</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Date</th>
+                    <!-- Add more headers as needed -->
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Example Data Rows -->
+                <aura:iteration items="[{'caseNumber': '001', 'date': '2024-01-09'}, {'caseNumber': '002', 'date': '2024-01-10'}]" var="caseRecord">
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{!caseRecord.caseNumber}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{!caseRecord.date}</td>
+                        <!-- Add more columns as needed -->
+                    </tr>
+                </aura:iteration>
+            </tbody>
+        </table>
+    </div>
+</aura:component>
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
