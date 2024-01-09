@@ -1,4 +1,22 @@
 import java.io.File;
+
+
+
+<!-- CaseHistoryPage.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes,force:appHostable">
+    <aura:attribute name="pageTitle" type="String" default="CASE HISTORY"/>
+    
+    <!-- Header Section -->
+    <div style="float: left; width: 20%; padding: 10px; background-color: #f2f2f2;">
+        <h1>{!v.pageTitle}</h1>
+    </div>
+    
+    <!-- Main Content Section -->
+    <div style="float: left; width: 80%; padding: 10px;">
+        <!-- Your main content goes here -->
+        <!-- Add more components or content as needed -->
+    </div>
+</aura:component>
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
