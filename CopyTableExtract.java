@@ -1,5 +1,44 @@
 import java.io.File;
 
+<!-- CaseHistoryPage.cmp -->
+<aura:component controller="CaseController" implements="flexipage:availableForAllPageTypes,force:appHostable">
+    <aura:attribute name="pageTitle" type="String" default="CASE HISTORY"/>
+    <aura:attribute name="caseRecords" type="List" />
+    
+    <!-- Initialization -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <!-- Header Section -->
+    <div style="float: left; width: 20%; padding: 10px; background-color: #f2f2f2;">
+        <h1>{!v.pageTitle}</h1>
+    </div>
+    
+    <!-- Main Content Section -->
+    <div style="float: left; width: 80%; padding: 10px;">
+        <!-- Table Section -->
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Case Number</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Date</th>
+                    <!-- Add more headers as needed -->
+                </tr>
+            </thead>
+            <tbody>
+                <aura:iteration items="{!v.caseRecords}" var="caseRecord">
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{!caseRecord.CaseNumber}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{!caseRecord.CreatedDate}</td>
+                        <!-- Add more columns as needed -->
+                    </tr>
+                </aura:iteration>
+            </tbody>
+        </table>
+    </div>
+</aura:component>
+
+
+
 
 
 <!-- CaseHistoryPage.cmp -->
