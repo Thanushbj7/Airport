@@ -1,3 +1,42 @@
+@isTest
+private class YourTestClass {
+
+    @isTest
+    static void parsePlanChildNodeTest() {
+        // Assuming you have already set up necessary data or mocks for Plan__c and other dependencies
+
+        // Creating a test instance of the class containing parsePlanChildNode method
+        YourClassInstance instance = new YourClassInstance();
+
+        // Creating a sample XMLNode for testing
+        Dom.Document doc = new Dom.Document();
+        Dom.XmlNode root = doc.createRootElement('root', null, null);
+        Dom.XmlNode child = root.addChildElement('child', null, null);
+        Dom.XmlNode marketNode = child.addChildElement('Market_ist__c', null, null);
+        marketNode.addTextNode('H');
+
+        // Mocking the planMap for the test
+        Map<String, Plan__c> planMap = new Map<String, Plan__c>();
+
+        // Invoking the method to test
+        instance.parsePlanChildNode(child, planMap);
+
+        // Asserting that 'Market_ist__c' is correctly set in the Plan__c object
+        Plan__c testPlan = planMap.values().get(0); // Assuming there's only one plan in the map
+        System.assertEquals('H', testPlan.Market_ist__c, 'Market_ist__c should be set to "H"');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
 private static void parsePlanChildNode(Dom.XMLNode child,PAAG__c paag,Map<String ,PAAG__c> paagMap){
         String planName;
          for(DOM.XmlNode awr : child.getchildren()){
