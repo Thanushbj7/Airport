@@ -1,3 +1,39 @@
+static testMethod void testRest_LMP() {
+      
+        String xml = '<sfplans>'
+                    +'<plan>'
+                    +'<planid> 971119</planid>'
+                    +'<Plan_Name_ist__c>TestLMPPlan</Plan_Name_ist__c>'
+            		+'<Market_ist__c>testMarket</Market_ist__c>'
+                    +'<Display_Local_Office_Subsection>testMarket</Display_Local_Office_Subsection>'
+                    +'<Display_Rep_Information_Subsection>testMarket1</Display_Rep_Information_Subsection>'
+                    +'<Timeframes__c>'
+                    +'</Timeframes__c>'
+            		+'<Client_Id__c>testLMP</Client_Id__c>'
+                    +'<PAAG_Configuration__c>LMP</PAAG_Configuration__c>'
+                    +'</plan>'
+                    +'</sfplans>';      
+        
+        RestRequest req = new RestRequest(); // Build the REST Request for testing
+       
+        req.addHeader('Content-Type', 'application/xml'); // Add a JSON Header as it is validated
+        req.requestURI = '/services/apexrest/SETIT-Conversion/*';  
+        req.httpMethod = 'POST';        // Perform a POST
+        req.requestBody = Blob.valueof(xml); // Add JSON Message as a POST
+        
+        RestResponse res = new RestResponse();
+        RestContext.request = req;
+        RestContext.response = res;
+        
+                 SetITDataConversion.populatePAAG();
+       
+    }
+
+
+
+
+
+
 @isTest
 private class YourTestClass {
 
