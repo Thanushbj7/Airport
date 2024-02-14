@@ -1,3 +1,24 @@
+private static void parseLocalOfficedNode(Dom.XMLNode child,PAAG_Local_Office__c localOffice){
+        if(child.getName() != null && localOfficeFieldMap.containsKey(child.getName().toLowerCase()) && (child.getText().trim()!='')){
+
+            if(localOfficeFieldMap.get(child.getName().toLowerCase()).getType() == Schema.DisplayType.Boolean){
+                 localOffice.put(child.getName(), Boolean.valueOf(child.getText().trim()));
+            }
+            else {
+                 localOffice.put(child.getName(),child.getText().trim());      
+            }
+         }
+    }
+
+
+
+
+
+
+
+
+
+
 static testMethod void testRest_LMP() {
       
         String xml = '<sfplans>'
