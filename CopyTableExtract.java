@@ -1,3 +1,49 @@
+@isTest
+private class YourApexClass_Test {
+
+    @isTest
+    static void testParseLocalOfficedNodeBooleanTrue() {
+        // Set up necessary data or objects
+
+        // Create a test instance of the class containing parseLocalOfficedNode method
+        YourApexClass instance = new YourApexClass();
+
+        // Create a mock XMLNode with a specific child node and text
+        Dom.XMLNode mockChild = // Create a mock XMLNode with a specific child node and text
+
+        // Call the method you want to test
+        instance.parseLocalOfficedNode(mockChild, localOffice);
+
+        // Assert the expected result, checking if localOffice has the expected Boolean value (true)
+        System.assertEquals(true, localOffice.get(child.getName()));
+    }
+
+    @isTest
+    static void testParseLocalOfficedNodeBooleanFalse() {
+        // Set up necessary data or objects
+
+        // Create a test instance of the class containing parseLocalOfficedNode method
+        YourApexClass instance = new YourApexClass();
+
+        // Create a mock XMLNode with a specific child node and text
+        Dom.XMLNode mockChild = // Create a mock XMLNode with a specific child node and text
+
+        // Call the method you want to test
+        instance.parseLocalOfficedNode(mockChild, localOffice);
+
+        // Assert the expected result, checking if localOffice has the expected Boolean value (false)
+        System.assertEquals(false, localOffice.get(child.getName()));
+    }
+
+    // Add more test methods for other scenarios if needed
+}
+
+
+
+
+
+
+
 private static void parseLocalOfficedNode(Dom.XMLNode child,PAAG_Local_Office__c localOffice){
         if(child.getName() != null && localOfficeFieldMap.containsKey(child.getName().toLowerCase()) && (child.getText().trim()!='')){
 
