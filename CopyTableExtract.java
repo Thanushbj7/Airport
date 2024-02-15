@@ -1,3 +1,24 @@
+private static void getPlanDefaultValues(Plan__c plan){
+        //B-113462 KM-Platform Opt Phase 2 - Plan Automation -> Update logic to hardcode INGWIN to Client_Id__c field when PAAG Configuration is not LMP - Alex Church
+         try{
+             if(plan.PAAG_Configuration__c == ConstantUtils.PAAG_LMP){                 
+                 plan.Client_Id__c = clientId.toUpperCase();
+                 System.debug('Client Id -> ' + clientId.toUpperCase());
+             }else{
+                 plan.Client_Id__c = 'INGWIN';
+                 System.debug('Client Id -> ' + plan.Client_Id__c);
+             }
+             
+             if(plan.PAAG_Configuration__c == null  || String.isBlank(plan.PAAG_Configuration__c))
+                plan.PAAG_Configuration__c = 'ILIAC';
+          }catch(Exception e){
+             System.debug('Exception Error: ' + e);
+         }
+     }
+
+
+
+
 private static void createResultInfo(String planName, String objectName, String status, String errMessage){
         ResultInfo resultInfo;
          if(paagResultMap.containsKey(planName)){
