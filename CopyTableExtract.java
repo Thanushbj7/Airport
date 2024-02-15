@@ -1,3 +1,54 @@
+private static GenericWithdrawal__c getGWDefaultValues(){
+         GenericWithdrawal__c GWCS = new GenericWithdrawal__c();
+         for(GenericWithdrawals__c GWSetting : GWSettingMap.values()){
+          	String defaultValue = '';
+             
+             if((String.isBlank( GWSetting.Object__c) )){ 
+                 
+                if(!String.isBlank(GWSetting.Value_1__c))                   
+                	defaultValue = GWSetting.Value_1__c;
+                
+                if(!String.isBlank(GWSetting.Value_2__c))
+                    defaultValue = defaultValue.trim() + GWSetting.Value_2__c;
+                 
+				if(!String.isBlank(GWSetting.Value_3__c))
+                    defaultValue = defaultValue.trim() + GWSetting.Value_3__c;
+                    
+                 if(!String.isBlank(GWSetting.Value_4__c))
+                    defaultValue = defaultValue.trim() + GWSetting.Value_4__c;
+                  
+                  if(!String.isBlank(GWSetting.Value_LMP__c))
+                    defaultValue = defaultValue.trim() + GWSetting.Value_LMP__c;
+                    
+                System.debug('Field '+ GWSetting.API_Name__c +'Default value '+defaultValue); 
+                if(GenericwithdrawFieldMap.get(GWSetting.API_Name__c.toLowerCase()).getType() == Schema.DisplayType.Boolean){
+                    GWCS.put(GWSetting.API_Name__c, Boolean.valueOf(defaultValue));
+                     
+                    system.debug(GWCS);
+                }
+                else
+                    GWCS.put(GWSetting.API_Name__c,defaultValue);
+                  
+             }
+             
+             GWCSetting.put(GWSetting.API_Name__c,defaultValue);
+         }
+        // GWCS.RecordTypeId = GWRecordType.Id;
+		 
+         return GWCS;
+     }
+    
+
+
+
+
+
+
+
+
+
+
+
 private static void getPlanDefaultValues(Plan__c plan){
         //B-113462 KM-Platform Opt Phase 2 - Plan Automation -> Update logic to hardcode INGWIN to Client_Id__c field when PAAG Configuration is not LMP - Alex Church
          try{
