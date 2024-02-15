@@ -1,3 +1,39 @@
+ private static Set<Id> performDML(List<SObject> objList, String operation){
+        Set<Id> sucessIds = new Set<Id>();
+        //system.debug('Insert List: ' + insertList.size()  );
+        Database.SaveResult[] srList;
+        
+        if(operation == 'insert')
+            srList = Database.insert(objList, false);
+        else if(operation == 'update')
+            srList = Database.update(objList, false);
+        
+        // Iterate through each returned result
+        for (Database.SaveResult sr : srList) {
+            if (sr.isSuccess()) {
+                // Operation was successful, so get the ID of the record that was processed
+                sucessIds.add(sr.getId());
+                System.debug('Operation sucess' + sr.getId());           
+            }
+            else {
+                // Operation failed, so get all errors       
+                System.debug('Operation failed');                
+                for(Database.Error err : sr.getErrors()) {
+                    System.debug('The following error has occurred.');                    
+                    System.debug(err.getStatusCode() + ': ' + err.getMessage());
+                    System.debug('Account fields that affected this error: ' + err.getFields());
+                }
+            }
+        }   
+        return sucessIds;
+        
+    }
+
+
+
+
+
+
 private static GenericWithdrawal__c getGWDefaultValues(){
          GenericWithdrawal__c GWCS = new GenericWithdrawal__c();
          for(GenericWithdrawals__c GWSetting : GWSettingMap.values()){
