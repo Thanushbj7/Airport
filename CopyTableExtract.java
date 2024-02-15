@@ -1,3 +1,31 @@
+private static void createResultInfo(String planName, String objectName, String status, String errMessage){
+        ResultInfo resultInfo;
+         if(paagResultMap.containsKey(planName)){
+            resultInfo = paagResultMap.get(planName);
+         }
+         else {
+            resultInfo = new ResultInfo();
+            resultInfo.planID = planName;
+         }
+         if(objectName == 'plan')
+            resultInfo.planStatus = status;
+         if(objectName == 'paag')
+            resultInfo.paagStatus = status;
+        if(objectName == 'GW')
+            resultInfo.GWStatus = status;
+         if(!String.isBlank(errMessage))
+            resultInfo.errorMessage = errMessage;
+            
+         paagResultMap.put( planName, resultInfo);
+    }
+
+
+
+
+
+
+
+
 @isTest
 private class YourApexClass_Test {
 
