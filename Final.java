@@ -1,3 +1,22 @@
+@isTest
+private class ResultInfoTest {
+
+    @isTest
+    static void errorMessageSetterTest() {
+        // Arrange
+        ResultInfo resultInfo = new ResultInfo();
+        String testErrorMessage = 'Test Error Message';
+
+        // Act
+        resultInfo.errorMessage = testErrorMessage;
+
+        // Assert
+        System.assertEquals(testErrorMessage, resultInfo.errorMessage, 'Error message should be set correctly');
+    }
+}
+
+
+
 global class ResultInfo{
         private String planID {get;set;}
         private String planStatus {get;set;}
