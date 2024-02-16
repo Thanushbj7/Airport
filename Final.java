@@ -1,3 +1,13 @@
+global class ResultInfo{
+        private String planID {get;set;}
+        private String planStatus {get;set;}
+        private String paagStatus {get;set;}
+        private String GWStatus {get;set;}
+        private String errorMessage {get;set;}
+    }
+
+
+
 import { LightningElement,wire,track,api } from 'lwc';
 import { subscribe, MessageContext } from 'lightning/messageService';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
