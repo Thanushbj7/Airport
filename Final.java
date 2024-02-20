@@ -1,4 +1,60 @@
 <template>
+    <a onclick={handleClickAction}>{label}</a>
+</template>
+
+
+
+
+
+<template>
+    <c-datatable-click-template
+        param={value}
+        >
+    </c-datatable-click-template>
+</template>
+
+
+
+
+
+import { LightningElement, track, wire } from 'lwc';
+import LightningDatatable from 'lightning/datatable';
+import onclickRow from './onclickRow.html';
+export default class datatableWithClick extends LightningDatatable {
+    static customTypes = {
+        clickrow: {
+            template: onclickRow
+        }
+    };
+}
+
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningMessageChannel xmlns="http://soap.sforce.com/2006/04/metadata">
+    <isExposed>true</isExposed>
+    <lightningMessageFields>
+        <description>Record Id</description>
+        <fieldName>dataId</fieldName>
+    </lightningMessageFields>
+    <lightningMessageFields>
+        <description>Record Type</description>
+        <fieldName>dataType</fieldName>
+    </lightningMessageFields>
+    <masterLabel>Filters Change Message Channel</masterLabel>
+</LightningMessageChannel>
+
+
+
+
+
+
+
+
+
+
+<template>
     <div style="height: 300px;">
         <h2 slot="title">
             <lightning-icon icon-name="action:new_note" title=" Case History"></lightning-icon>
