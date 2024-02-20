@@ -1,3 +1,68 @@
+<template>
+    <div style="height: 300px;">
+        <h2 slot="title">
+            <lightning-icon icon-name="action:new_note" title=" Case History"></lightning-icon>
+            <b>Case History</b>
+        </h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Case Number</th>
+                    <th>Created Date</th>
+                    <th>Call Type Inquiry</th>
+                    <th>Call Type Transaction</th>
+                    <th>Call Type Account Maintenance</th>
+                    <th>Call Type Forms</th>
+                    <th>Call Type Others</th>
+                    <!-- Add more columns as needed -->
+                </tr>
+            </thead>
+            <tbody>
+                <template for:each={data} for:item="item" for:index="index">
+                    <tr key={item.caseNumber}>
+                        <td>{index + 1}</td>
+                        <td>{item.caseNumber}</td>
+                        <td>{item.createdDate}</td>
+                        <td>{makeFieldClickable(item.callTypeInquiry, 'callTypeInquiry')}</td>
+                        <td>{makeFieldClickable(item.callTypeTransaction, 'callTypeTransaction')}</td>
+                        <td>{makeFieldClickable(item.callTypeAccountMaintenance, 'callTypeAccountMaintenance')}</td>
+                        <td>{makeFieldClickable(item.callTypeForms, 'callTypeForms')}</td>
+                        <td>{makeFieldClickable(item.callTypeOthers, 'callTypeOthers')}</td>
+                        <!-- Repeat for additional columns -->
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+</template>
+
+<script>
+import { LightningElement, api } from 'lwc';
+
+export default class YourComponent extends LightningElement {
+    @api data;
+
+    makeFieldClickable(value, field) {
+        // Check if the field value is not null, make it clickable
+        if (value !== null) {
+            return `<a href="${value}" target="_blank">${value}</a>`;
+        }
+        return value;
+    }
+}
+</script>
+
+
+
+
+
+
+
+
+
+
 import { LightningElement, api, track, wire } from 'lwc';
 import { publish, MessageContext } from 'lightning/messageService';
 import EXAMPLE_MESSAGE_CHANNEL from '@salesforce/messageChannel/ExampleMessageChannel__c';
