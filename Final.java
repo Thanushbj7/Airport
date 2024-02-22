@@ -1,3 +1,23 @@
+<div class="slds-card " style="height:400px; width:800px">
+			<div class="slds-p-horizontal_x-small">
+				<lightning-card title="Case History" icon-name="standard:case">
+							<c-my-newlwc
+														 data={data}
+														 columns={columns}
+														 key-field="Id"
+														oncus={handleEventCus} 
+														 hide-checkbox-column      
+														 >
+				</c-my-newlwc>
+					<!--oncellchange={handleCellClick}-->
+   </lightning-card>	</div>	</div>	
+
+
+
+
+
+
+
 <template>
     <a onclick={handleClickAction}>{label}</a>
 </template>
