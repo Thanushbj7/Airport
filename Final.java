@@ -1,462 +1,208 @@
-<div class="slds-card " style="height:400px; width:800px">
-			<div class="slds-p-horizontal_x-small">
-				<lightning-card title="Case History" icon-name="standard:case">
-							<c-my-newlwc
-														 data={data}
-														 columns={columns}
-														 key-field="Id"
-														oncus={handleEventCus} 
-														 hide-checkbox-column      
-														 >
-				</c-my-newlwc>
-					<!--oncellchange={handleCellClick}-->
-   </lightning-card>	</div>	</div>	
-
-
-
-
-
-
-
-<template>
-    <a onclick={handleClickAction}>{label}</a>
-</template>
-
-
-
-
-
-<template>
-    <c-datatable-click-template
-        param={value}
-        >
-    </c-datatable-click-template>
-</template>
-
-
-
-
-
-import { LightningElement, track, wire } from 'lwc';
-import LightningDatatable from 'lightning/datatable';
-import onclickRow from './onclickRow.html';
-export default class datatableWithClick extends LightningDatatable {
-    static customTypes = {
-        clickrow: {
-            template: onclickRow
-        }
-    };
-}
-
-
-
-
-<?xml version="1.0" encoding="UTF-8"?>
-<LightningMessageChannel xmlns="http://soap.sforce.com/2006/04/metadata">
-    <isExposed>true</isExposed>
-    <lightningMessageFields>
-        <description>Record Id</description>
-        <fieldName>dataId</fieldName>
-    </lightningMessageFields>
-    <lightningMessageFields>
-        <description>Record Type</description>
-        <fieldName>dataType</fieldName>
-    </lightningMessageFields>
-    <masterLabel>Filters Change Message Channel</masterLabel>
-</LightningMessageChannel>
-
-
-
-
-
-
-
-
-
-
-<template>
-    <div style="height: 300px;">
-        <h2 slot="title">
-            <lightning-icon icon-name="action:new_note" title=" Case History"></lightning-icon>
-            <b>Case History</b>
-        </h2>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Case Number</th>
-                    <th>Created Date</th>
-                    <th>Call Type Inquiry</th>
-                    <th>Call Type Transaction</th>
-                    <th>Call Type Account Maintenance</th>
-                    <th>Call Type Forms</th>
-                    <th>Call Type Others</th>
-                    <!-- Add more columns as needed -->
-                </tr>
-            </thead>
-            <tbody>
-                <template for:each={data} for:item="item" for:index="index">
-                    <tr key={item.caseNumber}>
-                        <td>{index + 1}</td>
-                        <td>{item.caseNumber}</td>
-                        <td>{item.createdDate}</td>
-                        <td>{makeFieldClickable(item.callTypeInquiry, 'callTypeInquiry')}</td>
-                        <td>{makeFieldClickable(item.callTypeTransaction, 'callTypeTransaction')}</td>
-                        <td>{makeFieldClickable(item.callTypeAccountMaintenance, 'callTypeAccountMaintenance')}</td>
-                        <td>{makeFieldClickable(item.callTypeForms, 'callTypeForms')}</td>
-                        <td>{makeFieldClickable(item.callTypeOthers, 'callTypeOthers')}</td>
-                        <!-- Repeat for additional columns -->
-                    </tr>
-                </template>
-            </tbody>
-        </table>
-    </div>
-</template>
-
-<script>
-import { LightningElement, api } from 'lwc';
-
-export default class YourComponent extends LightningElement {
-    @api data;
-
-    makeFieldClickable(value, field) {
-        // Check if the field value is not null, make it clickable
-        if (value !== null) {
-            return `<a href="${value}" target="_blank">${value}</a>`;
-        }
-        return value;
-    }
-}
-</script>
-
-
-
-
-
-
-
-
-
-
-import { LightningElement, api, track, wire } from 'lwc';
-import { publish, MessageContext } from 'lightning/messageService';
+import { LightningElement, wire, track, api } from 'lwc';
+import { subscribe, MessageContext, unsubscribe } from 'lightning/messageService';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
+import { NavigationMixin } from 'lightning/navigation';
 import EXAMPLE_MESSAGE_CHANNEL from '@salesforce/messageChannel/ExampleMessageChannel__c';
-import fetchWrapperCases from '@salesforce/apex/caseHistoryLWC.fetchWrapperCases';
+import getKnowledgeArticles from '@salesforce/apex/lightningPopController.getKnowledgeArticles';
+import chChannel from '@salesforce/messageChannel/chChannel__c';
 
-const columns = [
-    { label: 'Case Number', fieldName: 'caseNumber' },
-    { label: 'Date', fieldName: 'createdDate' },
-    { label: 'Plan Id', fieldName: 'planId' },
-    { label: 'Inquiry', fieldName: 'callTypeInquiry', columnKey: 'inq' },
-    { label: 'Transactions', fieldName: 'callTypeTransaction', columnKey: 'tra' },
-    { label: 'Account Maintenance', fieldName: 'callTypeAccountMaintenance', columnKey: 'accM' },
-    { label: 'Forms', fieldName: 'callTypeForms', columnKey: 'for' },
-    { label: 'Others', fieldName: 'callTypeOthers', columnKey: 'oth' },
-];
 
-export default class newLWC extends LightningElement {
-    @track data = [];
-    @track columns = columns;
 
-    wiredRecords;
-
+export default class subscriberLWC extends NavigationMixin(LightningElement) {
+    @track receivedValue = '';
+    @track subscription = null;
+    @wire(MessageContext)
+    messageContext;
+    selectedKARecordId;
+    CueInData;
+    divHeight;
+    displayKADetailModal = false;
+    clientStatus;
+    isLoading = false;
+    @track currentPage = 1;
+    pageSize = 10; // Number of items per page
+    callTypeInquiry = '';
+    subscription = null;
+    @wire(MessageContext) messageContext;
 
     connectedCallback() {
-            // Parse the URL and get the 'passedValue' parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            this.clientSSN = urlParams.get('clientSSN');
-            console.log('ssn should appear here' + this.clientSSN);
-            console.log('inside connected callback');
+        this.handleSubscribe();
+    }
+    disconnectedCallback() {
+        this.handleUnsubscribe();
+    }
+    handleSubscribe() {
+        if (!this.subscription) {
+            subscription = subscribe(this.messageContext, chChannel,
+                (parameter) => {
+                    this.callTypeInquiry =;
+                }
+            );
         }
-        //{SSN:this.clientSSN}
-
-    @wire(fetchWrapperCases) wiredCases(value) {
-        //console.log("Columns stringified 1st  --" , this.columns);
-        this.wiredRecords = value;
-        const { data, error } = value;
-        if (data) {
-
-            let tempRecords = JSON.parse(JSON.stringify(data));
-            let uniqueCaseNumbers = new Set();
-
-            let uniqueCallTypesMap = new Map();
-
-            function groupBy(objectArray, property) {
-                return objectArray.reduce(function(acc, obj) {
-                    var key = obj[property];
-                    if (!acc[key]) {
-                        acc[key] = [];
-                    }
-                    acc[key].push(obj);
-                    return acc;
-                }, {});
-            }
-            var groupedPlanIds;
-            var groupedCaseNumbers = groupBy(tempRecords, 'caseNumber');
-            let final = [];
-            let val = Object.values(groupedCaseNumbers);
-            console.log("Object.values--", val);
-            console.log("groupedCaseNumbers!", groupedCaseNumbers);
-            let cak = [];
-            let copiedarr = [];
-            for (let i = 0; i < val.length; i++) {
-
-                //	console.log("Object.values for palnId--" , val[i]);
-                groupedPlanIds = groupBy(val[i], 'planId')
-                let planVal = Object.values(groupedPlanIds)
-                console.log("Object.values for grouped PlanIds--", planVal);
-
-                for (let j = 0; j < planVal.length; j++) {
-                    let uniquePlanIds = new Set();
-                    let sObjectArray = [];
-                    const filteredCaseNumber = [];
-                    const filteredCreatedDate = [];
-                    const filteredPlanId = [];
-                    const filteredCallTypeInquiry = [];
-                    const filteredCallTypeTransaction = [];
-                    const filteredCallTypeAccountMaintenance = [];
-                    const filteredCallTypeForms = [];
-                    const filteredCallTypeOthers = [];
-                    console.log("planVal[j]--", planVal[j]);
-                    planVal[j].forEach(sObject => {
-                        filteredCaseNumber.push(sObject.caseNumber);
-                        filteredCreatedDate.push(sObject.createdDate);
-                        filteredPlanId.push(sObject.planId);
-                        if (sObject.callTypeInquiry) {
-                            filteredCallTypeInquiry.push(sObject.callTypeInquiry);
-                        }
-                        if (sObject.callTypeTransaction) {
-                            filteredCallTypeTransaction.push(sObject.callTypeTransaction);
-                        }
-                        if (sObject.callTypeAccountMaintenance) {
-                            filteredCallTypeAccountMaintenance.push(sObject.callTypeAccountMaintenance);
-                        }
-                        if (sObject.callTypeForms) {
-                            filteredCallTypeForms.push(sObject.callTypeForms);
-                        }
-                        if (sObject.callTypeOthers) {
-                            filteredCallTypeOthers.push(sObject.callTypeOthers);
-                        }
-                    });
-                    /*	console.log("filteredCaseNumber--" ,filteredCaseNumber);
-                    	console.log("filteredCreatedDate--" ,filteredCreatedDate);
-                    	console.log("filteredPlanId--" ,filteredPlanId);
-                    	console.log("filteredCallTypeInquiry--" ,filteredCallTypeInquiry);
-                    	console.log("filteredCallTypeTransaction--" ,filteredCallTypeTransaction);
-                    	console.log("filteredCallTypeAccountMaintenance--" ,filteredCallTypeAccountMaintenance);
-                    	console.log("filteredCallTypeForms--" ,filteredCallTypeForms);
-                    	console.log("filteredCallTypeOthers--" ,filteredCallTypeOthers);*/
-                    var arrLength = filteredCaseNumber.length;
-                    console.log("arrLength--", arrLength);
-                    for (let i = 0; i < arrLength; i++) {
-                        let title = {};
-                        title.caseNumber = filteredCaseNumber[i];
-                        title.createdDate = filteredCreatedDate[i];
-                        title.planId = filteredPlanId[i];
-                        title.callTypeInquiry = filteredCallTypeInquiry[i];
-                        title.callTypeTransaction = filteredCallTypeTransaction[i];
-                        title.callTypeAccountMaintenance = filteredCallTypeAccountMaintenance[i];
-                        title.callTypeForms = filteredCallTypeForms[i];
-                        title.callTypeOthers = filteredCallTypeOthers[i];
-                        sObjectArray.push(title);
-                        //		console.log("title--" ,title);
-                    }
-                    console.log("sObjectArray--", sObjectArray);
-                    cak = sObjectArray.map(row => {
-                        if (!uniquePlanIds.has(row.planId)) {
-                            uniquePlanIds.add(row.planId);
-                            return {...row, caseNumber: row.caseNumber, createdDate: row.createdDate };
-                            //		copiedarr.push(cak);
-                        }
-                        return {...row, caseNumber: null, createdDate: null, planId: null };
-                        //copiedarr.push(cak);
-                        //console.log("copiedarr--" ,copiedarr);
-                    });
+    }
+    handleUnsubscribe() {
+        unsubscribe(this.subscription);
+        this.subscription = null;
+    }
 
 
-                    copiedarr.push(cak);
+    get items() {
+        if (this.CueInData) {
+            const startIndex = (this.currentPage - 1) * this.pageSize;
+            const endIndex = this.currentPage * this.pageSize;
+            return this.CueInData.slice(startIndex, endIndex);
+        }
+        return [];
+    }
 
-                }
+    // Getter to calculate the total number of pages
+    get isPrevDisabled() {
+        return this.currentPage <= 1 || !this.CueInData || this.CueInData.length === 0;
+    }
 
-            }
-            console.log("copiedarr--", copiedarr);
+    get isNextDisabled() {
+        return !this.CueInData || this.currentPage >= this.totalPages || this.CueInData.length === 0;
+    }
 
-            const flattenedArr = copiedarr.flat(1);
-            console.log("flattenedArr--", flattenedArr);
-            let kk = flattenedArr.filter(sObj => {
-                if (sObj.callTypeInquiry != null || sObj.callTypeTransaction != null || sObj.callTypeAccountMaintenance != null || sObj.callTypeForms != null || sObj.callTypeOthers != null) {
-                    return sObj;
-                }
+    get totalPages() {
+        return this.CueInData ? Math.ceil(this.CueInData.length / this.pageSize) : 0;
+    }
+    connectedCallback() {
+        this.isLoading = true;
+        console.log('Connect')
+        this.divHeight = "height: 20 rem;";
+        getKnowledgeArticles({
+                receivedValue: this.receivedValue,
+                clientStatus: this.clientStatus
+            })
+            .then(result => {
+                // Handle the result from the Apex method
+                console.log('Apex Method Result:', result);
+                this.CueInData = result
+                this.currentPage = 1
+                this.isLoading = false;
+                // Add your logic to handle the result as needed
+            })
+            .catch(error => {
+                console.error('Error calling Apex method:', error);
+                this.showToast('Error', 'Error calling Apex method', 'error');
             });
-            this.data = kk;
+        this.subscribeToMessageChannel();
+    }
 
-            console.log("kk!", kk);
+    subscribeToMessageChannel() {
+        console.log('Here')
+        try {
+            this.subscription = subscribe(
+                this.messageContext,
+                EXAMPLE_MESSAGE_CHANNEL,
+                (message) => this.handleMessage(message)
+            );
+        } catch (error) {
+            console.log('Error ' + error)
         }
+    }
 
-        if (error) {
-            console.log("error Occurred!", error);
+    handleMessage(message) {
+        console.log('Message ' + message)
+        this.isLoading = true;
+        this.receivedValue = message.message;
+        this.clientStatus = message.status;
+        getKnowledgeArticles({
+                receivedValue: this.receivedValue,
+                clientStatus: this.clientStatus
+            })
+            .then(result => {
+                // Handle the result from the Apex method
+                console.log('Apex Method Result:', result);
+                this.CueInData = result
+                this.isLoading = false;
+                // Add your logic to handle the result as needed
+            })
+            .catch(error => {
+                console.error('Error calling Apex method:', error);
+                this.isLoading = false;
+                // this.showToast('Error', 'Error calling Apex method', 'error');
+            });
+    }
+    navigateToKARecordView(event) {
+        console.log('Navigate')
+        this.selectedKARecordId = event.target.name;
+        const eventaura = new CustomEvent('recordidpassed', {
+            detail: { recordId: this.selectedKARecordId }
+        });
+        this.dispatchEvent(eventaura);
+
+
+        // Navigate to the external URL
+
+        console.log('Line 58 ' + this.selectedKARecordId)
+        try {
+            this.selectedKARecordId = event.target.name;
+            this[NavigationMixin.Navigate]({
+                type: "standard__recordPage",
+                attributes: {
+                    recordId: this.selectedKARecordId,
+                    objectApiName: "Knowledge_kav",
+                    actionName: "view",
+                },
+            });
+        } catch (error) {
+            console.log('Error ' + error)
         }
+    }
+    openKADetailModal(event) {
+        console.log('Event target ' + event.target.name)
+        const DELAY_PopoverOpen = 250;
+        this.selectedKARecordId = event.target.name;
+        // Debouncing this method: Do not actually invoke the Apex call as long as this function is
+        // being called within a delay of DELAY. This is to avoid a very large number of Apex method calls.
+        window.clearTimeout(this.delayTimeout);
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        this.delayTimeout = setTimeout(() => {
+            this.displayKADetailModal = true;
+        }, DELAY_PopoverOpen);
+        console.log('KA Model ' + this.displayKADetailModal)
+    }
+
+    closeKADetailModal(event) {
+        const DELAY_PopoverClose = 300;
+        const kadetailLoaded = event.detail;
+        // Debouncing this method: Do not actually invoke the Apex call as long as this function is
+        // being called within a delay of DELAY. This is to avoid a very large number of Apex method calls.
+        window.clearTimeout(this.delayTimeout);
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        this.delayTimeout = setTimeout(() => {
+            if (kadetailLoaded === true) {
+                this.displayKADetailModal = true;
+            } else if (kadetailLoaded === false) {
+                this.displayKADetailModal = false;
+            } else {
+                this.displayKADetailModal = false;
+            }
+        }, DELAY_PopoverClose);
+    }
+
+    handleKnowArticleRowAction() {
+
+    }
+    handleCopyChatAnswer() {
 
     }
 
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-<template>
-    <div style="height: 300px;">
-        <h2>
-            <lightning-icon icon-name="action:new_note" title=" Case History"></lightning-icon>
-            <b>Case History</b>
-        </h2>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <template for:each={columns} for:item="col">
-                        <th key={col.label}>{col.label}</th>
-                    </template>
-                </tr>
-            </thead>
-            <tbody>
-                <template for:each={data} for:item="item" for:index="index">
-                    <tr key={item.Id}>
-                        <td>{index + rowOffset}</td>
-                        <template for:each={columns} for:item="col">
-                            <td key={col.field}>
-                                {makeFieldClickable(item[col.field], col.field)}
-                            </td>
-                        </template>
-                    </tr>
-                </template>
-            </tbody>
-        </table>
-    </div>
-</template>
-
-<script>
-import { LightningElement } from 'lwc';
-
-export default class YourComponent extends LightningElement {
-    clickableFields = ['Field1', 'Field2']; // Add the fields you want to make clickable
-
-    makeFieldClickable(value, field) {
-        // Check if the field is in the clickableFields array
-        if (this.clickableFields.includes(field)) {
-            return `<a href="${value}">${value}</a>`;
+    handleNext() {
+        if (this.currentPage < this.totalPages) {
+            this.currentPage += 1;
         }
-        return value;
     }
+
+    // Method to navigate to the previous page
+    handlePrevious() {
+        if (this.currentPage > 1) {
+            this.currentPage -= 1;
+        }
+    }
+
+
 }
-</script>
-
-
-
-
-
-
-
-
-<template>
-    <div style="height: 300px;">
-        <h2>
-            <lightning-icon icon-name="action:new_note" title=" Case History"></lightning-icon>
-            <b>Case History</b>
-        </h2>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <template for:each={columns} for:item="col">
-                        <th key={col.label}>{col.label}</th>
-                    </template>
-                </tr>
-            </thead>
-            <tbody>
-                <template for:each={data} for:item="item" for:index="index">
-                    <tr key={item.Id}>
-                        <td>{index + rowOffset}</td>
-                        <template for:each={columns} for:item="col">
-                            <td key={col.field}>{item[col.field]}</td>
-                        </template>
-                    </tr>
-                </template>
-            </tbody>
-        </table>
-    </div>
-</template>
-
-
-
-
-
-
-<template>
-    <div style="height: 300px;">
-        <h2> 
-            <lightning-icon icon-name="action:new_note" title=" Case History"></lightning-icon>
-            <b>Case History</b>
-        </h2>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Column 1</th>
-                    <th>Column 2</th>
-                    <!-- Add more columns as needed -->
-                </tr>
-            </thead>
-            <tbody>
-                <template for:each={data} for:item="item" for:index="index">
-                    <tr key={item.Id}>
-                        <td>{index + rowOffset}</td>
-                        <td>{item.Column1}</td>
-                        <td>{item.Column2}</td>
-                        <!-- Repeat for additional columns -->
-                    </tr>
-                </template>
-            </tbody>
-        </table>
-    </div>
-</template>
-
-
-
-
-
-
-
-
-<template>
-    <div style="height: 300px;">
-            <h2 slot="title">
-                    <lightning-icon icon-name="action:new_note"  title=" Case History"></lightning-icon>
-                    <b>Case History</b>
-            </h2>
-
-            <lightning-datatable
-                                                     data={data}
-                                                     columns={columns}
-                                                     key-field="Id"
-                                                     show-row-number-column
-                                                     row-number-offset={rowOffset}
-                                                     hide-checkbox-column      
-                                                     >
-            </lightning-datatable>
-    </div>
- 
-</template>
