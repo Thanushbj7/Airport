@@ -33,6 +33,41 @@ handleSubscribe() {
 
 
 
+// Modify the handleSubscribe method to fetch the value into this.callTypeInquiry
+handleSubscribe() {
+    if (!this.subscription) {
+        this.subscription = subscribe(this.messageContext, chChannel,
+            (parameter) => {
+                // Call getKnowledgeArticles to fetch data from Apex class
+                getKnowledgeArticles({
+                    receivedValue: this.receivedValue,
+                    clientStatus: this.clientStatus
+                })
+                .then(result => {
+                    // Handle the result from the Apex method
+                    console.log('Apex Method Result:', result);
+                    this.CueInData = result;
+                    this.callTypeInquiry = result.callTypeInquiry; // Assuming callTypeInquiry is the property you want to update
+                    this.isLoading = false;
+                    // Add your logic to handle the result as needed
+                })
+                .catch(error => {
+                    console.error('Error calling Apex method:', error);
+                    this.showToast('Error', 'Error calling Apex method', 'error');
+                    this.isLoading = false;
+                });
+            }
+        );
+    }
+}
+
+
+
+
+
+
+
+
 
 
 
