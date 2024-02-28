@@ -1,3 +1,43 @@
+import { LightningElement, track, wire } from 'lwc';
+import { refreshApex } from '@salesforce/apex';
+import initClientOffers from '@salesforce/apex/TargetedMessage.initClientOffers';
+
+const columns = [
+    { label: 'Plan Id', fieldName: 'offerPlanId' },
+    { label: 'Plan Name', fieldName: 'offerPlanName', columnKey: 'tra' },
+    { label: 'Active Mailer', fieldName: 'activeMailer', columnKey: 'accM' },
+    { label: 'Message Name', fieldName: 'offerName', columnKey: 'inq' },
+];
+
+export default class CTargetedMessage extends LightningElement {
+    @track data = [];
+    @track columns = columns;
+    wiredRecords;
+
+    @wire(initClientOffers)
+    wiredCases(result) {
+        this.wiredRecords = result;
+        const { data, error } = result;
+        if (data) {
+            // Assuming your Apex method returns a List<vfClientOffer>
+            this.data = data;
+        } else if (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+
+    // You can add refresh functionality if needed
+    handleRefresh() {
+        return refreshApex(this.wiredRecords);
+    }
+}
+
+
+
+
+
+
+
 public with sharing class TargetedMessage {
      ///Code for Targeted message
        //
