@@ -1,3 +1,43 @@
+import { LightningElement, wire, track } from 'lwc';
+import initClientOffers from '@salesforce/apex/TargetedMessage.initClientOffers';
+
+const columns = [
+    { label: 'Plan Id', fieldName: 'planId' },
+    { label: 'Plan Name', fieldName: 'offerPlanName', columnKey: 'tra' },
+    { label: 'Active Mailer', fieldName: 'activeMailer', columnKey: 'accM' },
+    { label: 'Message Name', fieldName: 'offerName', columnKey: 'inq' },
+];
+
+export default class CTargetedMessage extends LightningElement {
+    @track data = [];
+    @track columns = columns;
+
+    @wire(initClientOffers)
+    wiredCases({ data, error }) {
+        if (data) {
+            // Assuming data is an array of objects with properties planId, offerPlanName, activeMailer, and offerName
+            this.data = data.map(row => ({
+                planId: row.planId,
+                offerPlanName: row.offerPlanName,
+                activeMailer: row.activeMailer,
+                offerName: row.offerName,
+            }));
+        }
+        if (error) {
+            console.error("Error Occurred!", error);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
 import { LightningElement, track, wire } from 'lwc';
 import { refreshApex } from '@salesforce/apex';
 import initClientOffers from '@salesforce/apex/TargetedMessage.initClientOffers';
