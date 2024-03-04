@@ -1,3 +1,26 @@
+{ label: 'Plan Name', fieldName: 'offerPlanName', columnKey: 'tra', type: 'url', typeAttributes: { label: { fieldName: 'offerPlanName' }, onclick: 'handleOfferNameClick' } },
+
+handleOfferNameClick(event) {
+    // Prevent the default behavior of the click event (opening the URL)
+    event.preventDefault();
+
+    // Set a property to indicate that the detail tab should be visible
+    this.isDetailTabVisible = true;
+}
+
+<lightning-tabset>
+    <lightning-tab label="Available Targeted Messages">
+        <!-- Existing content for Available Targeted Messages tab -->
+    </lightning-tab>
+    <lightning-tab key="detailTab" label="Detail" if:true={isDetailTabVisible}>
+        <!-- Content for the Detail tab -->
+    </lightning-tab>
+</lightning-tabset>
+
+
+
+
+
 <template>
     <div class="slds-card" style="height:400px; width:610px">
             <lightning-card title="Targeted Messages" icon-name="standard:case">
