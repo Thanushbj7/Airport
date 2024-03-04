@@ -1,3 +1,73 @@
+// NewTabHandler.js
+import { LightningElement, wire } from 'lwc';
+import { subscribe, MessageContext } from 'lightning/messageService';
+import EXAMPLE_MESSAGE_CHANNEL from '@salesforce/messageChannel/ExampleMessageChannel__c';
+
+export default class NewTabHandler extends LightningElement {
+    @wire(MessageContext)
+    messageContext;
+
+    subscription;
+
+    connectedCallback() {
+        // Subscribe to the message channel
+        this.subscription = subscribe(
+            this.messageContext,
+            EXAMPLE_MESSAGE_CHANNEL,
+            (message) => this.handleMessage(message)
+        );
+    }
+
+    handleMessage(message) {
+        if (message.createNewTab) {
+            this.createNewTab(message.tabName, message.tabLabel);
+        }
+    }
+
+    createNewTab(tabName, tabLabel) {
+        // Logic to dynamically create a new tab in your component
+        // You can use a similar approach as mentioned in the previous response
+    }
+
+    disconnectedCallback() {
+        // Unsubscribe from the message channel when the component is destroyed
+        unsubscribe(this.subscription);
+    }
+}
+
+
+
+
+
+
+// Import the message service and your message channel
+import { publish, MessageContext } from 'lightning/messageService';
+import EXAMPLE_MESSAGE_CHANNEL from '@salesforce/messageChannel/ExampleMessageChannel__c';
+
+// ...
+
+handleOfferNameClick(event) {
+    // Prevent the default behavior of the click event (opening the URL)
+    event.preventDefault();
+
+    // Set a property to indicate that the detail tab should be visible
+    this.isDetailTabVisible = true;
+
+    // Publish a message to indicate that a new tab should be created
+    const messagePayload = {
+        createNewTab: true,
+        tabName: 'Detail',
+        tabLabel: 'Detail Tab Label'
+    };
+
+    publish(this.messageContext, EXAMPLE_MESSAGE_CHANNEL, messagePayload);
+}
+
+
+
+
+
+
 <lightning-tabset>
     <lightning-tab label="Available Targeted Messages">
         <!-- Existing content for Available Targeted Messages tab -->
