@@ -1,3 +1,34 @@
+// ... Existing imports and class definition ...
+
+export default class CTargetedMessage extends LightningElement {
+    // ... Existing properties and methods ...
+
+    handleMessageNameClick(event) {
+        const messageId = event.detail.row.offerName; // Adjust this based on your data structure
+        const newTab = window.open('', '_blank');
+        // Optionally, you can set a dynamic URL or leave it blank for now
+        newTab.location.href = ''; // Adjust the URL if needed
+    }
+
+    // ... Existing connectedCallback and wiredCases methods ...
+
+    // You might need to add an event listener for the message name click
+    renderedCallback() {
+        // Ensure the event listener is added only once
+        if (!this.messageNameClickListenerAdded) {
+            this.template.addEventListener('clickmess', this.handleMessageNameClick.bind(this));
+            this.messageNameClickListenerAdded = true;
+        }
+    }
+}
+
+
+
+
+
+
+
+
 <template>
     <div class="slds-card" style="height:400px; width:610px">
             <lightning-card title="Targeted Messages" icon-name="standard:case">
