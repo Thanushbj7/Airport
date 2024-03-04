@@ -1,3 +1,53 @@
+import { LightningElement, api, track, wire } from 'lwc';
+import { publish, MessageContext } from 'lightning/messageService';
+import EXAMPLE_MESSAGE_CHANNEL from '@salesforce/messageChannel/ExampleMessageChannel__c';
+import fetchWrapperCases from '@salesforce/apex/caseHistoryLWC.fetchWrapperCases';
+import initClientOffers from '@salesforce/apex/TargetedMessage.initClientOffers';
+const columns = [
+    //{ label: 'PlanId', fieldName: 'linkName', type:'url' ,typeAttributes: { label: {fieldName: 'caseNumber'}, target:'_blank'}},
+    //{ label: 'Date', fieldName: 'createdDate' },
+    { label: 'PlanId', fieldName: 'offerPlanId' },
+    { label: 'Plan Name', fieldName: 'offerPlanName', columnKey: 'tra' },
+    { label: 'Active Mailer', fieldName: 'activeMailer', columnKey: 'accM' },
+    { label: 'Message Name', fieldName: 'offerName', type: 'clickmess', typeAttributes: { tmMessName: { fieldName: 'offerName' } } },
+
+
+
+];
+
+export default class CTargetedMessage extends LightningElement {
+    @track data = [];
+    @track columns = columns;
+    wiredRecords;
+    connectedCallback() {
+        // Parse the URL and get the 'passedValue' parameter				 
+        const urlParams = new URLSearchParams(window.location.search);
+        this.clientSSN = urlParams.get('clientSSN');
+        console.log('ssn should appear here' + this.clientSSN);
+        console.log('inside connected callback');
+    }
+
+
+
+    @wire(initClientOffers, { clientSSN: '$clientSSN' }) wiredCases(value) {
+        //console.log("Columns stringified 1st  --" , this.columns);
+        this.wiredRecords = value;
+        const { data, error } = value;
+        if (data) {
+            this.data = data;
+
+        }
+
+    }
+}
+
+
+
+
+
+
+
+
 import { LightningElement, wire, track } from 'lwc';
 import initClientOffers from '@salesforce/apex/TargetedMessage.initClientOffers';
 
