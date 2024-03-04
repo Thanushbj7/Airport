@@ -1,3 +1,56 @@
+<lightning-tabset>
+    <lightning-tab label="Available Targeted Messages">
+        <!-- Existing content for Available Targeted Messages tab -->
+    </lightning-tab>
+    <lightning-tab key="detailTab" label="Detail" if:true={isDetailTabVisible}>
+        <!-- Content for the Detail tab -->
+    </lightning-tab>
+</lightning-tabset>
+
+
+
+
+
+// Add this property
+@track isDetailTabVisible = false;
+
+// ...
+
+handleOfferNameClick(event) {
+    // Prevent the default behavior of the click event (opening the URL)
+    event.preventDefault();
+
+    // Set a property to indicate that the detail tab should be visible
+    this.isDetailTabVisible = true;
+
+    // Add logic to dynamically create a new tab
+    this.createNewTab('Detail', 'Detail Tab Label');
+}
+
+createNewTab(tabName, tabLabel) {
+    const tabset = this.template.querySelector('lightning-tabset');
+
+    if (tabset) {
+        const newTab = document.createElement('lightning-tab');
+        newTab.label = tabLabel;
+        newTab.key = tabName;
+
+        // You can add additional content or components to the new tab as needed
+
+        // Insert the new tab next to the "Available Targeted Messages" tab
+        const availableTab = tabset.querySelector('[label="Available Targeted Messages"]');
+        if (availableTab) {
+            const tabIndex = Array.from(tabset.children).indexOf(availableTab);
+            tabset.insertBefore(newTab, tabset.children[tabIndex + 1]);
+        }
+    }
+}
+
+
+
+
+
+
 { label: 'Plan Name', fieldName: 'offerPlanName', columnKey: 'tra', type: 'url', typeAttributes: { label: { fieldName: 'offerPlanName' }, onclick: 'handleOfferNameClick' } },
 
 handleOfferNameClick(event) {
