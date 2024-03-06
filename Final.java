@@ -1,3 +1,41 @@
+// Import the schema for the Offer_Response__c field
+import OFFER_RESPONSE from '@salesforce/schema/Opportunity.Offer_Response__c';
+
+// ...
+
+export default class CTargetedMessage extends LightningElement {
+
+    // ...
+
+    @wire(getPicklistValues, {
+        recordTypeId: '012000000000000AAA', // Replace with your actual record type Id
+        fieldApiName: RESPONSE,
+    })
+    wiredResponsePickListValue({ data, error }) {
+        if (data) {
+            console.log(`Response Picklist values are ${data.values}`);
+            this.responsePickListValues = data.values;
+            this.error = undefined;
+        }
+        if (error) {
+            console.log(`Error while fetching Response Picklist values: ${error}`);
+            this.error = error;
+            this.responsePickListValues = undefined;
+        }
+    }
+
+    // ...
+}
+
+
+
+
+
+
+
+
+
+
 import { LightningElement, api, track, wire } from 'lwc';
 import { publish, MessageContext } from 'lightning/messageService';
 import EXAMPLE_MESSAGE_CHANNEL from '@salesforce/messageChannel/ExampleMessageChannel__c';
