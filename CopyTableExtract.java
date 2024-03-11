@@ -1,382 +1,283 @@
- private static Set<Id> performDML(List<SObject> objList, String operation){
-        Set<Id> sucessIds = new Set<Id>();
-        //system.debug('Insert List: ' + insertList.size()  );
-        Database.SaveResult[] srList;
-        
-        if(operation == 'insert')
-            srList = Database.insert(objList, false);
-        else if(operation == 'update')
-            srList = Database.update(objList, false);
-        
-        // Iterate through each returned result
-        for (Database.SaveResult sr : srList) {
-            if (sr.isSuccess()) {
-                // Operation was successful, so get the ID of the record that was processed
-                sucessIds.add(sr.getId());
-                System.debug('Operation sucess' + sr.getId());           
-            }
-            else {
-                // Operation failed, so get all errors       
-                System.debug('Operation failed');                
-                for(Database.Error err : sr.getErrors()) {
-                    System.debug('The following error has occurred.');                    
-                    System.debug(err.getStatusCode() + ': ' + err.getMessage());
-                    System.debug('Account fields that affected this error: ' + err.getFields());
-                }
-            }
-        }   
-        return sucessIds;
-        
-    }
+<template>
+<div class="slds-card" style="height:400px; width:610px">
+        <lightning-card title="Targeted Messages" icon-name="standard:case">
 
-
-
-
-
-
-private static GenericWithdrawal__c getGWDefaultValues(){
-         GenericWithdrawal__c GWCS = new GenericWithdrawal__c();
-         for(GenericWithdrawals__c GWSetting : GWSettingMap.values()){
-          	String defaultValue = '';
-             
-             if((String.isBlank( GWSetting.Object__c) )){ 
-                 
-                if(!String.isBlank(GWSetting.Value_1__c))                   
-                	defaultValue = GWSetting.Value_1__c;
+                <h2 slot="title">
+                <lightning-icon icon-name="action:new_note"   size="small" title=" Targeted Message "></lightning-icon>
+                <b>Targeted Message</b>
+        </h2>
                 
-                if(!String.isBlank(GWSetting.Value_2__c))
-                    defaultValue = defaultValue.trim() + GWSetting.Value_2__c;
-                 
-				if(!String.isBlank(GWSetting.Value_3__c))
-                    defaultValue = defaultValue.trim() + GWSetting.Value_3__c;
-                    
-                 if(!String.isBlank(GWSetting.Value_4__c))
-                    defaultValue = defaultValue.trim() + GWSetting.Value_4__c;
-                  
-                  if(!String.isBlank(GWSetting.Value_LMP__c))
-                    defaultValue = defaultValue.trim() + GWSetting.Value_LMP__c;
-                    
-                System.debug('Field '+ GWSetting.API_Name__c +'Default value '+defaultValue); 
-                if(GenericwithdrawFieldMap.get(GWSetting.API_Name__c.toLowerCase()).getType() == Schema.DisplayType.Boolean){
-                    GWCS.put(GWSetting.API_Name__c, Boolean.valueOf(defaultValue));
-                     
-                    system.debug(GWCS);
-                }
-                else
-                    GWCS.put(GWSetting.API_Name__c,defaultValue);
-                  
-             }
-             
-             GWCSetting.put(GWSetting.API_Name__c,defaultValue);
-         }
-        // GWCS.RecordTypeId = GWRecordType.Id;
-		 
-         return GWCS;
-     }
-    
 
-
-
-
-
-
-
-
-
-
-
-private static void getPlanDefaultValues(Plan__c plan){
-        //B-113462 KM-Platform Opt Phase 2 - Plan Automation -> Update logic to hardcode INGWIN to Client_Id__c field when PAAG Configuration is not LMP - Alex Church
-         try{
-             if(plan.PAAG_Configuration__c == ConstantUtils.PAAG_LMP){                 
-                 plan.Client_Id__c = clientId.toUpperCase();
-                 System.debug('Client Id -> ' + clientId.toUpperCase());
-             }else{
-                 plan.Client_Id__c = 'INGWIN';
-                 System.debug('Client Id -> ' + plan.Client_Id__c);
-             }
-             
-             if(plan.PAAG_Configuration__c == null  || String.isBlank(plan.PAAG_Configuration__c))
-                plan.PAAG_Configuration__c = 'ILIAC';
-          }catch(Exception e){
-             System.debug('Exception Error: ' + e);
-         }
-     }
-
-
-
-
-private static void createResultInfo(String planName, String objectName, String status, String errMessage){
-        ResultInfo resultInfo;
-         if(paagResultMap.containsKey(planName)){
-            resultInfo = paagResultMap.get(planName);
-         }
-         else {
-            resultInfo = new ResultInfo();
-            resultInfo.planID = planName;
-         }
-         if(objectName == 'plan')
-            resultInfo.planStatus = status;
-         if(objectName == 'paag')
-            resultInfo.paagStatus = status;
-        if(objectName == 'GW')
-            resultInfo.GWStatus = status;
-         if(!String.isBlank(errMessage))
-            resultInfo.errorMessage = errMessage;
-            
-         paagResultMap.put( planName, resultInfo);
-    }
-
-
-
-
-
-
-
-
-@isTest
-private class YourApexClass_Test {
-
-    @isTest
-    static void testParseLocalOfficedNodeBooleanTrue() {
-        // Set up necessary data or objects
-
-        // Create a test instance of the class containing parseLocalOfficedNode method
-        YourApexClass instance = new YourApexClass();
-
-        // Create a mock XMLNode with a specific child node and text
-        Dom.XMLNode mockChild = // Create a mock XMLNode with a specific child node and text
-
-        // Call the method you want to test
-        instance.parseLocalOfficedNode(mockChild, localOffice);
-
-        // Assert the expected result, checking if localOffice has the expected Boolean value (true)
-        System.assertEquals(true, localOffice.get(child.getName()));
-    }
-
-    @isTest
-    static void testParseLocalOfficedNodeBooleanFalse() {
-        // Set up necessary data or objects
-
-        // Create a test instance of the class containing parseLocalOfficedNode method
-        YourApexClass instance = new YourApexClass();
-
-        // Create a mock XMLNode with a specific child node and text
-        Dom.XMLNode mockChild = // Create a mock XMLNode with a specific child node and text
-
-        // Call the method you want to test
-        instance.parseLocalOfficedNode(mockChild, localOffice);
-
-        // Assert the expected result, checking if localOffice has the expected Boolean value (false)
-        System.assertEquals(false, localOffice.get(child.getName()));
-    }
-
-    // Add more test methods for other scenarios if needed
-}
-
-
-
-
-
-
-
-private static void parseLocalOfficedNode(Dom.XMLNode child,PAAG_Local_Office__c localOffice){
-        if(child.getName() != null && localOfficeFieldMap.containsKey(child.getName().toLowerCase()) && (child.getText().trim()!='')){
-
-            if(localOfficeFieldMap.get(child.getName().toLowerCase()).getType() == Schema.DisplayType.Boolean){
-                 localOffice.put(child.getName(), Boolean.valueOf(child.getText().trim()));
-            }
-            else {
-                 localOffice.put(child.getName(),child.getText().trim());      
-            }
-         }
-    }
-
-
-
-
-
-
-
-
-
-
-static testMethod void testRest_LMP() {
-      
-        String xml = '<sfplans>'
-                    +'<plan>'
-                    +'<planid> 971119</planid>'
-                    +'<Plan_Name_ist__c>TestLMPPlan</Plan_Name_ist__c>'
-            		+'<Market_ist__c>testMarket</Market_ist__c>'
-                    +'<Display_Local_Office_Subsection>testMarket</Display_Local_Office_Subsection>'
-                    +'<Display_Rep_Information_Subsection>testMarket1</Display_Rep_Information_Subsection>'
-                    +'<Timeframes__c>'
-                    +'</Timeframes__c>'
-            		+'<Client_Id__c>testLMP</Client_Id__c>'
-                    +'<PAAG_Configuration__c>LMP</PAAG_Configuration__c>'
-                    +'</plan>'
-                    +'</sfplans>';      
-        
-        RestRequest req = new RestRequest(); // Build the REST Request for testing
-       
-        req.addHeader('Content-Type', 'application/xml'); // Add a JSON Header as it is validated
-        req.requestURI = '/services/apexrest/SETIT-Conversion/*';  
-        req.httpMethod = 'POST';        // Perform a POST
-        req.requestBody = Blob.valueof(xml); // Add JSON Message as a POST
-        
-        RestResponse res = new RestResponse();
-        RestContext.request = req;
-        RestContext.response = res;
-        
-                 SetITDataConversion.populatePAAG();
-       
-    }
-
-
-
-
-
-
-@isTest
-private class YourTestClass {
-
-    @isTest
-    static void parsePlanChildNodeTest() {
-        // Assuming you have already set up necessary data or mocks for Plan__c and other dependencies
-
-        // Creating a test instance of the class containing parsePlanChildNode method
-        YourClassInstance instance = new YourClassInstance();
-
-        // Creating a sample XMLNode for testing
-        Dom.Document doc = new Dom.Document();
-        Dom.XmlNode root = doc.createRootElement('root', null, null);
-        Dom.XmlNode child = root.addChildElement('child', null, null);
-        Dom.XmlNode marketNode = child.addChildElement('Market_ist__c', null, null);
-        marketNode.addTextNode('H');
-
-        // Mocking the planMap for the test
-        Map<String, Plan__c> planMap = new Map<String, Plan__c>();
-
-        // Invoking the method to test
-        instance.parsePlanChildNode(child, planMap);
-
-        // Asserting that 'Market_ist__c' is correctly set in the Plan__c object
-        Plan__c testPlan = planMap.values().get(0); // Assuming there's only one plan in the map
-        System.assertEquals('H', testPlan.Market_ist__c, 'Market_ist__c should be set to "H"');
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-private static void parsePlanChildNode(Dom.XMLNode child,PAAG__c paag,Map<String ,PAAG__c> paagMap){
-        String planName;
-         for(DOM.XmlNode awr : child.getchildren()){
-            Plan__c plan;
-            System.debug('NAMENODE>>>>>>>>>>>>>>>>'+awr.getName());      
-            if(!String.isBlank(awr.getName()) && awr.getName() == 'planid'){
-                planName=awr.getText().trim();
-                if(planMap.containsKey(planName))
-                    plan = planMap.get(planName);
-                else{
-                    plan = new Plan__c();
-                    plan.Name = planName;
-                    planMap.put(planName, plan);
-                }
-                
-            }
-            else if(!String.isBlank(awr.getName()) &&  awr.getName() == 'Plan_Name_ist__c' ){
-                String nodeValue = awr.getText().trim();
-                if(planMap.containsKey(planName)){  
-                    plan = planMap.get(planName);
-                    plan.put('Plan_Name_ist__c', nodeValue);
-                    planMap.put(planName, plan);    
-                }
-            }
-            //B-113462 KM-Platform Opt Phase 2 - Plan Automation -> parse client Id for getPlanDefaultValues - Alex Church
-            else if(!String.isBlank(awr.getName()) && awr.getName() == 'Client_Id__c'){
-                String nodeValue = awr.getText().trim();
-                clientId = nodeValue;
-            }
-            else if(!String.isBlank(awr.getName()) &&  awr.getName() == 'PAAG_Configuration__c' ){
-                String nodeValue = awr.getText().trim();
-                if(planMap.containsKey(planName)){  
-                    plan = planMap.get(planName);
-                    plan.put('PAAG_Configuration__c', nodeValue);
-                    planMap.put(planName, plan);
-                }
-            }
-            else if(!String.isBlank(awr.getName()) &&  awr.getName() == 'Market_ist__c'){
-                String nodeValue = awr.getText().trim();
-                if(planMap.containsKey(planName)){
-                    plan = planMap.get(planName);
-                    if(nodeValue == 'H' || nodeValue == 'E' || nodeValue == 'G' )
-                        plan.put('Market_ist__c', nodeValue);
-                    else if(nodeValue == 'C')
-                        plan.put('Market_ist__c', nodeValue);
-                    
-                    planMap.put(planName, plan);    
-                }
-            }
-
-
-
-
-
-
-
-
-import { LightningElement, wire } from 'lwc';
+                <div class="slds-p-horizontal_xx-small">
+                        <lightning-tabset>
+                                <lightning-tab label="Available Targeted Messages">
+                                        <div class="demo-only demo-only--sizing slds-grid slds-wrap"> 
+                                                
+                                        </div>
+                                        <div style="height: 200px;"> <div class="slds-m-top_small slds-m-horizontal_x-small">
+                                        <c-clickable-mess-nam
+                                                key-field="Id"
+                                                data={data}
+                                                columns={columns}>
+                                        </c-clickable-mess-nam>
+                                        </div> 
+                                        </div>
+                                </lightning-tab>
+                                
+                                <!--  <template if:true={isDetailTabVisible}> -->
+                                <lightning-tab  label="Detail" >
+                                        <div class="slds-p-horizontal_xx-small">
+                                               
+                                                                
+              <div class="demo-only demo-only--sizing slds-grid slds-wrap"> 
+                        <div class="slds-size_1-of-3">
+                          <div class="slds-m-horizontal_x-small">
+                                 <lightning-combobox name="Owner" label="Owner" value={Owner} 
+                                     onchange={handleOwner} required="true"></lightning-combobox>
+                                                <!--   <div class="error">{}</div>-->
+                                                      </div>
+                                                                </div>
+                                                                     <div class="slds-size_1-of-3">
+                                        <div class="slds-m-horizontal_x-small">
+                                                <lightning-combobox name="Response"
+                                                label="Response"
+                                                value="value"
+                                                placeholder="-Select-"
+                                                options={Response}
+                                                onchange={handleChangee}></lightning-combobox>
+                                <!--   <div class="error">{}</div>-->
+                        </div>
+                                        </div>
+                        <div class="slds-size_1-of-3">
+                                                        <div class="slds-m-horizontal_x-small">
+                                        <lightning-combobox name="ResponseReason"
+                                        label="Response Reason"
+                                        value="value"
+                                        placeholder="-Select-"
+                                        options={pickListValues}
+                                        onchange={handleChange}></lightning-combobox>
+
+                                         </div>
+                                                </div>
+                                                        
+                                                                                                
+                                             </div>
+                                                                        
+
+                                                               
+                                                </div>
+                                                <div class="slds-publisher slds-is-active">
+                                                        <label for="comment-text-input2" class="slds-publisher__toggle-visibility slds-m-bottom_large">
+                                                        Message Comments</label>
+                                                        
+                                                        
+                                                        
+                                                        
+                                                                <div class="slds-box" >
+                                                                       
+                                                                        </div>
+                                                        
+                                                       
+                                                       
+                                                        <button class="slds-button slds-button_brand">Save</button>
+                                                        
+                                                        </div>
+                                </lightning-tab>
+                                <!--    </template>-->
+
+
+
+</lightning-tabset>
+
+</div>
+
+</lightning-card>
+</div>
+
+
+</template>
+
+
+
+
+
+
+							import { LightningElement, api, track, wire } from 'lwc';
 import { publish, MessageContext } from 'lightning/messageService';
 import EXAMPLE_MESSAGE_CHANNEL from '@salesforce/messageChannel/ExampleMessageChannel__c';
-import getObject from '@salesforce/apex/CaseRelatedListApex.getObject';
-
+import fetchWrapperCases from '@salesforce/apex/caseHistoryLWC.fetchWrapperCases';
+import initClientOffers from '@salesforce/apex/TargetedMessage.initClientOffers';
+import getLightningOppController from '@salesforce/apex/LightningOppController.getLightningOppController';
+import { getPicklistValues } from 'lightning/uiObjectInfoApi';
+import RESPONSE_REASON from '@salesforce/schema/Opportunity.Offer_Response_Reason__c';
+import RESPONSE from '@salesforce/schema/Opportunity.Offer_Response__c';
 const columns = [
-    { label: 'Case Number', fieldName: 'CaseNumber' },
-    { label: 'Date', fieldName: 'CreatedDate' },
-    { label: 'Plan Id', fieldName: 'PlanID_Text__c' },
-    { label: 'Inquiry', fieldName: 'Call_Type__c' },
-    { label: 'Transactions', fieldName: 'Call_Type__c' },
-    { label: 'Account Maintenance', fieldName: 'Call_Type__c' },
-    { label: 'Forms', fieldName: 'Call_Type__c'},
-    { label: 'Others', fieldName: 'Call_Type__c'},
+    //{ label: 'PlanId', fieldName: 'linkName', type:'url' ,typeAttributes: { label: {fieldName: 'caseNumber'}, target:'_blank'}},
+    //{ label: 'Date', fieldName: 'createdDate' },
+    { label: 'PlanId', fieldName: 'offerPlanId' },
+    { label: 'Plan Name', fieldName: 'offerPlanName', columnKey: 'tra' },
+    { label: 'Active Mailer', fieldName: 'activeMailer', columnKey: 'accM' },
+    { label: 'Message Name', fieldName: 'offerName', type: 'url', typeAttributes: { label: { fieldName: 'offerName' } } },
+
+
+
 ];
+const fields = [
+    { label: 'Owner', fieldName: 'OwnerId' },
+    { label: 'Response', fieldName: 'Offer_Response__c' },
+    { label: 'Response Reason', fieldName: 'Offer_Response_Reason__c' },
+];
+const pickListFields = [RESPONSE_REASON, RESPONSE];
+export default class CTargetedMessage extends LightningElement {
 
-export default class CaseHistoryLWC extends LightningElement {
-    @wire(MessageContext) messageContext;
-    @wire(getObject) wiredCases;
+    isDetailTabVisible = false;
+    @track data = [];
+    @track columns = columns;
+    @track fields = fields;
+    Owner;
+    Response;
+    ResponseReason;
+    wiredRecords;
+    @track Responses;
+    @track pickListValues;
+    @track responsePickListValues;
+    @track error;
+    @track values;
 
-    get data() {
-        if (this.wiredCases.data) {
-            return this.wiredCases.data.map(row => ({
-                ...row,
-                CaseNumber: row.Case__r.CaseNumber,
-                CreatedDate: row.Case__r.CreatedDate
-            }));
+    @track ResponseReasons;
+    Rvalue = '';
+    RRvalue = '';
+
+
+
+    @wire(getPicklistValues, {
+            recordTypeId: '012000000000000AAA',
+            fieldApiName: RESPONSE_REASON
+                //RESPONSE
+        })
+        //get Response() {
+        //  return getPicklistValues(this.pickListValues.data, RESPONSE_REASON);
+        //}
+        //get ResponseReason() {
+        //  return getPicklistValues(this.responsePickListValues.data, RESPONSE);
+        //}
+
+
+    wiredPickListValue({ data, error }) {
+        if (data) {
+            console.log(`Picklist values are ${data.values}`);
+
+            this.pickListValues = data.values;
+            this.responsePickListValues = data.values;
+            this.error = undefined;
         }
-        return [];
+        if (error) {
+            console.log(` Error while fetching Picklist values  ${error}`);
+            this.error = error;
+            this.pickListValues = undefined;
+            this.responsePickListValues = undefined;
+        }
+    }
+    handleChange() {
+
     }
 
-    get columns() {
-        return columns;
+    handleResponse(event) {
+        this.Rvalue = event.detail.value;
     }
+    handleResponseReason(event) {
+        this.RRvalue = event.detail.value;
+    }
+    handleOfferNameClick(event) {
+        // Prevent the default behavior of the click event (opening the URL)
+        event.preventDefault();
+
+        // Set a property to indicate that the detail tab should be visible
+        this.isDetailTabVisible = true;
+
+        // Dynamically create a new tab
+        this.createNewTab('Detail', 'Detail Tab Label');
+    }
+
+    //createNewTab(tabName, tabLabel) {
+    //  const tabset = this.template.querySelector('lightning-tabset');
+
+    ////  if (tabset) {
+    //   const newTab = document.createElement('lightning-tab');
+    //  newTab.label = tabLabel;
+    //  newTab.key = tabName;
+
+    // You can add additional content or components to the new tab as needed
+
+    // Append the new tab to the existing tabset
+    //  tabset.appendChild(newTab);
+    // }
+    //  }
+    // @wire(getPicklistValues, {
+    // recordTypeId: '012000000000000BBB',
+    // fieldApiName: RESPONSE
+    //RESPONSE
+    // })
+    //wiredPickListValue({ data, error }) {
+    //if (data) {
+    // console.log(`Picklist values are ${data.values}`);
+    //  this.responsePickListValues = data.values;
+    //this.responsePickListValues = data.values;
+    // this.error = undefined;
+    // }
+    //if (error) {
+    //console.log(` Error while fetching Picklist values  ${error}`);
+    //  this.error = error;
+    // this.responsePickListValues = undefined;
+    //this.responsePickListValues = undefined;
+    // }
+    // }
+    //handleChangee() {
+
+    //}
 
     connectedCallback() {
-        // ... existing code
+        // Parse the URL and get the 'passedValue' parameter				 
+        const urlParams = new URLSearchParams(window.location.search);
+        this.clientSSN = urlParams.get('clientSSN');
+        console.log('ssn should appear here' + this.clientSSN);
+        console.log('inside connected callback');
     }
 
-    sendMessage() {
-        // ... existing code
-    }
+    @wire(getLightningOppController) wiredCases(value) {
+        this.wiredRecords = value;
+        const { data, error } = value;
+        if (data) {
+            console.log(data);
+            let tempRecords = JSON.parse(JSON.stringify(data));
+            tempRecords = tempRecords.map(row => {
+                return {...row, OwnerId: row.Owner, Offer_Response__c: row.Offer_Response__c, Offer_Response_Reason__c: row.Offer_Response_Reason__c };
 
-    isInquiry(callActivity) {
-        return callActivity === 'Inquiry';
+            });
+
+
+        }
     }
-  }
+    handleOwner(event) {
+            this.Owner = event.target.value;
+        }
+        //handleResponse(event) {
+        //  this.Response = event.target.value;
+        //}
+        //handleResponseReason(event) {
+        //  this.ResponseReason = event.target.value;
+        //}
+
+
+
+    @wire(initClientOffers, { clientSSN: '$clientSSN' }) wiredCases(value) {
+        //console.log("Columns stringified 1st  --" , this.columns);
+        this.wiredRecords = value;
+        const { data, error } = value;
+        if (data) {
+            this.data = data;
+
+        }
+
+    }
+}
