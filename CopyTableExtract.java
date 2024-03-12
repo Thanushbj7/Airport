@@ -1,3 +1,39 @@
+<template>
+    <div class="slds-card" style="height: 400px; width: 610px">
+        <lightning-card title="Targeted Messages" icon-name="standard:case">
+            <h2 slot="title">
+                <lightning-icon icon-name="action:new_note" size="small" title="Targeted Message"></lightning-icon>
+                <b>Targeted Message</b>
+            </h2>
+            <div class="slds-p-horizontal_xx-small">
+                <lightning-tabset>
+                    <lightning-tab label="Available Targeted Messages">
+                        <div class="demo-only demo-only--sizing slds-grid slds-wrap">
+                            <!-- Your content here -->
+                        </div>
+                        <div style="height: 200px;">
+                            <div class="slds-m-top_small slds-m-horizontal_x-small">
+                                <c-clickable-mess-nam key-field="Id" data={data} columns={columns}></c-clickable-mess-nam>
+                            </div>
+                        </div>
+                    </lightning-tab>
+                    <lightning-tab label="Detail" if:true={isDetailTabVisible}>
+                        <div class="slds-p-horizontal_xx-small">
+                            <!-- Your detail tab content here -->
+                        </div>
+                    </lightning-tab>
+                </lightning-tabset>
+            </div>
+        </lightning-card>
+    </div>
+</template>
+
+
+
+
+
+
+
 // ... (your existing code)
 
 export default class CTargetedMessage extends LightningElement {
