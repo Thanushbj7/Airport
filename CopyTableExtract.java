@@ -1,3 +1,49 @@
+// ... (your existing code)
+
+export default class CTargetedMessage extends LightningElement {
+    // ... (your existing code)
+
+    handleOfferNameClick(event) {
+        // Prevent the default behavior of the click event (opening the URL)
+        event.preventDefault();
+
+        // Set a property to indicate that the detail tab should be visible
+        this.isDetailTabVisible = true;
+
+        // Dynamically create a new tab
+        this.createNewTab('Detail', 'Detail Tab Label');
+    }
+
+    createNewTab(tabName, tabLabel) {
+        const tabset = this.template.querySelector('lightning-tabset');
+
+        if (tabset) {
+            const newTab = document.createElement('lightning-tab');
+            newTab.label = tabLabel;
+            newTab.key = tabName;
+
+            // You can add additional content or components to the new tab as needed
+
+            // Append the new tab to the existing tabset
+            tabset.appendChild(newTab);
+        }
+    }
+
+    // ... (your existing code)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 <template>
 <div class="slds-card" style="height:400px; width:610px">
         <lightning-card title="Targeted Messages" icon-name="standard:case">
