@@ -1,3 +1,37 @@
+
+<!-- Update your existing HTML code in the lightning-tab named "Detail" -->
+<lightning-tab label="Detail">
+    <div class="slds-p-horizontal_xx-small">
+        <div class="slds-grid slds-wrap">
+            <div class="slds-size_1-of-1">
+                <p class="slds-text-heading_small">{data.offerName}</p>
+            </div>
+            <div class="slds-size_1-of-3">
+                <div class="slds-m-horizontal_x-small">
+                    <lightning-combobox name="Owner" label="Owner" value={Owner} onchange={handleOwner} required="true"></lightning-combobox>
+                </div>
+            </div>
+            <div class="slds-size_1-of-3">
+                <div class="slds-m-horizontal_x-small">
+                    <lightning-combobox name="Response" label="Response" value="value" placeholder="-Select-" options={Response} onchange={handleChangee}></lightning-combobox>
+                </div>
+            </div>
+            <div class="slds-size_1-of-3">
+                <div class="slds-m-horizontal_x-small">
+                    <lightning-combobox name="ResponseReason" label="Response Reason" value="value" placeholder="-Select-" options={pickListValues} onchange={handleChange}></lightning-combobox>
+                </div>
+            </div>
+        </div>
+        <!-- ... rest of your detail tab content ... -->
+    </div>
+</lightning-tab>
+
+
+
+
+
+
+
 <template>
     <div class="slds-card" style="height: 400px; width: 610px">
         <lightning-card title="Targeted Messages" icon-name="standard:case">
