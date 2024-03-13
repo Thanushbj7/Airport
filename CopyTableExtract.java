@@ -1,3 +1,26 @@
+<!-- ... (previous code) ... -->
+
+<div class="slds-publisher slds-is-active">
+    <a href="javascript:void(0);" onclick={handleMessageCommentsClick} class="slds-publisher__toggle-visibility slds-m-bottom_large">
+        Message Comments
+    </a>
+
+    <div style="margin-top: 10px;"> <!-- Adjust the margin-top value as needed -->
+        <textarea class="slds-textarea" placeholder="Write your comments here" onchange={handleCommentsChange}></textarea>
+    </div>
+
+    <button class="slds-button slds-button_brand">Save</button>
+</div>
+
+<!-- ... (rest of the code) ... -->
+
+
+
+
+
+
+
+
 
 <!-- Update your existing HTML code in the lightning-tab named "Detail" -->
 <lightning-tab label="Detail">
