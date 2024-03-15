@@ -1,3 +1,31 @@
+public class LoggedInUserDetailsController {
+    public static User getLoggedInUserDetails() {
+        User loggedInUser = [SELECT Id, Name, Email, Username, Profile.Name, UserRole.Name 
+                             FROM User 
+                             WHERE Id = :UserInfo.getUserId()];
+        return loggedInUser;
+    }
+}
+
+import { LightningElement, wire } from 'lwc';
+import getLoggedInUserDetails from '@salesforce/apex/LoggedInUserDetailsController.getLoggedInUserDetails';
+
+export default class MyComponent extends LightningElement {
+    @wire(getLoggedInUserDetails)
+    userData;
+
+    // Access userData in JavaScript code
+    connectedCallback() {
+        if(this.userData && this.userData.data) {
+            console.log('Logged-in User Details:', this.userData.data);
+            // Access individual fields like this.userData.data.Name, this.userData.data.Email, etc.
+        } else if(this.userData && this.userData.error) {
+            console.error('Error fetching user details:', this.userData.error);
+        }
+    }
+}
+
+
 <!-- ... (previous code) ... -->
 
 <div class="slds-publisher slds-is-active">
