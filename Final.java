@@ -1,3 +1,79 @@
+import { LightningElement,track,wire,api } from 'lwc'
+
+import {getObjectInfo} from 'lightning/uiObjectInfoApi';
+
+import ACCOUNT_OBJECT from '@salesforce/schema/Account';
+
+import {getPicklistValues} from 'lightning/uiObjectInfoApi';
+
+import COUNTRY_FIELD from '@salesforce/schema/Account.Countries__c;
+
+import CONTINENT_FIELD from '@salesforce/schema/Account.Contenent__c';
+
+ 
+
+export default class DependentPicklistAccount extends LightningElement {
+
+    @wire(getObjectInfo, {objectApiName: ACCOUNT_OBJECT })
+
+    accountInfo;
+
+ 
+
+    @track countyOptions;
+
+    @track continentOptions;
+
+    @track country;
+
+ 
+
+    @wire(getPicklistValues, {recordTypeId: '$accountInfo.data.defaultRecordTypeId', fieldApiName: COUNTRY_FIELD })
+
+    countryFieldInfo({ data, error }) {
+
+        if (data) this.countryFieldData = data;
+
+    }
+
+    @wire(getPicklistValues, {recordTypeId:'$accountInfo.data.defaultRecordTypeId', fieldApiName: CONTINENT_FIELD })
+
+    continentFieldInfo({ data, error }) {
+
+        if (data) this.continentOptions = data.values;
+
+    }
+
+    handleContinentChange(event) {
+
+        let key = this.countryFieldData.controllerValues[event.target.value];
+
+        this.countyOptions = this.countryFieldData.values.filter(opt => opt.validFor.includes(key));
+
+    }
+
+    handleCountryChange(event)
+
+    {
+
+        var country =event.target.value;
+
+    }
+
+ 
+
+}
+
+
+;
+
+
+
+
+
+
+
+
 // Import the schema for the Offer_Response__c field
 import OFFER_RESPONSE from '@salesforce/schema/Opportunity.Offer_Response__c';
 
