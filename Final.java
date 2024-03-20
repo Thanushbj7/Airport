@@ -1,4 +1,48 @@
- <lightning-record-form object-api-name="Opportunity"
+<template>
+    <form onsubmit={handleSubmit}>
+        <label for="owner">Owner:</label>
+        <select id="owner" onchange={handleOwnerChange}>
+            <option value="">-- Select Owner --</option>
+            <!-- You can populate this select options dynamically if needed -->
+        </select>
+
+        <label for="response">Response:</label>
+        <select id="response" onchange={handleResponseChange}>
+            <option value="">-- Select Response --</option>
+            <!-- Populate with picklist values -->
+            <template for:each={responsePickListValues} for:item="option">
+                <option key={option.value} value={option.value}>{option.label}</option>
+            </template>
+        </select>
+
+        <label for="reason">Response Reason:</label>
+        <select id="reason" onchange={handleReasonChange}>
+            <option value="">-- Select Response Reason --</option>
+            <!-- Populate with picklist values -->
+            <template for:each={reasonPickListValues} for:item="option">
+                <option key={option.value} value={option.value}>{option.label}</option>
+            </template>
+        </select>
+
+        <button type="submit">Submit</button>
+        <button type="button" onclick={handleCancel}>Cancel</button>
+    </form>
+</template>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<lightning-record-form object-api-name="Opportunity"
         fields={opportunityFields}
         columns="2"
         onsuccess={closePopupSuccess}
