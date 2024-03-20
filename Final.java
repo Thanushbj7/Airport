@@ -1,3 +1,13 @@
+ <lightning-record-form object-api-name="Opportunity"
+        fields={opportunityFields}
+        columns="2"
+        onsuccess={closePopupSuccess}
+        oncancel={closePopup}></lightning-record-form>
+
+
+
+
+
 import { LightningElement,track,wire,api } from 'lwc'
 
 import {getObjectInfo} from 'lightning/uiObjectInfoApi';
