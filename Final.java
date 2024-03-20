@@ -1,3 +1,64 @@
+import { LightningElement, wire } from 'lwc';
+import { getPicklistValues } from 'lightning/uiObjectInfoApi';
+import RESPONSE_REASON from '@salesforce/schema/Opportunity.Offer_Response_Reason__c';
+import RESPONSE from '@salesforce/schema/Opportunity.Offer_Response__c';
+
+export default class CTargetedMessage extends LightningElement {
+    // Define other properties and methods here
+
+    @wire(getPicklistValues, {
+        recordTypeId: '012000000000000AAA', // Replace with your record type Id
+        fieldApiName: RESPONSE
+    })
+    wiredResponsePickListValue({ data, error }) {
+        if (data) {
+            this.responsePickListValues = data.values;
+        } else if (error) {
+            console.error('Error fetching Response picklist values:', error);
+        }
+    }
+
+    @wire(getPicklistValues, {
+        recordTypeId: '012000000000000AAA', // Replace with your record type Id
+        fieldApiName: RESPONSE_REASON
+    })
+    wiredReasonPickListValue({ data, error }) {
+        if (data) {
+            this.reasonPickListValues = data.values;
+        } else if (error) {
+            console.error('Error fetching Response Reason picklist values:', error);
+        }
+    }
+
+    handleOwnerChange(event) {
+        // Handle owner selection change
+    }
+
+    handleResponseChange(event) {
+        // Handle response selection change
+    }
+
+    handleReasonChange(event) {
+        // Handle response reason selection change
+    }
+
+    handleSubmit(event) {
+        event.preventDefault();
+        // Handle form submission
+    }
+
+    handleCancel(event) {
+        // Handle cancel button click
+    }
+    }
+
+
+
+
+
+
+
+
 <template>
     <form onsubmit={handleSubmit}>
         <label for="owner">Owner:</label>
