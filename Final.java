@@ -1,3 +1,43 @@
+saveOpportunity() {
+    if (!this.responseError && !this.responseReasonError && !this.commentError && !this.messageError) {
+        getClientLastName({ recordId: this.recordId })
+            .then(res1 => {
+                console.log('res1', res1);
+                return createOpportunity({ clientLastName: res1, campaignName: this.message, ownerId: this.ownerName, response: this.responseValue, responseReason: this.responseReasonValue, comment: this.messageValue });
+            })
+            .then(result => {
+                console.log('result', result);
+                return this.showToast(result);
+            })
+            .then(() => {
+                return this.reset();
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+}
+
+reset() {
+    this.refs.textArea.value = '';
+}
+
+showToast(comm) {
+    const event = new ShowToastEvent({
+        title: 'The below Opportunity has been Created',
+        message: comm,
+        variant: 'success',
+        mode: 'dismissable'
+    });
+    this.dispatchEvent(event);
+}
+
+
+
+
+
+
+
 async saveOpportunity() {
             try {
         
