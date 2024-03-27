@@ -3,6 +3,40 @@ saveOpportunity() {
         getClientLastName({ recordId: this.recordId })
             .then(res1 => {
                 console.log('res1', res1);
+                // Delay saving by 2 seconds
+                setTimeout(() => {
+                    createOpportunity({ clientLastName: res1, campaignName: this.message, ownerId: this.ownerName, response: this.responseValue, responseReason: this.responseReasonValue, comment: this.messageValue })
+                        .then(result => {
+                            console.log('result', result);
+                            return this.showToast(result);
+                        })
+                        .then(() => {
+                            return this.reset();
+                        })
+                        .catch(error => {
+                            console.error(error);
+                        });
+                }, 2000); // 2000 milliseconds = 2 seconds
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+}
+
+
+
+
+
+
+
+
+
+saveOpportunity() {
+    if (!this.responseError && !this.responseReasonError && !this.commentError && !this.messageError) {
+        getClientLastName({ recordId: this.recordId })
+            .then(res1 => {
+                console.log('res1', res1);
                 return createOpportunity({ clientLastName: res1, campaignName: this.message, ownerId: this.ownerName, response: this.responseValue, responseReason: this.responseReasonValue, comment: this.messageValue });
             })
             .then(result => {
