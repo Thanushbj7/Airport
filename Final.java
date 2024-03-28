@@ -1,120 +1,117 @@
-saveOpportunity() {
-    if (!this.responseError && !this.responseReasonError && !this.commentError && !this.messageError) {
-        getClientLastName({ recordId: this.recordId })
-            .then(res1 => {
-                console.log('res1', res1);
-                // Delay saving by 2 seconds
-                setTimeout(() => {
-                    createOpportunity({ clientLastName: res1, campaignName: this.message, ownerId: this.ownerName, response: this.responseValue, responseReason: this.responseReasonValue, comment: this.messageValue })
-                        .then(result => {
-                            console.log('result', result);
-                            return this.showToast(result);
-                        })
-                        .then(() => {
-                            return this.reset();
-                        })
-                        .catch(error => {
-                            console.error(error);
-                        });
-                }, 2000); // 2000 milliseconds = 2 seconds
-            })
-            .catch(error => {
-                console.error(error);
-            });
+@Immutable
+@DefaultAnnotation(NonNull.class)
+public class BalanceHistoryCache implements java.io.Serializable {
+   private static final long serialVersionUID = 1L;
+   private static final Log LOGGER = LogFactory.getLog(BalanceHistoryCache.class);
+    private static final Factory FACTORY = new Factory();
+   private Calendar startDate;
+   private Calendar endDate;
+    private Map<Integer, BalanceHistoryData> balanceHistory;
+
+   @Value("${ppt.bridgeapp.enabled}")
+   private boolean bridgeappEnabledKey;
+
+
+   @ThreadSafe
+   @DefaultAnnotation(NonNull.class)
+    @CacheConfiguration("pcf.cache.transition.participant.config")
+   private static final class Factory extends AbstractObjectCacheElementFactory<ParticipantKey, BalanceHistoryCache> {
+      private Factory() {
+         init(CacheConfigUtils.getCacheConfig(CbcServices.CB_PARTICIPANT_CACHE_CONFIG));
+      }
+
+      @Override
+      public BalanceHistoryCache createInstance(final ParticipantKey key) {
+         return new BalanceHistoryCache(key);
+      }
+   }
+
+    public static BalanceHistoryCache getInstance(final ParticipantKey key){
+        if (key == null) {
+            throw new IllegalArgumentException("Invalid Participant Key");
+        }
+
+        return FACTORY.getInstance(key);
     }
-}
+   
+   /**
+    * Private constructor
+    * @param key
+    */
+   private BalanceHistoryCache(final ParticipantKey key) {
+      ParticipantInfo partInfo = ParticipantInfo.getInstance(key.getClient(),key.getPlan(),key.getParticipant());
+      int pptAcctAge = partInfo.getParticipantAccountAgeInMonths();
+      startDate = Calendar.getInstance();
+      endDate = Calendar.getInstance(); 
+      if(pptAcctAge >= 24) {
+         if(LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Participant's {0} account age is >= 24 months, making a call to SOL service with 2yr duration...",key.getParticipant());
+         }
+         startDate.add(Calendar.YEAR, -2);
+      } else if(pptAcctAge >= 12  ) {
+         if(LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Participant's {0} account age is >=12 months, making a call to SOL service with 1yr duration...",key.getParticipant());
+         }
+         startDate.add(Calendar.YEAR, -1);
+      } else if(pptAcctAge >= 6 ) {
+         if(LOGGER.isDebugEnabled()){
+            LOGGER.debug("Participant's {0} account age is >=6 months,  making a call to SOL service with 6 months duration...",key.getParticipant());
+         }
+         startDate.add(Calendar.MONTH, -(6));
+      } else if (pptAcctAge >= 3) {
+         if(LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Participant's {0} account age is >=3 months,  making a call to SOL service with 6 months duration...",key.getParticipant());
+         }
+         startDate.add(Calendar.MONTH, -(3));
+      } else {
+         startDate = null;
+         endDate = null;
+      }
 
-
-
-
-
-
-
-
-
-saveOpportunity() {
-    if (!this.responseError && !this.responseReasonError && !this.commentError && !this.messageError) {
-        getClientLastName({ recordId: this.recordId })
-            .then(res1 => {
-                console.log('res1', res1);
-                return createOpportunity({ clientLastName: res1, campaignName: this.message, ownerId: this.ownerName, response: this.responseValue, responseReason: this.responseReasonValue, comment: this.messageValue });
-            })
-            .then(result => {
-                console.log('result', result);
-                return this.showToast(result);
-            })
-            .then(() => {
-                return this.reset();
-            })
-            .catch(error => {
-                console.error(error);
-            });
-    }
-}
-
-reset() {
-    this.refs.textArea.value = '';
-}
-
-showToast(comm) {
-    const event = new ShowToastEvent({
-        title: 'The below Opportunity has been Created',
-        message: comm,
-        variant: 'success',
-        mode: 'dismissable'
-    });
-    this.dispatchEvent(event);
-}
-
-
-
-
-
-
-
-async saveOpportunity() {
+        if (startDate == null && endDate == null) {
+            //Participant's account is lessThan three months old.. Return empty Map.
+            balanceHistory = Collections.emptyMap();
+        } else {
             try {
-        
-                if (!this.responseError && !this.responseReasonError && !this.commentError && !this.messageError) {
-                    const res1 = await getClientLastName({ recordId: this.recordId });
-                    console.log('res1', res1);
-                    const result = await createOpportunity({ clientLastName: res1, campaignName: this.message, ownerId: this.ownerName, response: this.responseValue, responseReason: this.responseReasonValue, comment: this.messageValue });
-                    console.log('result', result);
-                    //alert('result')
-                    const toast = await this.showToast(result);
-                    const re = await this.reset(); 
-                    /*      console.log('this.clientLastName', this.clientLastName);
-                        console.log('this.message', this.message);
-                        console.log('this.ownerName', this.ownerName);
-                        console.log('this.responseValue', this.responseValue);
-                        console.log('this.responseReasonValue', this.responseReasonValue);
-                        console.log('this.messageValue', this.messageValue);*/
-                    // createOpportunity({ clientLastName: this.clientLastName, campaignName: this.message, ownerId: this.ownerName, response: this.responseValue, responseReason: this.responseReasonValue, comment: this.messageValue })
-
-                    //.then((result) => {
-
-                    //  this.opp = result;
-                    ///  this.error = undefined;
-                    // console.log('end of saveOpp', this.opp);
-                    // }).catch((error) => {
-                    //  this.error = error;
-                    //  this.opp = undefined;
-                    // });
-                }
-            } catch (error) {
-                console.error(error);
+            SolServices solService = SolServices.getInstance(key.getClient(), key.getPlan(), key.getParticipant());
+            PlanInfo pi = PlanInfo.getInstance(key.getClient(), key.getPlan());
+            PlanControl pc = pi.getPlanControl(ControlType.WEB);
+            boolean isPlatformUpgradeEnabled = StringUtils.equalsIgnoreCase("B", pc.getPlatformUpgradeFlag());
+            if (bridgeappEnabledKey && isPlatformUpgradeEnabled) {
+               ParticipantHistBridgeClientImpl participantHistBridgeClient = ParticipantHistBridgeClientImpl.getInstance(key.getClient(), key.getPlan(), key.getParticipant());
+               ParticipantDataResponse participantResponse = participantHistBridgeClient.getBalanceHistoryData(startDate, endDate);
+            } else {
+               balanceHistory = solService.getBalanceHistoryData(startDate, endDate);
             }
-        }
-        reset() {
-            this.refs.textArea.value = '';
-        }
+         } catch (BusinessException solException) {
+            if (LOGGER.isErrorEnabled()) {
+               LOGGER.error("Exception occured for Balance History Sol Service....", solException);
+            }
+            throw solException;
+         } catch (SolException e) {
+            e.printStackTrace();
+         }
+      }
+   }
 
-        showToast(comm) {
-            const event = new ShowToastEvent({
-                title: 'The below Opportunity has been  Created',
-                message: comm,
-                variant: 'success',
-                mode: 'dismissable'
-            });
-            this.dispatchEvent(event);
-        }
+   public void setBridgeappEnabledKey(@Value("${ppt.bridgeapp.enabled}") boolean bridgeappEnabledKey) {
+      this.bridgeappEnabledKey = bridgeappEnabledKey;
+   }
+
+   /**
+    * Returns the BalanceHistoryData sorted Map
+    * @return Map<Integer,BalanceHistoryData>
+    */
+   public Map<Integer, BalanceHistoryData> getBalanceHistoryData() {
+      return balanceHistory;
+   }
+   
+   public Calendar getStartDate() {
+      return this.startDate;
+   }
+   
+   public Calendar getEndDate() {
+      return this.endDate;
+   }
+}
+ 
