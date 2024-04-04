@@ -1,3 +1,32 @@
+@isTest
+private class YourTestClass {
+    // Test method to cover the sortClientOffers method
+    static testMethod void testSortClientOffers() {
+        // Create test data
+        // Create vfClientOffer objects with different priorities and scores
+        vfClientOffer offer1 = new vfClientOffer(offerName = 'Offer 1', offerPriority = 1, offerScore = 10);
+        vfClientOffer offer2 = new vfClientOffer(offerName = 'Offer 2', offerPriority = 2, offerScore = 20);
+        vfClientOffer offer3 = new vfClientOffer(offerName = 'Offer 3', offerPriority = 2, offerScore = 50);
+        vfClientOffer offer4 = new vfClientOffer(offerName = 'Offer 4', offerPriority = 1, offerScore = 20);
+        
+        List<vfClientOffer> unsortedOffers = new List<vfClientOffer>{offer1, offer2, offer3, offer4};
+        
+        // Call the sortClientOffers method
+        List<vfClientOffer> sortedOffers = YourClassName.sortClientOffers(unsortedOffers);
+        
+        // Assert that the method sorts the offers correctly
+        // The expected order should be: Offer 4, Offer 1, Offer 3, Offer 2
+        
+        System.assertEquals('Offer 4', sortedOffers[0].offerName, 'The method should sort offers by priority and score');
+        System.assertEquals('Offer 1', sortedOffers[1].offerName, 'The method should sort offers by priority and score');
+        System.assertEquals('Offer 3', sortedOffers[2].offerName, 'The method should sort offers by priority and score');
+        System.assertEquals('Offer 2', sortedOffers[3].offerName, 'The method should sort offers by priority and score');
+    }
+}
+
+
+
+
 private static List<vfClientOffer> sortClientOffers(List<vfClientOffer> col) {
         // this method sorts by both offerPriority and offerScore
         // lowest offerPriorty takes priority, highest offerScore takes priority
