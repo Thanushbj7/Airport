@@ -1,3 +1,49 @@
+public static String createOpportunityWithPlanAndCampaign(String messageName, String planId, String clientLastName, string ownerId,string response, string responseReason, string comment) 
+    { 
+        System.debug('messageName'+ messageName);
+       Campaign c= [Select Id,Name from Campaign where Name=:messageName  Limit 1];
+        
+        System.debug('Campaign'+c.Name);
+        system.debug('checking plan'+planId);
+        Plan__c p=(Plan__c)[Select Id,Name from Plan__c where Name=:planId Limit 1];
+        
+        system.debug('checking plan'+p.Name);
+        List<Opportunity> oppList= new List<Opportunity>();
+          
+        Opportunity opp= new opportunity();
+        opp.StageName='Need Analysis';
+        opp.CloseDate=system.today();
+        opp.Name=clientLastName+'-'+c.Name;
+        opp.Plan__c=p.Id;
+        opp.CampaignId=c.Id;
+        opp.ownerId=ownerId;
+		opp.Offer_Response__c=response;
+        opp.Offer_Response_Reason__c=responseReason;
+        opp.Message_Comments__c=comment;
+        oppList.add(opp);
+        // system.debug('seeing heree opportunity value', oppList[0]);
+        if(!oppList.isEmpty()){
+            system.debug('createOpportunityWithPlanAndCampaign '+ oppList);
+            insert oppList;
+            return oppList[0].Name;
+        } 
+       
+        return oppList[0].Name;
+    } 
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
 @isTest
 private class YourTestClass {
     // Test method to cover the createOpportunity method
