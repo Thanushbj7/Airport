@@ -1,4 +1,34 @@
- public static String getProfileId(){
+@isTest
+private class YourTestClass {
+    // Test method to cover the getProfileId method
+    static testMethod void testGetProfileId() {
+        // Insert test data for ProfileNames__c custom metadata type
+        ProfileNames__c testProfile = new ProfileNames__c(
+            MasterLabel = 'Test Profile',
+            Profile_Id__c = 'SomeProfileId'
+        );
+        insert testProfile;
+        
+        // Call the getProfileId method
+        String actualProfileId = YourClassName.getProfileId();
+        
+        // Retrieve the inserted ProfileNames__c record
+        List<ProfileNames__c> insertedProfiles = [SELECT Profile_Id__c FROM ProfileNames__c];
+        
+        // Assert that the method returns the correct profile Id
+        System.assertEquals(insertedProfiles[0].Profile_Id__c, actualProfileId, 'The method should return the correct profile Id');
+    }
+}
+
+
+
+
+
+
+
+
+
+public static String getProfileId(){
         List<ProfileNames__c> profileIds= ProfileNames__c.getAll().values();
         for(ProfileNames__c profileId:profileIds){
             
