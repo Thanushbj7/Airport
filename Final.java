@@ -1,3 +1,37 @@
+@isTest
+private class YourTestClass {
+    // Test method to cover the createOpportunity method
+    static testMethod void testCreateOpportunity() {
+        // Create test data for input parameters
+        String clientLastName = 'TestLastName';
+        String campaignName = 'TestCampaign';
+        String ownerId = UserInfo.getUserId();
+        String response = 'TestResponse';
+        String responseReason = 'TestResponseReason';
+        String comment = 'TestComment';
+        
+        // Call the createOpportunity method with the test data
+        String createdOpportunityName = YourClassName.createOpportunity(clientLastName, campaignName, ownerId, response, responseReason, comment);
+        
+        // Retrieve the inserted Opportunity record
+        Opportunity insertedOpportunity = [SELECT Name FROM Opportunity LIMIT 1];
+        
+        // Assert that the method creates the Opportunity with the correct name
+        System.assertEquals(clientLastName + '-' + campaignName, createdOpportunityName, 'The method should return the correct Opportunity name');
+        
+        // Assert that the inserted Opportunity has the correct name
+        System.assertEquals(clientLastName + '-' + campaignName, insertedOpportunity.Name, 'The inserted Opportunity should have the correct name');
+    }
+}
+
+
+
+
+
+
+
+
+
 public static String createOpportunity(String clientLastName, String campaignName, string ownerId,string response, string responseReason, string comment) {
     List<Opportunity> oppList= new List<Opportunity>();
         
