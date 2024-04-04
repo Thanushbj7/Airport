@@ -1,3 +1,33 @@
+public static String createOpportunity(String clientLastName, String campaignName, string ownerId,string response, string responseReason, string comment) {
+    List<Opportunity> oppList= new List<Opportunity>();
+        
+        Opportunity opp= new opportunity();
+        opp.StageName='Need Analysis';
+        opp.CloseDate=system.today();
+        opp.Name=clientLastName+'-'+campaignName;
+        opp.ownerId=ownerId;
+		opp.Offer_Response__c=response;
+        opp.Offer_Response_Reason__c=responseReason;
+        opp.Message_Comments__c=comment;
+        oppList.add(opp);
+        // system.debug('seeing heree opportunity value', oppList[0]);
+        if(!oppList.isEmpty()){
+            system.debug('seeing heree opportunity value '+ oppList);
+            insert oppList;
+            return oppList[0].Name;
+        }
+        return null;
+    }  
+
+
+
+
+
+
+
+
+
+
 @isTest
 private class YourTestClass {
     // Test method to cover the getClientLastName method
