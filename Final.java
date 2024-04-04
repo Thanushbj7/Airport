@@ -1,3 +1,11 @@
+public static Campaign getCampaignId(String campaignName) {
+        return [ SELECT Id
+            FROM Campaign WHERE Name= :campaignName
+            LIMIT 1 ];
+    } 
+
+
+
 @isTest
 private class YourTestClass {
     // Test method to cover the getCampaignNames method
