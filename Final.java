@@ -1,3 +1,48 @@
+public static List<Client_Offer__c> dynamicClientOfferQuery(Set<String> ssnSet) {
+        String fields = '';
+        for (String field : Schema.SObjectType.Client_Offer__c.fields.getMap().keySet()) {
+            fields += field + ',';
+        }
+        fields = fields.substring(0,fields.length()-1);
+        
+        String ssns = '';
+        for (String ssn : ssnSet) {
+            ssns += '\''+ ssn + '\',';
+        }
+        ssns = ssns.substring(0,ssns.length()-1);
+
+        if (ssns == null || ssns.length()<1 || fields == null || fields.length()<1) {
+            return null;
+        }  
+        
+        String query = 'select ' + fields;
+        query += ' from client_offer__c where account_ext_id__c in (' + ssns + ') and account_ext_id__c != null';
+        System.debug('DEBUG query - ' + query);
+        return Database.query(query);       
+    }
+    
+ 
+    
+    
+     public static Map<String, Campaign_Offer_Summary__c> getCampaignOfferDoNotShowOfferMap(Set<String> ssnSet) {
+        Map<String, Campaign_Offer_Summary__c> ssnCampaignOfferMap = new Map<String, Campaign_Offer_Summary__c>();
+        String key = null;
+        
+        List<Campaign_Offer_Summary__c> coSummaryList = [select OfferCode__c, Present_Message__c, Planid_Text__c, Customer_SSN__c from Campaign_Offer_Summary__c where Customer_SSN__c in: ssnSet];
+        for(Campaign_Offer_Summary__c cos : coSummaryList) {
+            //Fill this up with only 'D0-NOT-SHOWS'
+            if(!cos.Present_Message__c && !String.isBlank(cos.OfferCode__c) && !String.isBlank(cos.Planid_Text__c)) {
+                key = cos.Customer_SSN__c + ConstantUtils.UNIQUE_SEPERATOR + cos.Planid_Text__c + ConstantUtils.UNIQUE_SEPERATOR + cos.OfferCode__c;
+                
+                ssnCampaignOfferMap.put(key, cos);
+            }
+        }
+        
+        return ssnCampaignOfferMap;       
+    }
+
+
+
 @isTest
 private class YourTestClass {
     // Test method to cover the sortClientOffers method
