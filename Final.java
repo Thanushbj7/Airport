@@ -1,3 +1,84 @@
+private static List<vfClientOffer> sortClientOffers(List<vfClientOffer> col) {
+        // this method sorts by both offerPriority and offerScore
+        // lowest offerPriorty takes priority, highest offerScore takes priority
+        // given the following list: {offerPriority -> offerScore}
+        // {1 -> 10}
+        // {2 -> 20}
+        // {2 -> 50}
+        // {1 -> 20}
+        // this method will produce the following ordered list:
+        // {1 -> 20}
+        // {1 -> 10}
+        // {2 -> 50}
+        // {2 -> 20}    
+        //
+        // this method could be tweaked to perform better, but since the max list size will probably be
+        // no larger than 20, it's probably ok.
+        
+        // sort by offer score
+        System.debug('Templist: ' + col.size());    
+        List<Decimal> vfclientOfferScoreList = new List<Decimal>();
+        for (vfClientOffer vfco : col) {
+            System.debug('Add to decimal list: OfferPriority:' + vfco.offerPriority + '; SortedScoreList: ' + vfco.offerScore + ';OfferName: '+vfco.offerName);
+            vfclientOfferScoreList.add(vfco.offerScore);
+        }
+        vfClientOfferScoreList.sort();
+        
+        // revers sort so offer scores are descending (higher offer score means higher priority)
+        List<Decimal> reverseSortList = new Decimal[vfClientOfferScoreList.size()];
+        Integer j = 0;
+        for (Integer i=vfClientOfferScoreList.size()-1; i>=0 ;i--) {
+            reverseSortList[j] = vfClientOfferScoreList[i];
+            j++;
+        }       
+        
+        List<vfClientOffer> sortedScoreList = new List<vfClientOffer>();        
+        for (Decimal d : reverseSortList) {
+            Integer index = 0;
+            for (vfClientOffer vfco : col) {
+                if (vfco.offerScore == d) {
+                    System.debug('OfferPriority:' + vfco.offerPriority + '; SortedScoreList: ' + vfco.offerScore + ';OfferName: '+vfco.offerName);
+                    sortedScoreList.add(vfco);
+                    break;
+                }
+                index++;
+            }
+            col.remove(index);
+        }
+        
+        // create map of ordere offers based on campaign priority       
+        Map<Decimal, List<vfClientOffer>> offerPriorityMap = new Map<Decimal, List<vfClientOffer>>();
+        for (vfClientOffer vfco : sortedScoreList) {
+            if (offerPriorityMap.containsKey(vfco.offerPriority)) {
+                List<vfClientOffer> newList = offerPriorityMap.get(vfco.offerPriority);
+                newList.add(vfco);
+                offerPriorityMap.put(vfco.offerPriority, newList);
+                System.debug('Add to existing map - OfferPriority: ' + vfco.offerPriority + '; Score:' + vfco.offerScore);
+            } else {
+                offerPriorityMap.put(vfco.offerPriority,new List<vfClientOffer>{vfco});
+                System.debug('New map - OfferPriority: ' + vfco.offerPriority + '; Score:' + vfco.offerScore);
+            }
+        }
+
+        // sort the offer priority
+        List<Decimal> offerPriorityList = new List<Decimal>();
+        for (Decimal d : offerPriorityMap.keySet()) {
+            offerPriorityList.add(d);
+        }
+        offerPriorityList.sort();
+        
+        // create the final list sorted by offer priority, then by offer score
+        List<vfClientOffer> finalList = new List<vfClientOffer>();
+        for (Decimal d : offerPriorityList) {
+            System.debug('OfferPriorityList: ' + d);
+            for (vfClientOffer vfco : offerPriorityMap.get(d)) {
+                finalList.add(vfco);
+            }
+        }       
+        return finalList;
+    }
+
+
 @isTest
 private class YourTestClass {
     // Test method to cover the initClientOffers method
