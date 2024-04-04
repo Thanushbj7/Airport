@@ -1,3 +1,37 @@
+@isTest
+private class YourTestClass {
+    // Test method to cover the initClientOffers method
+    static testMethod void testInitClientOffers() {
+        // Test scenario: clientSSN is provided
+        // Call the initClientOffers method with a valid clientSSN
+        List<VfClientOffer> offersWithSSN = YourClassName.initClientOffers(null, 'TestSSN');
+        
+        // Assert that the method retrieves client offers based on the provided SSN
+        // Add assertions as needed
+        
+        // Test scenario: clientSSN is not provided but recId is provided
+        // Create a mock Account record with SSN
+        Account testAccount = new Account(Name = 'Test Account', SSN__c = 'TestSSN');
+        insert testAccount;
+        
+        // Call the initClientOffers method with a blank clientSSN and a valid recId
+        List<VfClientOffer> offersWithRecId = YourClassName.initClientOffers(testAccount.Id, null);
+        
+        // Assert that the method retrieves client offers based on the SSN of the provided Account record
+        // Add assertions as needed
+        
+        // Test scenario: both clientSSN and recId are blank
+        // Call the initClientOffers method with blank clientSSN and recId
+        List<VfClientOffer> offersWithBlankInputs = YourClassName.initClientOffers(null, null);
+        
+        // Assert that the method returns an empty list when both clientSSN and recId are blank
+        // Add assertions as needed
+    }
+}
+
+
+
+
 public class vfClientOffer {
          @AuraEnabled public String offerName {get; set;}
          @AuraEnabled public Decimal offerScore {get; set;}
