@@ -1,3 +1,15 @@
+ public static String getProfileId(){
+        List<ProfileNames__c> profileIds= ProfileNames__c.getAll().values();
+        for(ProfileNames__c profileId:profileIds){
+            
+        }
+        return profileIds[0].Profile_Id__c;
+    }
+
+
+
+
+
 public class cTargetedMessage {
      
     @AuraEnabled(cacheable=true)
