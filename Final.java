@@ -1,3 +1,22 @@
+@isTest
+private class YourTestClass {
+    // Test method to cover the getCampaignId method
+    static testMethod void testGetCampaignId() {
+        // Create test data
+        // Create a Campaign record
+        Campaign testCampaign = new Campaign(Name = 'Test Campaign');
+        insert testCampaign;
+        
+        // Call the getCampaignId method with the test Campaign name
+        Campaign retrievedCampaign = YourClassName.getCampaignId('Test Campaign');
+        
+        // Assert that the method retrieves the correct Campaign Id
+        System.assertEquals(testCampaign.Id, retrievedCampaign.Id, 'The method should retrieve the correct Campaign Id');
+    }
+}
+
+
+
 public static Campaign getCampaignId(String campaignName) {
         return [ SELECT Id
             FROM Campaign WHERE Name= :campaignName
