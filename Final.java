@@ -1,3 +1,29 @@
+ public static List<VfClientOffer> initClientOffers(String recId, String clientSSN ) {
+        if(string.isNotBlank(clientSSN)){
+            ClientSSn =  clientSSN;
+        }else{
+            if(string.isNotBlank(recId)){
+                Account a = [SELECT Id,Name,SSN__c FROM ACCOUNT WHERE Id =: recId LIMIT 1];
+                ClientSSn =  a.SSN__c;
+            }
+        }   
+         system.debug('clientSSN'+clientSSN);
+         List<VfClientOffer> vfClientOfferList = new List<VfClientOffer>();
+        
+        //If Client is Opted out for offers or 
+        //boolean clientOfferOptOut , boolean targetedmessages
+      /*  if(clientOfferOptOut | !targetedmessages )
+            return vfClientOfferList;*/
+        
+        vfClientOfferList = sortClientOffers(getOpenClientOffers(clientSSN));
+        
+     system.debug('vfClientOfferList ::::::::: ' + vfClientOfferList);
+    
+     return vfClientOfferList;
+    }
+
+
+
 @isTest
 private class YourTestClass {
     // Test method to cover the getKnowledgeArticlesDetails method
