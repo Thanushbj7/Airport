@@ -1,3 +1,14 @@
+public static String getClientLastName(string recordId) {
+        Account acc = [SELECT Id, LastName
+                             FROM Account 
+                             WHERE Id = :recordId];
+        system.debug('acc.LastName '+acc.LastName);
+        return acc.LastName;
+        
+    }
+
+
+
 @isTest
 private class YourTestClass {
     // Test method to cover the getProfileId method
