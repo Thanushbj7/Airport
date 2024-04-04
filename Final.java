@@ -1,3 +1,31 @@
+@isTest
+private class YourTestClass {
+    // Test method to cover the getClientLastName method
+    static testMethod void testGetClientLastName() {
+        // Create a test Account record
+        Account testAccount = new Account(
+            LastName = 'TestLastName'
+            // Add any other required fields
+        );
+        insert testAccount;
+        
+        // Call the getClientLastName method with the Id of the test Account record
+        String actualLastName = YourClassName.getClientLastName(testAccount.Id);
+        
+        // Retrieve the inserted Account record
+        Account insertedAccount = [SELECT LastName FROM Account WHERE Id = :testAccount.Id];
+        
+        // Assert that the method returns the correct last name
+        System.assertEquals(insertedAccount.LastName, actualLastName, 'The method should return the correct last name');
+    }
+}
+
+
+
+
+
+
+
 public static String getClientLastName(string recordId) {
         Account acc = [SELECT Id, LastName
                              FROM Account 
