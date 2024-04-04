@@ -1,5 +1,47 @@
 @isTest
 private class YourTestClass {
+    // Test method to cover the createOpportunity method
+    static testMethod void testCreateOpportunity() {
+        // Create test data for input parameters
+        String clientLastName = 'TestLastName';
+        String campaignName = 'TestCampaign';
+        String ownerId = UserInfo.getUserId();
+        String response = 'TestResponse';
+        String responseReason = 'TestResponseReason';
+        String comment = 'TestComment';
+        
+        // Call the createOpportunity method with valid input parameters
+        String createdOpportunityName = YourClassName.createOpportunity(clientLastName, campaignName, ownerId, response, responseReason, comment);
+        
+        // Retrieve the inserted Opportunity record
+        List<Opportunity> insertedOpportunities = [SELECT Name FROM Opportunity];
+        
+        // Assert that the method creates the Opportunity with the correct name
+        System.assertEquals(clientLastName + '-' + campaignName, createdOpportunityName, 'The method should return the correct Opportunity name');
+        
+        // Assert that an Opportunity record is inserted
+        System.assertNotEquals(0, insertedOpportunities.size(), 'An Opportunity record should be inserted');
+        
+        // Test the scenario where oppList is empty
+        // Call the createOpportunity method with empty input parameters
+        String nullOpportunityName = YourClassName.createOpportunity(null, null, null, null, null, null);
+        
+        // Assert that the method returns null when oppList is empty
+        System.assertEquals(null, nullOpportunityName, 'The method should return null when oppList is empty');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+@isTest
+private class YourTestClass {
     // Test method to cover the createOpportunityWithPlanAndCampaign method
     static testMethod void testCreateOpportunityWithPlanAndCampaign() {
         // Create test data for input parameters
