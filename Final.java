@@ -1,4 +1,39 @@
- public static List<VfClientOffer> initClientOffers(String recId, String clientSSN ) {
+@isTest
+private class YourTestClass {
+    // Test method to cover the initClientOffers method
+    static testMethod void testInitClientOffers() {
+        // Test scenario: clientSSN is not blank
+        // Call the initClientOffers method with a non-blank clientSSN
+        List<VfClientOffer> offersWithSSN = YourClassName.initClientOffers(null, 'TestSSN');
+        
+        // Assert that the method retrieves client offers based on the provided SSN
+        System.assertNotEquals(null, offersWithSSN, 'The method should retrieve client offers based on the provided SSN');
+        
+        // Test scenario: clientSSN is blank, but recId is provided
+        // Create a mock Account record with SSN
+        Account testAccount = new Account(Name = 'Test Account', SSN__c = 'TestSSN');
+        insert testAccount;
+        
+        // Call the initClientOffers method with a blank clientSSN and a valid recId
+        List<VfClientOffer> offersWithRecId = YourClassName.initClientOffers(testAccount.Id, null);
+        
+        // Assert that the method retrieves client offers based on the SSN of the provided Account record
+        System.assertNotEquals(null, offersWithRecId, 'The method should retrieve client offers based on the SSN of the provided Account record');
+        
+        // Test scenario: both clientSSN and recId are blank
+        // Call the initClientOffers method with blank clientSSN and recId
+        List<VfClientOffer> offersWithBlankInputs = YourClassName.initClientOffers(null, null);
+        
+        // Assert that the method returns an empty list when both clientSSN and recId are blank
+        System.assertEquals(0, offersWithBlankInputs.size(), 'The method should return an empty list when both clientSSN and recId are blank');
+    }
+}
+
+
+
+
+
+public static List<VfClientOffer> initClientOffers(String recId, String clientSSN ) {
         if(string.isNotBlank(clientSSN)){
             ClientSSn =  clientSSN;
         }else{
