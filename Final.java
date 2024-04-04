@@ -1,3 +1,10 @@
+public static List<Campaign> getCampaignNames() {
+    List<Campaign> camList= [Select Id, Name from Campaign where Create_Manual_Offer__c=true order by Name];
+        return camList ;
+    }
+
+
+
 @isTest
 private class YourTestClass {
     // Test method to cover the initClientOffers method
