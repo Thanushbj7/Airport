@@ -1,3 +1,36 @@
+@isTest
+private class YourTestClass {
+    // Test method to cover the getKnowledgeArticlesDetails method
+    static testMethod void testGetKnowledgeArticlesDetails() {
+        // Create test data
+        Knowledge__kav testArticle = new Knowledge__kav(
+            Title = 'Test Article',
+            Summary = 'Test Summary',
+            PublishStatus = 'Online'
+            // Add any other required fields
+        );
+        insert testArticle;
+        
+        // Call the getKnowledgeArticlesDetails method with the test article name
+        Knowledge__kav retrievedArticle = YourClassName.getKnowledgeArticlesDetails('Test Article');
+        
+        // Assert that the method retrieves the correct article details
+        System.assertEquals('Test Article', retrievedArticle.Title, 'The method should retrieve the correct article title');
+        System.assertEquals('Test Summary', retrievedArticle.Summary, 'The method should retrieve the correct article summary');
+        System.assertEquals('Online', retrievedArticle.PublishStatus, 'The method should retrieve the correct publish status');
+        
+        // Add more assertions as needed to cover other fields
+        
+        // Test case for article not found
+        // Call the method with a non-existing article name
+        Knowledge__kav notFoundArticle = YourClassName.getKnowledgeArticlesDetails('Non-existing Article');
+        
+        // Assert that the method returns null when article is not found
+        System.assertNull(notFoundArticle, 'The method should return null when the article is not found');
+    }
+}
+
+
 public static Knowledge__kav getKnowledgeArticlesDetails(String articleName) {
         return [
             SELECT Id, Title, ArticleNumber, PublishStatus, FORMAT(LastPublishedDate) lastPub, Summary, 
