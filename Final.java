@@ -1,3 +1,18 @@
+public static Knowledge__kav getKnowledgeArticlesDetails(String articleName) {
+        return [
+            SELECT Id, Title, ArticleNumber, PublishStatus, FORMAT(LastPublishedDate) lastPub, Summary, 
+                KnowledgeArticleId, LastModifiedDate, IsVisibleInCsp,
+                UrlName, ArticleTotalViewCount, ArticleCaseAttachCount, RecordTypeId, RecordType.Name,
+                Owner.Name, IsVisibleInApp, IsVisibleInPkb, IsVisibleInPrm, OwnerID
+            FROM Knowledge__kav
+            WHERE Title = :articleName
+            LIMIT 1
+        ];
+    }   
+
+
+
+
 @isTest
 private class YourTestClass {
     // Test method to cover the createOpportunity method
