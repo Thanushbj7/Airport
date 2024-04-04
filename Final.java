@@ -1,3 +1,28 @@
+@isTest
+private class YourTestClass {
+    // Test method to cover the getCampaignNames method
+    static testMethod void testGetCampaignNames() {
+        // Create test data
+        // Create two Campaign records, one with Create_Manual_Offer__c true and one with false
+        Campaign testCampaign1 = new Campaign(Name = 'Test Campaign 1', Create_Manual_Offer__c = true);
+        Campaign testCampaign2 = new Campaign(Name = 'Test Campaign 2', Create_Manual_Offer__c = false);
+        insert new List<Campaign>{testCampaign1, testCampaign2};
+        
+        // Call the getCampaignNames method
+        List<Campaign> campaignNames = YourClassName.getCampaignNames();
+        
+        // Assert that the method retrieves only campaigns with Create_Manual_Offer__c true
+        System.assertEquals(1, campaignNames.size(), 'The method should retrieve campaigns with Create_Manual_Offer__c true');
+        
+        // Assert that the method retrieves campaigns in alphabetical order by name
+        System.assertEquals('Test Campaign 1', campaignNames[0].Name, 'The method should retrieve campaigns in alphabetical order by name');
+    }
+}
+
+
+
+
+
 public static List<Campaign> getCampaignNames() {
     List<Campaign> camList= [Select Id, Name from Campaign where Create_Manual_Offer__c=true order by Name];
         return camList ;
