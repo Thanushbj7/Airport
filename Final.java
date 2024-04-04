@@ -1,3 +1,17 @@
+public class vfClientOffer {
+         @AuraEnabled public String offerName {get; set;}
+         @AuraEnabled public Decimal offerScore {get; set;}
+         @AuraEnabled public Decimal offerPriority {get; set;}
+         @AuraEnabled public String offerPlanId {get; set;}
+         @AuraEnabled public String offerPlanName {get; set;}
+         @AuraEnabled public String offerCode {get; set;}
+         @AuraEnabled public String offerCampaign {get; set;}
+        
+        //Case # 00011325: Added new field to show the Avtive Mailer information on the Targeted Messages list on the Offer Page.  
+         @AuraEnabled public String activeMailer {get; set;}
+    }
+
+
 @isTest
 private class YourTestClass {
     // Test method to cover the getCampaignId method
