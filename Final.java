@@ -1,3 +1,46 @@
+@isTest
+private class YourTestClass {
+    // Test method to cover the createOpportunityWithPlanAndCampaign method
+    static testMethod void testCreateOpportunityWithPlanAndCampaign() {
+        // Create test data for input parameters
+        String messageName = 'TestCampaignName';
+        String planId = 'TestPlanId';
+        String clientLastName = 'TestLastName';
+        String ownerId = UserInfo.getUserId();
+        String response = 'TestResponse';
+        String responseReason = 'TestResponseReason';
+        String comment = 'TestComment';
+        
+        // Create mock Campaign and Plan__c records
+        Campaign testCampaign = new Campaign(Name = messageName);
+        insert testCampaign;
+        
+        Plan__c testPlan = new Plan__c(Name = planId);
+        insert testPlan;
+        
+        // Call the createOpportunityWithPlanAndCampaign method with the test data
+        String createdOpportunityName = YourClassName.createOpportunityWithPlanAndCampaign(messageName, planId, clientLastName, ownerId, response, responseReason, comment);
+        
+        // Retrieve the inserted Opportunity record
+        Opportunity insertedOpportunity = [SELECT Name, Plan__c, CampaignId FROM Opportunity LIMIT 1];
+        
+        // Assert that the method creates the Opportunity with the correct name
+        System.assertEquals(clientLastName + '-' + testCampaign.Name, createdOpportunityName, 'The method should return the correct Opportunity name');
+        
+        // Assert that the inserted Opportunity has the correct values
+        System.assertEquals(clientLastName + '-' + testCampaign.Name, insertedOpportunity.Name, 'The inserted Opportunity should have the correct name');
+        System.assertEquals(testPlan.Id, insertedOpportunity.Plan__c, 'The inserted Opportunity should have the correct Plan__c Id');
+        System.assertEquals(testCampaign.Id, insertedOpportunity.CampaignId, 'The inserted Opportunity should have the correct CampaignId');
+    }
+}
+
+
+
+
+
+
+
+
 public static String createOpportunityWithPlanAndCampaign(String messageName, String planId, String clientLastName, string ownerId,string response, string responseReason, string comment) 
     { 
         System.debug('messageName'+ messageName);
