@@ -4,6 +4,52 @@ private class YourTestClass {
     static testMethod void testSortClientOffers() {
         // Create test data
         // Create vfClientOffer objects with different priorities and scores
+        YourClassName.vfClientOffer offer1 = new YourClassName.vfClientOffer();
+        offer1.offerName = 'Offer 1';
+        offer1.offerPriority = 1;
+        offer1.offerScore = 10;
+        
+        YourClassName.vfClientOffer offer2 = new YourClassName.vfClientOffer();
+        offer2.offerName = 'Offer 2';
+        offer2.offerPriority = 2;
+        offer2.offerScore = 20;
+        
+        YourClassName.vfClientOffer offer3 = new YourClassName.vfClientOffer();
+        offer3.offerName = 'Offer 3';
+        offer3.offerPriority = 2;
+        offer3.offerScore = 50;
+        
+        YourClassName.vfClientOffer offer4 = new YourClassName.vfClientOffer();
+        offer4.offerName = 'Offer 4';
+        offer4.offerPriority = 1;
+        offer4.offerScore = 20;
+        
+        List<YourClassName.vfClientOffer> unsortedOffers = new List<YourClassName.vfClientOffer>{offer1, offer2, offer3, offer4};
+        
+        // Call the sortClientOffers method
+        List<YourClassName.vfClientOffer> sortedOffers = YourClassName.sortClientOffers(unsortedOffers);
+        
+        // Assert that the method sorts the offers correctly
+        // The expected order should be: Offer 4, Offer 1, Offer 3, Offer 2
+        
+        System.assertEquals('Offer 4', sortedOffers[0].offerName, 'The method should sort offers by priority and score');
+        System.assertEquals('Offer 1', sortedOffers[1].offerName, 'The method should sort offers by priority and score');
+        System.assertEquals('Offer 3', sortedOffers[2].offerName, 'The method should sort offers by priority and score');
+        System.assertEquals('Offer 2', sortedOffers[3].offerName, 'The method should sort offers by priority and score');
+    }
+}
+
+
+
+
+
+
+@isTest
+private class YourTestClass {
+    // Test method to cover the sortClientOffers method
+    static testMethod void testSortClientOffers() {
+        // Create test data
+        // Create vfClientOffer objects with different priorities and scores
         vfClientOffer offer1 = new vfClientOffer(offerName = 'Offer 1', offerPriority = 1, offerScore = 10);
         vfClientOffer offer2 = new vfClientOffer(offerName = 'Offer 2', offerPriority = 2, offerScore = 20);
         vfClientOffer offer3 = new vfClientOffer(offerName = 'Offer 3', offerPriority = 2, offerScore = 50);
