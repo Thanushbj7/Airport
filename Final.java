@@ -1,3 +1,8 @@
+System.DmlException: Insert failed. First exception on row 0; first error: FIELD_CUSTOM_VALIDATION_EXCEPTION, Either the Employee ID, Finra CRD, or entity is required: []
+
+
+
+
 @isTest
 private class YourClassName_Test {
     @isTest
