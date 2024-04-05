@@ -1,3 +1,34 @@
+@isTest
+private class YourClassName_Test {
+    @isTest
+    static void testDynamicClientOfferQuery() {
+        // Create test Client_Offer__c records
+        List<Client_Offer__c> clientOffers = new List<Client_Offer__c>{
+            new Client_Offer__c(Account_Ext_Id__c = '123456789', Field1__c = 'Value1', Field2__c = 'Value2'),
+            new Client_Offer__c(Account_Ext_Id__c = '987654321', Field1__c = 'Value3', Field2__c = 'Value4')
+            // Add more records as needed
+        };
+        insert clientOffers;
+
+        // Create a set of SSNs to query
+        Set<String> testSSNs = new Set<String>{'123456789'};
+        // Add more SSNs as needed
+
+        // Call the method being tested
+        Test.startTest();
+        List<Client_Offer__c> result = YourClassName.dynamicClientOfferQuery(testSSNs);
+        Test.stopTest();
+
+        // Verify the result
+        System.assertEquals(1, result.size(), 'Expected one Client_Offer__c record');
+        // Add more assertions based on the expected behavior
+    }
+}
+
+
+
+
+
 public static List<Client_Offer__c> dynamicClientOfferQuery(Set<String> ssnSet) {
         String fields = '';
         for (String field : Schema.SObjectType.Client_Offer__c.fields.getMap().keySet()) {
