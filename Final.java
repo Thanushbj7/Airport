@@ -1,3 +1,41 @@
+@isTest
+private class YourClassName_Test {
+    @isTest
+    static void testGetLoggedInUserDetails() {
+        // Create a test user
+        Profile testProfile = [SELECT Id FROM Profile WHERE Name = 'Standard User'];
+        User testUser = new User(
+            ProfileId = testProfile.Id,
+            FirstName = 'Test',
+            LastName = 'User',
+            Email = 'testuser@example.com',
+            Username = 'testuser@example.com' + System.currentTimeMillis(),
+            Alias = 'tuser',
+            TimeZoneSidKey = 'America/Los_Angeles',
+            LocaleSidKey = 'en_US',
+            EmailEncodingKey = 'UTF-8',
+            LanguageLocaleKey = 'en_US'
+        );
+        insert testUser;
+
+        // Set the test user as the running user
+        System.runAs(testUser) {
+            // Call the method being tested
+            Test.startTest();
+            User result = YourClassName.getLoggedInUserDetails();
+            Test.stopTest();
+
+            // Verify the result
+            System.assertEquals(testUser.Id, result.Id, 'User Id should match the logged-in user');
+            System.assertEquals(testUser.Name, result.Name, 'User Name should match the logged-in user');
+            // Add more assertions as needed
+        }
+    }
+}
+
+
+
+
 public static User getLoggedInUserDetails() {
         User loggedInUser = [SELECT Id, Name
                              FROM User 
