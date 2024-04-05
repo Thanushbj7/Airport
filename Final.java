@@ -1,3 +1,44 @@
+@isTest
+private class YourClassName_Test {
+    @isTest
+    static void testGetLoggedInUserDetails() {
+        // Create a test user
+        Profile testProfile = [SELECT Id FROM Profile WHERE Name = 'Standard User'];
+        User testUser = new User(
+            ProfileId = testProfile.Id,
+            FirstName = 'Test',
+            LastName = 'User',
+            Email = 'testuser@example.com',
+            Username = 'testuser@example.com' + System.currentTimeMillis(),
+            Alias = 'tuser',
+            TimeZoneSidKey = 'America/Los_Angeles',
+            LocaleSidKey = 'en_US',
+            EmailEncodingKey = 'UTF-8',
+            LanguageLocaleKey = 'en_US',
+            Employee_ID__c = '123', // Populate with required field value
+            Finra_CRD__c = '456', // Populate with required field value
+            Entity__c = 'Test Entity' // Populate with required field value
+        );
+        insert testUser;
+
+        // Set the test user as the running user
+        System.runAs(testUser) {
+            // Call the method being tested
+            Test.startTest();
+            User result = YourClassName.getLoggedInUserDetails();
+            Test.stopTest();
+
+            // Verify the result
+            System.assertEquals(testUser.Id, result.Id, 'User Id should match the logged-in user');
+            System.assertEquals(testUser.Name, result.Name, 'User Name should match the logged-in user');
+            // Add more assertions as needed
+        }
+    }
+}
+
+
+
+
 System.DmlException: Insert failed. First exception on row 0; first error: FIELD_CUSTOM_VALIDATION_EXCEPTION, Either the Employee ID, Finra CRD, or entity is required: []
 
 
