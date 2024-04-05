@@ -1,3 +1,7 @@
+System.AssertException: Assertion Failed: User Name should match the logged-in user: Expected: null, Actual: Test User
+
+
+
 @isTest
 private class YourClassName_Test {
     @isTest
