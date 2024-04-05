@@ -1,3 +1,61 @@
+private static List<vfClientOffer> getOpenClientOffers(String ssn) {
+        List<vfClientOffer> vfClientOfferList = new List<vfClientOffer>();
+        
+        List<Client_Offer__c> clientOpenOfferList = dynamicClientOfferQuery(new Set<String>{ssn});
+        if(clientOpenOfferList == null || clientOpenOfferList.size() == 0)
+            return vfClientOfferList;
+        
+        Client_Offer__c co = clientOpenOfferList[0];
+        
+        Map<String, Campaign_Offer_Summary__c> campaignOfferDoNotShowOfferMap = getCampaignOfferDoNotShowOfferMap(new Set<String>{ssn});
+        
+        System.debug('co ::::: ' + co);
+        String planId = null, key = null;
+        Campaign_Offer_Summary__c offerSummary = null;
+        for (Campaign c : [select id, name, offer_code__c, offer_priority__c from campaign where offer_code__c != null limit 50]) {
+            try { 
+                //Check data in Campaign Offer Summary Object
+                //Match on PlanID and Offer Code
+                
+                planId = (String)co.get('PlanId_' + c.offer_code__c + '__c');
+                key = ssn + ConstantUtils.UNIQUE_SEPERATOR + planId + ConstantUtils.UNIQUE_SEPERATOR + c.offer_code__c;
+                
+                offerSummary = campaignOfferDoNotShowOfferMap.get(key);
+                //Case# 16921 && Case# 11899 - Rahul Sahay - 07/17/2013 
+                if(offerSummary != null && planId == offerSummary.Planid_Text__c && c.offer_code__c == offerSummary.OfferCode__c)
+                        continue;
+                
+                if (((String)co.get('status_' + c.offer_code__c + '__c') == 'Open') && ((Decimal)co.get('score_' + c.offer_code__c + '__c') != null)) {
+                    VfClientOffer vf = new VfClientOffer();
+                    vf.offerCode = c.offer_code__c;
+                    vf.offerName = c.name;                    
+                    vf.offerPriority = c.offer_priority__c;
+                    vf.offerScore = (Decimal)co.get('score_' + c.offer_code__c + '__c');
+                    vf.offerPlanId = (String)co.get('planid_' + c.offer_code__c + '__c');
+                    vf.offerPlanName = (String)co.get('PlanName_' + c.offer_code__c + '__c');
+                    
+                    //Case # 00011325: Added new field to show the Avtive Mailer information on the Targeted Messages list on the Offer Page.
+                    vf.activeMailer = (String)co.get('Active_Mailer_' + c.offer_code__c + '__c');
+                   
+                    vf.offerCampaign = c.id;
+                    vfClientOfferList.add(vf);//---this is need to display in UI
+                }
+            } catch (Exception e) {
+                // this exception means the user has inserted a campaign with an offer_code__c but has not inserted the corresponding fields on the client_offer__c object
+                // swallow 
+            }
+        }        
+        
+        System.debug('vfClientOfferList :::: ' + vfClientOfferList);
+        
+        return vfClientOfferList;
+    }
+
+
+
+
+
+
 public static List<Client_Offer__c> dynamicClientOfferQuery(Set<String> ssnSet) {
         String fields = '';
         for (String field : Schema.SObjectType.Client_Offer__c.fields.getMap().keySet()) {
