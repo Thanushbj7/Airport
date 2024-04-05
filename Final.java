@@ -1,3 +1,22 @@
+ public static Map<String, Campaign_Offer_Summary__c> getCampaignOfferDoNotShowOfferMap(Set<String> ssnSet) {
+        Map<String, Campaign_Offer_Summary__c> ssnCampaignOfferMap = new Map<String, Campaign_Offer_Summary__c>();
+        String key = null;
+        
+        List<Campaign_Offer_Summary__c> coSummaryList = [select OfferCode__c, Present_Message__c, Planid_Text__c, Customer_SSN__c from Campaign_Offer_Summary__c where Customer_SSN__c in: ssnSet];
+        for(Campaign_Offer_Summary__c cos : coSummaryList) {
+            //Fill this up with only 'D0-NOT-SHOWS'
+            if(!cos.Present_Message__c && !String.isBlank(cos.OfferCode__c) && !String.isBlank(cos.Planid_Text__c)) {
+                key = cos.Customer_SSN__c + ConstantUtils.UNIQUE_SEPERATOR + cos.Planid_Text__c + ConstantUtils.UNIQUE_SEPERATOR + cos.OfferCode__c;
+                
+                ssnCampaignOfferMap.put(key, cos);
+            }
+        }
+        
+        return ssnCampaignOfferMap;       
+    }
+
+
+
 System.DmlException: Insert failed. First exception on row 0; first error: FIELD_CUSTOM_VALIDATION_EXCEPTION, SSN/TIN Field must be a numeric &amp;amp; 9 digits.: [SSN__c]
 
 
