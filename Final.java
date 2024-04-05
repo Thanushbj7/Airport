@@ -1,4 +1,42 @@
- public static Map<String, Campaign_Offer_Summary__c> getCampaignOfferDoNotShowOfferMap(Set<String> ssnSet) {
+@isTest
+private class YourClassName_Test {
+    @isTest
+    static void testGetCampaignOfferDoNotShowOfferMap() {
+        // Create test Campaign_Offer_Summary__c records
+        Campaign_Offer_Summary__c cos1 = new Campaign_Offer_Summary__c(
+            OfferCode__c = 'Offer1',
+            Present_Message__c = false,
+            Planid_Text__c = 'Plan1',
+            Customer_SSN__c = '123456789'
+        );
+        // Add more records as needed
+        
+        // Insert the test records
+        insert new List<Campaign_Offer_Summary__c>{cos1};
+        // Insert more records as needed
+        
+        // Create a set of SSNs to query
+        Set<String> testSSNs = new Set<String>{'123456789'};
+        // Add more SSNs as needed
+        
+        // Call the method being tested
+        Test.startTest();
+        Map<String, Campaign_Offer_Summary__c> result = YourClassName.getCampaignOfferDoNotShowOfferMap(testSSNs);
+        Test.stopTest();
+        
+        // Verify the result
+        System.assertEquals(1, result.size(), 'Map size should be 1');
+        // Add more assertions based on the expected behavior
+        
+        // Example assertion for key existence
+        System.assertTrue(result.containsKey('123456789_Plan1_Offer1'), 'Key should exist in the map');
+    }
+}
+
+
+
+
+public static Map<String, Campaign_Offer_Summary__c> getCampaignOfferDoNotShowOfferMap(Set<String> ssnSet) {
         Map<String, Campaign_Offer_Summary__c> ssnCampaignOfferMap = new Map<String, Campaign_Offer_Summary__c>();
         String key = null;
         
