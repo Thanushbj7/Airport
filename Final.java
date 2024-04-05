@@ -1,3 +1,13 @@
+public static User getLoggedInUserDetails() {
+        User loggedInUser = [SELECT Id, Name
+                             FROM User 
+                             WHERE Id = :UserInfo.getUserId()];
+        return loggedInUser;
+    }
+
+
+
+
 @isTest
 private class YourClassName_Test {
     @isTest
