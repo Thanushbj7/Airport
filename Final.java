@@ -1,3 +1,27 @@
+public static List<Client_Offer__c> dynamicClientOfferQuery(Set<String> ssnSet) {
+        String fields = '';
+        for (String field : Schema.SObjectType.Client_Offer__c.fields.getMap().keySet()) {
+            fields += field + ',';
+        }
+        fields = fields.substring(0,fields.length()-1);
+        
+        String ssns = '';
+        for (String ssn : ssnSet) {
+            ssns += '\''+ ssn + '\',';
+        }
+        ssns = ssns.substring(0,ssns.length()-1);
+
+        if (ssns == null || ssns.length()<1 || fields == null || fields.length()<1) {
+            return null;
+        }  
+        
+        String query = 'select ' + fields;
+        query += ' from client_offer__c where account_ext_id__c in (' + ssns + ') and account_ext_id__c != null';
+        System.debug('DEBUG query - ' + query);
+        return Database.query(query);       
+    }
+
+
 @isTest
 private class YourClassName_Test {
     @isTest
