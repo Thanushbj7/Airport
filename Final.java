@@ -1,3 +1,36 @@
+@isTest
+private class YourTestClass {
+    
+    @isTest
+    static void testGetOpenClientOffers() {
+        // Test when clientOpenOfferList is null
+        Test.startTest();
+        List<vfClientOffer> nullClientOffers = YourClassName.getOpenClientOffers('TestSSN');
+        Test.stopTest();
+        System.assertEquals(new List<vfClientOffer>(), nullClientOffers, 'The method should return an empty list when clientOpenOfferList is null');
+        
+        // Test when clientOpenOfferList is empty
+        Test.startTest();
+        List<Client_Offer__c> emptyClientOfferList = new List<Client_Offer__c>();
+        // Mock dynamicClientOfferQuery method to return emptyClientOfferList
+        List<vfClientOffer> emptyClientOffers = YourClassName.getOpenClientOffers('TestSSN');
+        Test.stopTest();
+        System.assertEquals(new List<vfClientOffer>(), emptyClientOffers, 'The method should return an empty list when clientOpenOfferList is empty');
+        
+        // Test when clientOpenOfferList contains records and valid campaign data
+        Test.startTest();
+        // Implement test data setup with relevant Client_Offer__c records and campaign data
+        // Mock dynamicClientOfferQuery and getCampaignOfferDoNotShowOfferMap methods to return appropriate data
+        List<vfClientOffer> clientOffers = YourClassName.getOpenClientOffers('TestSSN');
+        Test.stopTest();
+        // Implement assertions based on the constructed vfClientOfferList
+        // Ensure to verify the values of vfClientOffer attributes such as offerCode, offerName, etc.
+    }
+}
+
+
+
+
 private static List<vfClientOffer> getOpenClientOffers(String ssn) {
         List<vfClientOffer> vfClientOfferList = new List<vfClientOffer>();
         
