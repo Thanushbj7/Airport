@@ -1,3 +1,56 @@
+
+@isTest
+private class YourClassName_Test {
+    @isTest
+    static void testGetLoggedInUserDetails() {
+        // Create a test user
+        Profile testProfile = [SELECT Id FROM Profile WHERE Name = 'Standard User'];
+        User testUser = new User(
+            ProfileId = testProfile.Id,
+            FirstName = 'Test',
+            LastName = 'User',
+            Email = 'testuser@example.com',
+            Username = 'testuser@example.com' + System.currentTimeMillis(),
+            Alias = 'tuser',
+            TimeZoneSidKey = 'America/Los_Angeles',
+            LocaleSidKey = 'en_US',
+            EmailEncodingKey = 'UTF-8',
+            LanguageLocaleKey = 'en_US',
+            Employee_ID__c = '123', // Populate with required field value
+            Finra_CRD__c = '456', // Populate with required field value
+            Entity__c = true // Populate with required field value
+        );
+
+        // Insert the test user
+        try {
+            insert testUser;
+            System.debug('Test user inserted successfully');
+        } catch (DmlException e) {
+            System.debug('An error occurred while inserting the test user: ' + e.getMessage());
+            System.assert(false, 'Failed to insert the test user');
+        }
+
+        // Set the test user as the running user
+        System.runAs(testUser) {
+            // Call the method being tested
+            Test.startTest();
+            User result = YourClassName.getLoggedInUserDetails();
+            Test.stopTest();
+
+            // Verify the result
+            System.assertEquals(testUser.Id, result.Id, 'User Id should match the logged-in user');
+            System.assertEquals(testUser.Name, result.Name, 'User Name should match the logged-in user');
+            // Add more assertions as needed
+        }
+    }
+}
+
+
+
+
+
+
+
 private BalanceHistoryCache(final ParticipantKey key) {
     ParticipantInfo partInfo = ParticipantInfo.getInstance(key.getClient(), key.getPlan(), key.getParticipant());
     int pptAcctAge = partInfo.getParticipantAccountAgeInMonths();
