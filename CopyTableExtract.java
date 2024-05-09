@@ -1,3 +1,29 @@
+@isTest
+private class TestCreateCaseActionForPaag {
+    
+    @isTest
+    static void testCreateCaseActionForPaag() {
+        // Test data setup
+        Case newCase = new Case();
+        newCase.Subject = 'Test Case';
+        // Add any other required fields
+        insert newCase;
+        
+        // Call the method
+        Id caseActionId = YourClassName.createCaseActionForPaag('TestPlanId', 'TestCallType', newCase.Id);
+        
+        // Retrieve the inserted Case Action record
+        Case_Actions__c insertedCaseAction = [SELECT Id FROM Case_Actions__c WHERE Id = :caseActionId];
+        
+        // Assert that the Case Action record was created successfully
+        System.assertNotEquals(null, insertedCaseAction, 'Case Action record should have been created.');
+    }
+}
+
+
+
+
+
 import { LightningElement } from 'lwc';
 import createCaseActionForPaag from '@salesforce/apex/YourApexClass.createCaseActionForPaag';
 
