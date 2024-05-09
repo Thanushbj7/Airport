@@ -1,3 +1,45 @@
+import { LightningElement } from 'lwc';
+import createCaseActionForPaag from '@salesforce/apex/YourApexClass.createCaseActionForPaag';
+
+describe('createCaseActionForPaag Test', () => {
+    it('should create Case Action for PAAG', () => {
+        // Setup
+        const planId = 'TestPlanId';
+        const callType = 'TestCallType';
+        const caseId = 'TestCaseId';
+        const expectedId = 'TestId123';
+
+        // Mocking Apex method
+        jest.mock(
+            '@salesforce/apex/YourApexClass.createCaseActionForPaag',
+            () => ({
+                default: jest.fn()
+            }),
+            { virtual: true }
+        );
+
+        // Calling the mocked Apex method
+        createCaseActionForPaag.mockResolvedValue({ Id: expectedId });
+
+        // Execution
+        return createCaseActionForPaag({ planId, callType, caseId })
+            .then(result => {
+                // Assertion
+                expect(result).toBe(expectedId);
+                expect(createCaseActionForPaag.mock.calls[0][0]).toEqual({
+                    planId,
+                    callType,
+                    caseId
+                });
+            });
+    });
+});
+
+
+
+
+
+
 public static Id createCaseActionForPaag(String planId,  String callType, Id caseId){
         List<Case_Actions__c> caListToInsert= new List<Case_Actions__c>();
         
