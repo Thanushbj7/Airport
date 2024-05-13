@@ -1,3 +1,41 @@
+ @AuraEnabled(cacheable=true)
+    public static List<PaagAlertWrapper> getPaagAlerts(String planId, String clientId) {
+        //system.debug('Client Id '+ clientId);
+        PaagAlertWrapper[] alerts = new PaagAlertWrapper[0];
+        
+        String paagAlertQuery = 'select Message__c,Display_Start_Date__c,Display_End_Date__c,PAAG_Alert_Call_Type__c from PAAG_Alerts__c where (Global__c = true or Plan__r.Name = \'' + planId + '\'';
+        if(clientId != null && clientId != '') {
+            paagAlertQuery = paagAlertQuery + ' or (Client_Id__c =\'' + clientId + '\')';
+        } 
+        paagAlertQuery = paagAlertQuery + ') order by Display_Start_Date__c desc';
+        
+        //system.debug('paagAlertQuery :::: ' + paagAlertQuery);
+        
+        List<PAAG_Alerts__c> paagAlertList = (List<PAAG_Alerts__c>)Database.query(paagAlertQuery);
+        
+        //system.debug('paagAlertList ::: ' + paagAlertList);
+        
+         for(PAAG_Alerts__c paagAlert : paagAlertList){
+             boolean beforeDate = paagAlert.Display_Start_Date__c != null && Date.today() < paagAlert.Display_Start_Date__c;
+             boolean afterDate = paagAlert.Display_End_Date__c !=null && Date.today() > paagAlert.Display_End_Date__c;
+             //system.debug('===================================Before Date ' + beforeDate);
+             if((paagAlert.Display_Start_Date__c != null && Date.today() < paagAlert.Display_Start_Date__c) || (paagAlert.Display_End_Date__c !=null && Date.today() > paagAlert.Display_End_Date__c))
+                continue;                
+             
+             PaagAlertWrapper alert = new PaagAlertWrapper();
+             alert.message = paagAlert.Message__c;
+             alert.PAAGAlertCallType=paagAlert.PAAG_Alert_Call_Type__c;
+             alerts.add(alert);
+         }
+         
+        return alerts;
+    }
+
+
+
+
+
+
 @isTest
 private class TestCreateCaseActionForPaag {
     
