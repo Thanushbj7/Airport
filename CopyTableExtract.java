@@ -1,4 +1,37 @@
- @AuraEnabled(cacheable=true)
+@isTest
+private class TestGetPaagAlerts {
+    
+    @isTest
+    static void testGetPaagAlerts() {
+        // Test data setup
+        String planId = 'TestPlanId';
+        String clientId = 'TestClientId';
+        
+        // Create test data for PAAG_Alerts__c
+        List<PAAG_Alerts__c> paagAlerts = new List<PAAG_Alerts__c>();
+        // Add test PAAG_Alerts__c records to paagAlerts list
+        
+        // Insert test PAAG_Alerts__c records
+        insert paagAlerts;
+        
+        // Call the method
+        List<PaagAlertWrapper> result = YourClassName.getPaagAlerts(planId, clientId);
+        
+        // Assert that the result is not null
+        System.assertNotEquals(null, result, 'Result should not be null.');
+        
+        // Assert other conditions based on your logic and test data
+        // For example, check if the returned list contains expected PaagAlertWrapper objects.
+    }
+}
+
+
+
+
+
+
+
+@AuraEnabled(cacheable=true)
     public static List<PaagAlertWrapper> getPaagAlerts(String planId, String clientId) {
         //system.debug('Client Id '+ clientId);
         PaagAlertWrapper[] alerts = new PaagAlertWrapper[0];
