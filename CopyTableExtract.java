@@ -1,3 +1,42 @@
+@isTest
+private class TestGetPaagFields {
+    
+    @isTest
+    static void testGetPaagFields() {
+        // Test data setup
+        String recordId = 'TestRecordId';
+        String fieldNames = 'Field1,Field2,Field3'; // Add comma-separated field names
+        
+        // Create test paag__c record
+        paag__c testPaagRecord = new paag__c();
+        testPaagRecord.Field1 = 'Value1';
+        testPaagRecord.Field2 = 'Value2';
+        testPaagRecord.Field3 = 'Value3';
+        // Add values for other required fields
+        insert testPaagRecord;
+        
+        // Call the method
+        Test.startTest();
+        List<Map<String, String>> result = YourClassName.getPaagFields(recordId, fieldNames);
+        Test.stopTest();
+        
+        // Assert that the result is not null
+        System.assertNotEquals(null, result, 'Result should not be null.');
+        
+        // Assert the size of the result list
+        System.assertEquals(1, result.size(), 'Result list should contain one map.');
+        
+        // Assert the values in the map
+        Map<String, String> fieldValues = result[0];
+        System.assertEquals('Value1', fieldValues.get('Field1'), 'Field1 value should match.');
+        System.assertEquals('Value2', fieldValues.get('Field2'), 'Field2 value should match.');
+        System.assertEquals('Value3', fieldValues.get('Field3'), 'Field3 value should match.');
+        // Add assertions for other fields as needed
+    }
+}
+
+
+
 @AuraEnabled(cacheable=true)
 public static List<Map<String, String>> getPaagFields(String recordId, String fieldNames) {
     List<Map<String, String>> result = new List<Map<String, String>>();
