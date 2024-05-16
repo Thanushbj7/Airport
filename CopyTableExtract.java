@@ -1,4 +1,42 @@
- @AuraEnabled
+@isTest
+private class TestGetKnowledgeArticlesFromSearch {
+    
+    @isTest
+    static void testGetKnowledgeArticlesFromSearch() {
+        // Test data setup
+        String searchText = 'TestSearchText';
+        
+        // Create test Knowledge__kav records
+        List<Knowledge__kav> testKnowledgeArticles = new List<Knowledge__kav>();
+        // Add test Knowledge__kav records to testKnowledgeArticles list
+        
+        // Insert test Knowledge__kav records
+        insert testKnowledgeArticles;
+        
+        // Mock the Search.query method
+        Test.setFixedSearchResults(new List<List<SObject>>{testKnowledgeArticles});
+        
+        // Call the method
+        Test.startTest();
+        List<knowledgeArticleWrapper> result = YourClassName.getKnowledgeArticlesFromSearch(searchText);
+        Test.stopTest();
+        
+        // Assert that the result is not null
+        System.assertNotEquals(null, result, 'Result should not be null.');
+        
+        // Assert the size of the result list
+        System.assertEquals(testKnowledgeArticles.size(), result.size(), 'Result list should contain the same number of elements as the test Knowledge__kav records.');
+        
+        // Add more assertions as needed to verify the correctness of the wrapper data
+        
+    }
+}
+
+
+
+
+
+@AuraEnabled
     public static List<knowledgeArticleWrapper> getKnowledgeArticlesFromSearch(String searchText) {
 
         String searchQuery = 'FIND :searchText IN ALL FIELDS RETURNING Knowledge__kav(Id, Title, ArticleNumber, Summary,';
