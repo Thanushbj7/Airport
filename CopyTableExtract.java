@@ -7,6 +7,34 @@ private class TestGetNomalizedScore {
         Set<Id> articleIds = new Set<Id>();
         // Add test article Ids to the articleIds set
         
+        // Load test data for KnowledgeArticleViewStat
+        List<sObject> testData = Test.loadData(KnowledgeArticleViewStat.sObjectType, 'TestDataFileName');
+        
+        // Call the method
+        Test.startTest();
+        Map<Id,String> result = YourClassName.getNomalizedScore(articleIds);
+        Test.stopTest();
+        
+        // Assert that the result is not null
+        System.assertNotEquals(null, result, 'Result should not be null.');
+        
+        // Assert other conditions based on your logic and test data
+        // For example, check if the returned map contains expected Ids and corresponding normalized scores.
+    }
+}
+
+
+
+
+@isTest
+private class TestGetNomalizedScore {
+    
+    @isTest
+    static void testGetNomalizedScore() {
+        // Test data setup
+        Set<Id> articleIds = new Set<Id>();
+        // Add test article Ids to the articleIds set
+        
         // Create test data for KnowledgeArticleViewStat
         List<KnowledgeArticleViewStat> kavs = new List<KnowledgeArticleViewStat>();
         // Add test KnowledgeArticleViewStat records to kavs list
