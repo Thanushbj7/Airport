@@ -1,3 +1,56 @@
+@isTest
+private class TestInitializeAndLoadPlanData {
+
+    @isTest
+    static void testInitializeAndLoadPlanData() {
+        // Test data setup
+        String clientId = '001XXXXXXXXXXXXXXX';  // Replace with an appropriate clientId
+
+        // Create test Account record
+        Account testAccount = new Account(Name = 'Test Account', SSN__c = '123-45-6789');
+        insert testAccount;
+
+        // Create test Case record
+        Case testCase = new Case(Status = 'New', Origin = 'Phone', CaseNumber = '12345');
+        insert testCase;
+
+        // Create test CTI_Console_Pop__c record
+        CTI_Console_Pop__c testCtiConsolePop = new CTI_Console_Pop__c(
+            Account__c = testAccount.Id,
+            CTI_Params__c = 'clientId:123-45-6789;VRUAPP:TestValue',
+            DC_Serialized_Result__c = 'SerializedResult',
+            Case__c = testCase.Id,
+            Offer_Pop__c = 'SomeValue'
+        );
+        insert testCtiConsolePop;
+
+        // Mock the UltimatePopControllerHelper.getSFDCClientInfo method
+        Test.startTest();
+        Test.setMock(UltimatePopControllerHelper.class, new MockUltimatePopControllerHelper());
+        List<UltimatePopControllerHelper.SearchResult> result = YourClassName.initializeAndLoadPlanData(clientId);
+        Test.stopTest();
+
+        // Assert that the result is not null
+        System.assertNotEquals(null, result, 'Result should not be null.');
+        
+        // Add more assertions as needed to verify the correctness of the result
+    }
+
+    private class MockUltimatePopControllerHelper implements UltimatePopControllerHelper {
+        public Account getSFDCClientInfo(String ssn, Boolean isActive) {
+            return new Account(Id = '001XXXXXXXXXXXXXXX', SSN__c = ssn, Name = 'Mock Account');
+        }
+
+        public List<UltimatePopControllerHelper.SearchResult> initializeAvailablePlans(Case currentCase, String clientSSN, String test, Account client) {
+            List<UltimatePopControllerHelper.SearchResult> mockResults = new List<UltimatePopControllerHelper.SearchResult>();
+            mockResults.add(new UltimatePopControllerHelper.SearchResult('Mock Plan', 'Mock Description'));
+            return mockResults;
+        }
+    }
+}
+
+
+
 @AuraEnabled(cacheable=false)
 public static List<UltimatePopControllerHelper.SearchResult> initializeAndLoadPlanData(String clientId){
     Case currentCase = new Case();
