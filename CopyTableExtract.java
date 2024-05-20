@@ -1,3 +1,26 @@
+@AuraEnabled
+    public static Id createCase(String comments,String editRequestType,String priority,Blob fileBody, String fileName){
+        List<Case> caseToInsert= new List<Case>();
+         Case c =new Case();
+        c.Status='New';
+        c.Origin = 'Call Center' ;
+         c.Description=comments;
+        c.Priority=priority;
+        c.Edit_Request_Type__c=editRequestType;
+         caseToInsert.add(c);
+        insert caseToInsert;
+        System.debug('caseToInsert[0].Id'+caseToInsert[0].Id);
+         List<Attachment> attachmentToInsert= new List<Attachment>();
+        Attachment attachment  = new Attachment();
+        attachment.Body = fileBody;
+        attachment.Name = fileName;
+        attachment.ParentId = caseToInsert[0].Id;  
+        attachmentToInsert.add(attachment);
+        insert attachmentToInsert; 
+        return caseToInsert[0].Id;
+    }
+
+
 @isTest
 private class TestGetKnowledgeArticlesFromSearch {
     
