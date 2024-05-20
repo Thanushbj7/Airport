@@ -1,3 +1,110 @@
+@AuraEnabled(cacheable=false)
+public static List<UltimatePopControllerHelper.SearchResult> initializeAndLoadPlanData(String clientId){
+    Case currentCase = new Case();
+    //system.debug('Acc Id '+clientId);
+	String clientSSN = '';
+	String test = '';
+
+    ////system.debug('id '+Id+' cientSSN '+clientSSN+' vru '+test);
+    //this.innerSharingClassInstance = new CTIWelcomePageController.CTIWelcomePageControllerWithSharing();
+    
+    ////system.debug('====================== ApexPages.currentPage().getParameters().get(id) ' + ApexPages.currentPage().getParameters().get('id'));
+    
+    CTI_Console_Pop__c  ctiConsolePop = [select Id, Account__r.SSN__c, CTI_Params__c, DC_Serialized_Result__c, Case__c, 
+        Case__r.Id, Case__r.CaseNumber, Offer_Pop__c, Offer_Pop__r.Id from CTI_Console_Pop__c 
+        where account__c = :clientId order by LastModifiedDate  desc limit 1];
+        String[] keyValuePairs = ctiConsolePop.CTI_Params__c.split(';');
+        for(String pair : keyValuePairs) {
+            String[] keyValue = pair.split(':');
+            if(keyValue.size() == 2) {
+                String key = keyValue[0].trim();
+                String value = keyValue[1].trim();
+        
+                if(key == 'clientId') {
+                    clientSSN = value;
+                } else if(key == 'VRUAPP') {
+                    test = value;
+                }
+            }
+        }
+        
+        //system.debug('clientSSN: ' + clientSSN);
+        //system.debug('test: ' + test);
+    Account client = UltimatePopControllerHelper.getSFDCClientInfo(ctiConsolePop.Account__r.SSN__c, true);
+    
+    List<Case> currentCaseList = [select Id, CaseNumber, Offers_Available__c from Case where Id = :ctiConsolePop.Case__r.Id];
+    if(currentCaseList != null && currentCaseList.size() > 0)
+        currentCase = currentCaseList.get(0);
+    	
+    String ctiParams = ctiConsolePop.CTI_Params__c;
+    CurCase=ctiConsolePop.Case__r.Id;
+    //system.debug('=================================== ctiParams ' + ctiParams);
+   /*
+    if(ctiParams != null && ctiParams != '') {
+        // clientID:123456789;Source:CTI;DNIS:5811261
+        String[] ctiParamArr = ctiParams.split(';');
+        String clientSSN, source, dnisNumber;
+        if(ctiParamArr != null && ctiParamArr.size() == 5) {
+            this.clientSSN = (ctiParamArr[0].split(':').size() == 2 ? ctiParamArr[0].split(':')[1] : ' ');
+            this.source = (ctiParamArr[1].split(':').size() == 2 ? ctiParamArr[1].split(':')[1] : ' ');
+            this.dnisNumber = (ctiParamArr[2].split(':').size() == 2 ? ctiParamArr[2].split(':')[1] : ' ');
+            this.ctiVRUApp = (ctiParamArr[3].split(':').size() == 2 ? ctiParamArr[3].split(':')[1] : ' ');
+            this.ctiEDU = (ctiParamArr[4].split(':').size() == 2 ? ctiParamArr[4].split(':')[1] : ' ') ;
+            
+        }else if(ctiParamArr != null && ctiParamArr.size() == 6) {
+            
+            this.clientSSN = (ctiParamArr[0].split(':').size() == 2 ? ctiParamArr[0].split(':')[1] : ' ');
+            this.source = (ctiParamArr[1].split(':').size() == 2 ? ctiParamArr[1].split(':')[1] : ' ');
+            this.dnisNumber = (ctiParamArr[2].split(':').size() == 2 ? ctiParamArr[2].split(':')[1] : ' ');
+            this.ctiVRUApp = (ctiParamArr[3].split(':').size() == 2 ? ctiParamArr[3].split(':')[1] : ' ');
+            this.ctiEDU = (ctiParamArr[4].split(':').size() == 2 ? ctiParamArr[4].split(':')[1] : ' ') ;
+            this.securityParameter = (ctiParamArr[5].split(':').size() == 2 ? ctiParamArr[5].split(':')[1] : ' ') ;
+            
+        }else if(ctiParamArr != null && ctiParamArr.size() == 7) {
+            
+            this.clientSSN = (ctiParamArr[0].split(':').size() == 2 ? ctiParamArr[0].split(':')[1] : ' ');
+            this.source = (ctiParamArr[1].split(':').size() == 2 ? ctiParamArr[1].split(':')[1] : ' ');
+            this.dnisNumber = (ctiParamArr[2].split(':').size() == 2 ? ctiParamArr[2].split(':')[1] : ' ');
+            this.ctiVRUApp = (ctiParamArr[3].split(':').size() == 2 ? ctiParamArr[3].split(':')[1] : ' ');
+            this.ctiEDU = (ctiParamArr[4].split(':').size() == 2 ? ctiParamArr[4].split(':')[1] : ' ') ;
+            this.securityParameter = (ctiParamArr[5].split(':').size() == 2 ? ctiParamArr[5].split(':')[1] : ' ') ;
+            this.caseOrigin = (ctiParamArr[6].split(':').size() == 2 ? ctiParamArr[6].split(':')[1] : ' ') ;
+        }
+    
+        //system.debug('=================================== dnisNumber ' + this.dnisNumber);
+        //system.debug('=================================== source ' + this.source);
+        //system.debug('=================================== clientSSN ' + this.clientSSN);
+        //system.debug('=================================== this.ctiVRUApp ' + this.ctiVRUApp);
+        //system.debug('=================================== this.ctiEDU ' + this.ctiEDU);
+        //system.debug('=================================== this.AuthenticatedFlag ' + this.securityParameter);
+        //system.debug('=================================== this.caseOrigin ' + this.caseOrigin);
+    }
+    */
+    //initProfileVars(); AD
+    
+    //this.loggedInUser = [select CSA_Lead__c, myVoya_User__c,eMoney_User_Type__c, eMoney_ID__c, UserRole.Name, Profile.Name from User where id = :UserInfo.getUserId()];
+    
+    //Set Lead Source based on DNIS
+   // String leadSource = doLeadSourceTranslation(this.dnisNumber); AD
+    //String campaignLeadSource = getCampaignInfo(this.dnisNumber, this.client); AD
+    
+    //Initialize new Alert
+    //initNewAlert(); AD
+    
+    // Init Plan for Select list
+    return initializeAvailablePlans(currentCase,clientSSN,test,client);
+    
+
+
+
+
+
+
+}
+
+
+
+
 @isTest
 private class TestCreateOpportunity {
 
