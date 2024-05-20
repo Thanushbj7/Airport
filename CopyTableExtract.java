@@ -1,3 +1,36 @@
+@AuraEnabled
+    public static String createOpportunity( String planId,String clientLastName, String campaignName, string ownerId,string response, string responseReason, string comment) {
+         List<Opportunity> oppList= new List<Opportunity>();
+        system.debug('check Response '+ response);
+         system.debug('check responseReason '+ responseReason);
+         system.debug('check comment '+ comment);
+         system.debug('check planId '+ planId);
+     
+         Plan__c p=(Plan__c)[Select Id,Name from Plan__c where Name=:planId Limit 1];
+          system.debug('check  for Plan Id after SOQL  '+ p.Name);
+        Opportunity opp= new opportunity();
+        opp.StageName='Need Analysis';
+        opp.CloseDate=system.today();
+        opp.Name=clientLastName+'-'+campaignName;
+        opp.Plan__c=p.Id;
+        opp.Offer_Created_Manually__c=true;
+       // opp.Plan__c=planId;
+        opp.ownerId=ownerId;
+        opp.Offer_Response__c=response;
+        opp.Offer_Response_Reason__c=responseReason;
+        opp.Message_Comments__c=comment;
+        oppList.add(opp);
+        // system.debug('seeing heree opportunity value', oppList[0]);
+        if(!oppList.isEmpty()){
+            system.debug('seeing heree opportunity value '+ oppList);
+            insert oppList;
+            return oppList[0].Name;
+        }
+        return null;
+    }  
+
+
+
 @isTest
 private class TestCreateCase {
     
