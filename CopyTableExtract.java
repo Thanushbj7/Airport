@@ -1,3 +1,44 @@
+@isTest
+private class TestCreateOpportunity {
+
+    @isTest
+    static void testCreateOpportunity() {
+        // Test data setup
+        String planId = 'TestPlan';
+        String clientLastName = 'Doe';
+        String campaignName = 'TestCampaign';
+        String ownerId = UserInfo.getUserId();
+        String response = 'Accepted';
+        String responseReason = 'Valid Reason';
+        String comment = 'Test Comment';
+
+        // Create test Plan__c record
+        Plan__c testPlan = new Plan__c(Name = planId);
+        insert testPlan;
+
+        // Call the method
+        Test.startTest();
+        String opportunityName = YourClassName.createOpportunity(planId, clientLastName, campaignName, ownerId, response, responseReason, comment);
+        Test.stopTest();
+
+        // Assert that the opportunity was created successfully
+        Opportunity createdOpportunity = [SELECT Id, Name, StageName, CloseDate, Plan__c, OwnerId, Offer_Response__c, Offer_Response_Reason__c, Message_Comments__c 
+                                          FROM Opportunity WHERE Name = :opportunityName];
+        System.assertNotEquals(null, createdOpportunity, 'Opportunity should have been created.');
+        System.assertEquals('Need Analysis', createdOpportunity.StageName, 'Opportunity StageName should be Need Analysis.');
+        System.assertEquals(System.today(), createdOpportunity.CloseDate, 'Opportunity CloseDate should be today.');
+        System.assertEquals(clientLastName + '-' + campaignName, createdOpportunity.Name, 'Opportunity Name should match the expected format.');
+        System.assertEquals(testPlan.Id, createdOpportunity.Plan__c, 'Opportunity Plan__c should match the test plan Id.');
+        System.assertEquals(ownerId, createdOpportunity.OwnerId, 'Opportunity OwnerId should match the input.');
+        System.assertEquals(response, createdOpportunity.Offer_Response__c, 'Opportunity Offer_Response__c should match the input.');
+        System.assertEquals(responseReason, createdOpportunity.Offer_Response_Reason__c, 'Opportunity Offer_Response_Reason__c should match the input.');
+        System.assertEquals(comment, createdOpportunity.Message_Comments__c, 'Opportunity Message_Comments__c should match the input.');
+    }
+}
+
+
+
+
 @AuraEnabled
     public static String createOpportunity( String planId,String clientLastName, String campaignName, string ownerId,string response, string responseReason, string comment) {
          List<Opportunity> oppList= new List<Opportunity>();
