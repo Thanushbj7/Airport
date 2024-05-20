@@ -1,3 +1,43 @@
+@isTest
+private class TestCreateCase {
+    
+    @isTest
+    static void testCreateCase() {
+        // Test data setup
+        String comments = 'Test comments';
+        String editRequestType = 'Test edit request type';
+        String priority = 'High';
+        Blob fileBody = Blob.valueOf('Test file content');
+        String fileName = 'TestFileName.txt';
+        
+        // Call the method
+        Test.startTest();
+        Id caseId = YourClassName.createCase(comments, editRequestType, priority, fileBody, fileName);
+        Test.stopTest();
+        
+        // Assert that the case was created successfully
+        Case createdCase = [SELECT Id, Status, Origin, Description, Priority, Edit_Request_Type__c FROM Case WHERE Id = :caseId];
+        System.assertNotEquals(null, createdCase, 'Case should have been created.');
+        System.assertEquals('New', createdCase.Status, 'Case status should be New.');
+        System.assertEquals('Call Center', createdCase.Origin, 'Case origin should be Call Center.');
+        System.assertEquals(comments, createdCase.Description, 'Case description should match the input.');
+        System.assertEquals(priority, createdCase.Priority, 'Case priority should match the input.');
+        System.assertEquals(editRequestType, createdCase.Edit_Request_Type__c, 'Case edit request type should match the input.');
+        
+        // Assert that the attachment was created successfully
+        Attachment createdAttachment = [SELECT Id, Name, ParentId FROM Attachment WHERE ParentId = :caseId];
+        System.assertNotEquals(null, createdAttachment, 'Attachment should have been created.');
+        System.assertEquals(fileName, createdAttachment.Name, 'Attachment name should match the input.');
+        System.assertEquals(caseId, createdAttachment.ParentId, 'Attachment ParentId should match the created case Id.');
+    }
+}
+
+
+
+
+
+
+
 @AuraEnabled
     public static Id createCase(String comments,String editRequestType,String priority,Blob fileBody, String fileName){
         List<Case> caseToInsert= new List<Case>();
