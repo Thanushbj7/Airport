@@ -1,3 +1,32 @@
+  @AuraEnabled
+    public static List<knowledgeArticleWrapper> getKnowledgeArticlesFromSearch(String searchText) {
+
+        String searchQuery = 'FIND :searchText IN ALL FIELDS RETURNING Knowledge__kav(Id, Title, ArticleNumber, Summary,';
+            searchQuery += ' ValidationStatus, PublishStatus, KnowledgeArticleId, LastPublishedDate, LastModifiedDate, IsVisibleInPkb,';
+            searchQuery += ' RecordType.Name ';
+        /*    if (String.isNotEmpty(publishStatus)) {
+                searchQuery += ' AND PublishStatus = :publishStatus';
+            }
+            
+            if (!accountIds.isEmpty()) {
+                searchQuery += ' AND ((Account__c IN :accountIds) OR (Account__c = null AND Knowledge_Type__c = \'Generic\'))';
+            }
+            */
+            searchQuery += ' WHERE PublishStatus = \'Online\' ) LIMIT 10 UPDATE TRACKING';
+            
+            List<List<SObject>> searchList = new List<List<SObject>>();
+            searchList = Search.query(searchQuery);
+            if (!searchList.isEmpty()) {
+                List<Knowledge__kav> knowledeArticles = (List<Knowledge__kav>) searchList[0];
+                return generateWrapperData(knowledeArticles);
+            }
+            else return null;
+
+
+    }
+
+
+
 @isTest
 private class TestInitializeAndLoadPlanData {
 
