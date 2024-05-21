@@ -1,3 +1,5 @@
+Invalid type: MockUltimatePopControllerHelper
+
 @isTest
 private class TestInitializeAndLoadPlanData {
 
