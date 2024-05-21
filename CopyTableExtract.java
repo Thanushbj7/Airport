@@ -1,3 +1,62 @@
+@isTest
+private class TestInitializeAndLoadPlanData {
+
+    @isTest
+    static void testInitializeAndLoadPlanData() {
+        // Test data setup
+        String clientId = '001XXXXXXXXXXXXXXX';  // Replace with an appropriate clientId
+
+        // Create test Account record
+        Account testAccount = new Account(Name = 'Test Account', SSN__c = '123-45-6789');
+        insert testAccount;
+
+        // Create test Case record
+        Case testCase = new Case(Status = 'New', Origin = 'Phone');
+        insert testCase;
+
+        // Create test CTI_Console_Pop__c record
+        CTI_Console_Pop__c testCtiConsolePop = new CTI_Console_Pop__c(
+            Account__c = testAccount.Id,
+            CTI_Params__c = 'clientId:123-45-6789;VRUAPP:TestValue',
+            DC_Serialized_Result__c = 'SerializedResult',
+            Case__c = testCase.Id,
+            Offer_Pop__c = 'SomeValue'
+        );
+        insert testCtiConsolePop;
+
+        // Simulate the UltimatePopControllerHelper.getSFDCClientInfo method functionality
+        Account client = new Account(Id = testAccount.Id, SSN__c = testAccount.SSN__c, Name = 'Mock Account');
+        
+        // Assuming initializeAvailablePlans is a method in UltimatePopControllerHelper
+        List<UltimatePopControllerHelper.SearchResult> mockResults = new List<UltimatePopControllerHelper.SearchResult>();
+        mockResults.add(new UltimatePopControllerHelper.SearchResult('Mock Plan', 'Mock Description'));
+
+        Test.startTest();
+        // Call the method under test
+        List<UltimatePopControllerHelper.SearchResult> result = YourClassName.initializeAndLoadPlanData(testAccount.Id);
+        Test.stopTest();
+
+        // Assert that the result is not null
+        System.assertNotEquals(null, result, 'Result should not be null.');
+        
+        // Add more assertions as needed to verify the correctness of the result
+    }
+    
+    // Dummy SearchResult class as per assumption. Replace it with actual implementation if exists
+    public class UltimatePopControllerHelper {
+        public class SearchResult {
+            public String name;
+            public String description;
+            
+            public SearchResult(String name, String description) {
+                this.name = name;
+                this.description = description;
+            }
+        }
+    }
+}
+
+
 Invalid type: MockUltimatePopControllerHelper
 
 @isTest
