@@ -1,3 +1,8 @@
+Field is not writeable: Case.CaseNumber
+
+
+
+
 @isTest
 private class TestInitializeAndLoadPlanData {
 
