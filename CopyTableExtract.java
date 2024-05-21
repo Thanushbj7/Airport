@@ -1,4 +1,110 @@
-  @AuraEnabled
+@isTest
+private class TestGetKnowledgeArticlesFromSearch {
+    
+    @isTest
+    static void testGetKnowledgeArticlesFromSearch() {
+        // Create test data
+        List<Knowledge__kav> testArticles = new List<Knowledge__kav>();
+        
+        for (Integer i = 0; i < 5; i++) {
+            Knowledge__kav article = new Knowledge__kav(
+                Title = 'Test Article ' + i,
+                ArticleNumber = '0000' + i,
+                Summary = 'Summary for Test Article ' + i,
+                ValidationStatus = 'Draft',
+                PublishStatus = 'Online',
+                KnowledgeArticleId = 'KA000000000' + i,
+                LastPublishedDate = System.today().addDays(-i),
+                LastModifiedDate = System.today().addDays(-i),
+                IsVisibleInPkb = true,
+                RecordTypeId = Schema.SObjectType.Knowledge__kav.getRecordTypeInfosByName().get('FAQ').getRecordTypeId()
+            );
+            testArticles.add(article);
+        }
+        
+        insert testArticles;
+        
+        // Set fixed search results for SOSL query
+        List<List<SObject>> searchResults = new List<List<SObject>>();
+        searchResults.add(testArticles);
+        Test.setFixedSearchResults(searchResults);
+        
+        // Call the method under test
+        Test.startTest();
+        List<YourClassName.knowledgeArticleWrapper> result = YourClassName.getKnowledgeArticlesFromSearch('Test Article');
+        Test.stopTest();
+        
+        // Assert that the result is not null and contains the expected number of articles
+        System.assertNotEquals(null, result, 'Result should not be null.');
+        System.assertEquals(5, result.size(), 'Result size should be 5.');
+        
+        // Additional assertions to verify the content of the result
+        for (Integer i = 0; i < result.size(); i++) {
+            System.assertEquals('Test Article ' + i, result[i].Title, 'Title should match.');
+            System.assertEquals('0000' + i, result[i].ArticleNumber, 'ArticleNumber should match.');
+            System.assertEquals('Summary for Test Article ' + i, result[i].Summary, 'Summary should match.');
+        }
+    }
+    
+    // Dummy knowledgeArticleWrapper class as per assumption. Replace it with actual implementation if exists
+    public class YourClassName {
+        public class knowledgeArticleWrapper {
+            public String Title;
+            public String ArticleNumber;
+            public String Summary;
+            public String ValidationStatus;
+            public String PublishStatus;
+            public String KnowledgeArticleId;
+            public Date LastPublishedDate;
+            public Date LastModifiedDate;
+            public Boolean IsVisibleInPkb;
+            public String RecordTypeName;
+            
+            public knowledgeArticleWrapper(Knowledge__kav article) {
+                this.Title = article.Title;
+                this.ArticleNumber = article.ArticleNumber;
+                this.Summary = article.Summary;
+                this.ValidationStatus = article.ValidationStatus;
+                this.PublishStatus = article.PublishStatus;
+                this.KnowledgeArticleId = article.KnowledgeArticleId;
+                this.LastPublishedDate = article.LastPublishedDate;
+                this.LastModifiedDate = article.LastModifiedDate;
+                this.IsVisibleInPkb = article.IsVisibleInPkb;
+                this.RecordTypeName = 'FAQ'; // Assuming record type name is FAQ, replace as needed
+            }
+        }
+        
+        @AuraEnabled
+        public static List<knowledgeArticleWrapper> getKnowledgeArticlesFromSearch(String searchText) {
+            String searchQuery = 'FIND :searchText IN ALL FIELDS RETURNING Knowledge__kav(Id, Title, ArticleNumber, Summary,';
+                searchQuery += ' ValidationStatus, PublishStatus, KnowledgeArticleId, LastPublishedDate, LastModifiedDate, IsVisibleInPkb,';
+                searchQuery += ' RecordType.Name ';
+                searchQuery += ' WHERE PublishStatus = \'Online\' ) LIMIT 10 UPDATE TRACKING';
+                
+            List<List<SObject>> searchList = new List<List<SObject>>();
+            searchList = Search.query(searchQuery);
+            if (!searchList.isEmpty()) {
+                List<Knowledge__kav> knowledeArticles = (List<Knowledge__kav>) searchList[0];
+                return generateWrapperData(knowledeArticles);
+            }
+            else return null;
+        }
+
+        private static List<knowledgeArticleWrapper> generateWrapperData(List<Knowledge__kav> articles) {
+            List<knowledgeArticleWrapper> wrappers = new List<knowledgeArticleWrapper>();
+            for (Knowledge__kav article : articles) {
+                wrappers.add(new knowledgeArticleWrapper(article));
+            }
+            return wrappers;
+        }
+    }
+}
+
+
+
+
+
+@AuraEnabled
     public static List<knowledgeArticleWrapper> getKnowledgeArticlesFromSearch(String searchText) {
 
         String searchQuery = 'FIND :searchText IN ALL FIELDS RETURNING Knowledge__kav(Id, Title, ArticleNumber, Summary,';
