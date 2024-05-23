@@ -1,3 +1,26 @@
+@testSetup
+    public static void createCase(){ 
+        
+        Case c= new Case();
+        c.Origin='Email';
+        c.Status='New';
+        c.Description='Test Description';
+        insert c;
+        
+        Case_Actions__c ca= new Case_Actions__c();
+        ca.Case__c=c.Id;
+        ca.Call_Activity__c='Transaction';
+        ca.Call_Type__c='Name Change';
+        ca.PlanID_Text__c='664034';
+        
+        insert ca;
+         
+        
+    }
+
+
+
+
 Only one method per type can be defined with: TestSetup
 
 @isTest
