@@ -1,3 +1,98 @@
+@isTest
+private class TestKnowledgeArticleController {
+    
+    @testSetup
+    static void setupTestData() {
+        // Create a RecordType for Knowledge__kav
+        RecordType rt = [SELECT Id FROM RecordType WHERE SObjectType = 'Knowledge__kav' LIMIT 1];
+        
+        // Create Knowledge__kav records
+        List<Knowledge__kav> knowledgeArticles = new List<Knowledge__kav>();
+        for (Integer i = 0; i < 5; i++) {
+            knowledgeArticles.add(new Knowledge__kav(
+                Title = 'Test Article ' + i,
+                ArticleNumber = '000' + i,
+                Summary = 'Summary of test article ' + i,
+                ValidationStatus = 'Draft',
+                PublishStatus = 'Online',
+                KnowledgeArticleId = 'KA' + i,
+                LastPublishedDate = System.today().addDays(-i),
+                LastModifiedDate = System.today().addDays(-i),
+                IsVisibleInPkb = true,
+                RecordTypeId = rt.Id,
+                Language = 'en_US'
+            ));
+        }
+        
+        insert knowledgeArticles;
+        
+        // Create KnowledgeArticleVersion records
+        List<KnowledgeArticleVersion> knowledgeArticleVersions = new List<KnowledgeArticleVersion>();
+        for (Knowledge__kav kav : knowledgeArticles) {
+            knowledgeArticleVersions.add(new KnowledgeArticleVersion(
+                Title = kav.Title,
+                KnowledgeArticleId = kav.KnowledgeArticleId,
+                PublishStatus = kav.PublishStatus,
+                Language = kav.Language
+            ));
+        }
+        
+        insert knowledgeArticleVersions;
+    }
+    
+    @isTest
+    static void testGetKnowledgeArticles_NoFilters() {
+        Test.startTest();
+        List<knowledgeArticleWrapper> result = YourClassName.getKnowledgeArticles('', '');
+        Test.stopTest();
+        
+        System.assertEquals(5, result.size(), 'Expected 5 articles when no filters are applied.');
+    }
+    
+    @isTest
+    static void testGetKnowledgeArticles_ClientStatusFilter() {
+        Test.startTest();
+        List<knowledgeArticleWrapper> result = YourClassName.getKnowledgeArticles('', 'Active');
+        Test.stopTest();
+        
+        System.assert(result.size() > 0, 'Expected articles when clientStatus is filtered.');
+    }
+    
+    @isTest
+    static void testGetKnowledgeArticles_ReceivedValueFilter() {
+        Test.startTest();
+        List<knowledgeArticleWrapper> result = YourClassName.getKnowledgeArticles('Inquiry', '');
+        Test.stopTest();
+        
+        System.assert(result.size() > 0, 'Expected articles when receivedValue is filtered.');
+    }
+    
+    @isTest
+    static void testGetKnowledgeArticles_BothFilters() {
+        Test.startTest();
+        List<knowledgeArticleWrapper> result = YourClassName.getKnowledgeArticles('Inquiry', 'Active');
+        Test.stopTest();
+        
+        System.assert(result.size() > 0, 'Expected articles when both filters are applied.');
+    }
+    
+    // Dummy method in your class for context. Replace with your actual class name and method if necessary.
+    public class YourClassName {
+        @AuraEnabled
+        public static List<knowledgeArticleWrapper> getKnowledgeArticles(String receivedValue, String clientStatus) {
+            // Method implementation
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
 public class knowledgeArticleWrapper {
     @AuraEnabled public String id;
     @AuraEnabled public String title;
