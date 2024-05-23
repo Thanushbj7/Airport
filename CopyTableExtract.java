@@ -1,3 +1,128 @@
+public class knowledgeArticleWrapper {
+    @AuraEnabled public String id;
+    @AuraEnabled public String title;
+    @AuraEnabled public String articleNumber;
+    @AuraEnabled public String summary;
+    @AuraEnabled public String validationStatus;
+    @AuraEnabled public String publishStatus;
+    @AuraEnabled public String lastPublishedDate;
+    @AuraEnabled public String knowledgeArticleId;
+    @AuraEnabled public String lastModifiedDate;
+    @AuraEnabled public String recordTypeName;
+    @AuraEnabled public String accountName;
+    @AuraEnabled public Boolean articleAttachedToCase;
+    @AuraEnabled public Boolean displayGenericKnowArticles;
+    @AuraEnabled public Boolean displayCopytoClipboardIcon;
+    @AuraEnabled public String chatAnswer;
+    @AuraEnabled public Integer caseArticleSize;
+    @AuraEnabled public String attachedBy;
+    @AuraEnabled public String attachedDate;
+    @AuraEnabled public Boolean visibleInPublicKnowledgeBase;
+    @AuraEnabled public String viewCountDS;
+}
+
+
+
+
+@AuraEnabled
+public static List<knowledgeArticleWrapper> getKnowledgeArticles(String receivedValue,String clientStatus) {
+//system.debug('Rec '+receivedValue+' '+clientStatus);
+
+Set<Id> knowledgeArticleIds = new Set<Id>();
+List<knowledge__kav> knowledeArticles = new List<knowledge__kav>();
+   if((String.isBlank(receivedValue) || receivedValue=='--None--' || receivedValue==''||receivedValue==null) &&(String.isBlank(clientStatus) || clientStatus=='--None--' || clientStatus==''||clientStatus==null)){
+knowledeArticles = [select id, Title, ArticleNumber, Summary,ValidationStatus, PublishStatus,
+    KnowledgeArticleId, LastPublishedDate, LastModifiedDate,
+     IsVisibleInPkb,RecordType.Name from knowledge__kav limit 5];
+   }
+   else if((String.isBlank(receivedValue) || receivedValue=='--None--' || receivedValue==''||receivedValue==null) && (!String.isBlank(clientStatus) || clientStatus!='--None--')){
+    //system.debug('Clien T '+clientStatus);
+    clientStatus = clientStatus +'__c';
+    clientStatus = String.escapeSingleQuotes(clientStatus);
+    //system.debug('Clien T '+clientStatus);
+    // Reconstruct the complete data category part of the query
+    String dataCategoryQueryPart = 'WITH DATA CATEGORY Client_Status__c ABOVE_OR_BELOW ' + String.escapeSingleQuotes(clientStatus) ;
+
+    String query = 'SELECT Title, Id, KnowledgeArticleId FROM KnowledgeArticleVersion ' +
+    'WHERE PublishStatus = \'Online\' ' + dataCategoryQueryPart;
+
+
+
+//system.debug('Query '+query);
+
+    List<KnowledgeArticleVersion> knowledgeLinks =Database.query(query);
+    for(KnowledgeArticleVersion cc : knowledgeLinks){
+        knowledgeArticleIds.add(cc.KnowledgeArticleId);
+    }
+    knowledeArticles = [select id, Title, ArticleNumber, Summary,ValidationStatus, PublishStatus,
+    KnowledgeArticleId, LastPublishedDate, LastModifiedDate,
+     IsVisibleInPkb,RecordType.Name from knowledge__kav where KnowledgeArticleId   in :knowledgeArticleIds order by ArticleTotalViewCount desc ];
+   }
+   else if((!String.isBlank(receivedValue) ||receivedValue!='--None--' ) && (String.isBlank(clientStatus) || clientStatus==''||clientStatus==null || clientStatus=='--None--')){
+
+    receivedValue = receivedValue +'__c';
+    receivedValue = String.escapeSingleQuotes(receivedValue);
+    //system.debug('Clien T '+receivedValue);
+    // Reconstruct the complete data category part of the query
+    String dataCategoryQueryPart = 'WITH DATA CATEGORY Call_Type_Hierarchy__c ABOVE_OR_BELOW ' + String.escapeSingleQuotes(receivedValue) ;
+
+    String query = 'SELECT Title, Id, KnowledgeArticleId FROM KnowledgeArticleVersion ' +
+    'WHERE PublishStatus = \'Online\' ' + dataCategoryQueryPart;
+
+// Add the DATA CATEGORY part directly without checking if it's blank
+   // query += 'WITH DATA CATEGORY Client_Status__c  ABOVE_OR_BELOW \'' + 
+    //String.escapeSingleQuotes(clientStatus) + '\'';
+
+// Execute the dynamic query
+
+
+
+
+
+    List<KnowledgeArticleVersion> knowledgeLinks =Database.query(query);
+    for(KnowledgeArticleVersion cc : knowledgeLinks){
+        knowledgeArticleIds.add(cc.KnowledgeArticleId);
+    }
+    knowledeArticles = [select id, Title, ArticleNumber, Summary,ValidationStatus, PublishStatus,
+    KnowledgeArticleId, LastPublishedDate, LastModifiedDate,
+     IsVisibleInPkb,RecordType.Name from knowledge__kav where KnowledgeArticleId   in :knowledgeArticleIds order by ArticleTotalViewCount desc];
+
+   }
+   else if((!String.isBlank(receivedValue) || receivedValue!='--None--') && (!String.isBlank(clientStatus) || clientStatus!='--None--')){
+    clientStatus = clientStatus +'__c';
+    receivedValue = receivedValue +'__c';
+    receivedValue = String.escapeSingleQuotes(receivedValue);
+    //system.debug('Clien T '+receivedValue);
+    // Reconstruct the complete data category part of the query
+    String dataCategoryQueryPart = 'WITH DATA CATEGORY Call_Type_Hierarchy__c ABOVE_OR_BELOW ' + String.escapeSingleQuotes(receivedValue) + ' AND Client_Status__c ABOVE_OR_BELOW  '+String.escapeSingleQuotes(clientStatus) ;
+
+    String query = 'SELECT Title, Id, KnowledgeArticleId FROM KnowledgeArticleVersion ' +
+    'WHERE PublishStatus = \'Online\' ' + dataCategoryQueryPart;
+
+
+
+
+
+
+    List<KnowledgeArticleVersion> knowledgeLinks =Database.query(query);
+    for(KnowledgeArticleVersion cc : knowledgeLinks){
+        knowledgeArticleIds.add(cc.KnowledgeArticleId);
+    }
+    knowledeArticles = [select id, Title, ArticleNumber, Summary,ValidationStatus, PublishStatus,
+    KnowledgeArticleId, LastPublishedDate, LastModifiedDate,
+     IsVisibleInPkb,RecordType.Name from knowledge__kav where KnowledgeArticleId   in :knowledgeArticleIds order by ArticleTotalViewCount desc];
+
+   }
+   
+    return generateWrapperData(knowledeArticles);
+
+}
+
+
+
+
+
+
 @isTest
 private class TestGetJSON {
     @isTest
