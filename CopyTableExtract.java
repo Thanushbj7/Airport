@@ -1,3 +1,42 @@
+@isTest
+private class TestGetJSON {
+    @isTest
+    static void testGetJSON() {
+        // Create a test Knowledge__kav record with PAAG_Configuration record type
+        RecordType rt = [SELECT Id FROM RecordType WHERE SObjectType = 'Knowledge__kav' AND Name = 'PAAG_Configuration' LIMIT 1];
+        
+        Knowledge__kav testKnowledge = new Knowledge__kav(
+            Title = 'Test PAAG Configuration',
+            UrlName = 'test-paag-config',
+            PAAG_Configuration_Metadata__c = '{"configKey": "configValue"}',
+            RecordTypeId = rt.Id,
+            PublishStatus = 'Online',
+            Language = 'en_US'
+        );
+        
+        insert testKnowledge;
+        
+        // Call the method under test
+        Test.startTest();
+        String result = YourClassName.getJSON('test-paag-config');
+        Test.stopTest();
+        
+        // Assert that the result matches the expected JSON string
+        System.assertEquals('{"configKey": "configValue"}', result, 'The JSON string should match the expected value.');
+    }
+    
+    // Dummy method in your class for context. Replace with your actual class name and method if necessary.
+    public class YourClassName {
+        @AuraEnabled
+        public static String getJSON(String paagConfig) {
+            return [SELECT PAAG_Configuration_Metadata__c FROM Knowledge__kav WHERE RecordType.Name = 'PAAG_Configuration' AND UrlName = :paagConfig LIMIT 1].PAAG_Configuration_Metadata__c;
+        }
+    }
+}
+
+
+
+
 @AuraEnabled
 public static String getJSON(String paagConfig){
 return [select id,PAAG_Configuration_Metadata__c from Knowledge__kav where RecordType.name = 'PAAG_Configuration' and urlname =: paagConfig limit 1].PAAG_Configuration_Metadata__c;
