@@ -1,3 +1,9 @@
+@AuraEnabled
+public static String getJSON(String paagConfig){
+return [select id,PAAG_Configuration_Metadata__c from Knowledge__kav where RecordType.name = 'PAAG_Configuration' and urlname =: paagConfig limit 1].PAAG_Configuration_Metadata__c;
+}
+
+
 @isTest
 private class TestGetKnowledgeArticlesFromSearch {
     
