@@ -1,3 +1,72 @@
+@isTest
+private class TestUltimatePopController {
+
+    @testSetup
+    static void setupTestData() {
+        // Create Accounts
+        Account testAccount = new Account(Name='Test Account', SSN__c='123-45-6789');
+        insert testAccount;
+
+        // Create a Case
+        Case testCase = new Case(AccountId=testAccount.Id, Status='New', Origin='Web');
+        insert testCase;
+        
+        // Create CTI_Console_Pop__c record
+        CTI_Console_Pop__c ctiConsolePop = new CTI_Console_Pop__c(
+            Account__c=testAccount.Id,
+            CTI_Params__c='clientId:123;VRUAPP:test;',
+            Case__c=testCase.Id,
+            Offer_Pop__c=testCase.Id
+        );
+        insert ctiConsolePop;
+    }
+
+    @isTest
+    static void testInitializeAndLoadPlanData() {
+        // Mocking the UltimatePopControllerHelper
+        UltimatePopControllerHelper mockHelper = (UltimatePopControllerHelper) Test.createStub(UltimatePopControllerHelper.class, new UltimatePopControllerHelperMock());
+
+        // Set mock implementation for static methods
+        Test.setMock(ApexMocks.class, mockHelper);
+
+        // Test Execution
+        Test.startTest();
+        List<UltimatePopControllerHelper.SearchResult> result = YourClassName.initializeAndLoadPlanData('001xx000003DI12');
+        Test.stopTest();
+        
+        // Assertions
+        System.assertNotEquals(null, result, 'Expected non-null result from initializeAndLoadPlanData.');
+        System.assertEquals(1, result.size(), 'Expected one SearchResult.');
+    }
+
+    // Mock class implementation
+    private class UltimatePopControllerHelperMock implements System.StubProvider {
+        public Object handleMethodCall(Object obj, String methodName, Type returnType, List<Object> args, Map<String, Object> options) {
+            if (methodName == 'getSFDCClientInfo') {
+                Account mockAccount = new Account(Id='001xx000003DI12', Name='Mock Account', SSN__c='123-45-6789');
+                return mockAccount;
+            } else if (methodName == 'initializeAvailablePlans') {
+                UltimatePopControllerHelper.SearchResult mockResult = new UltimatePopControllerHelper.SearchResult();
+                mockResult.someField = 'Mock Data';
+                return new List<UltimatePopControllerHelper.SearchResult> { mockResult };
+            }
+            return null;
+        }
+    }
+    
+    // Dummy method in your class for context. Replace with your actual class name and method if necessary.
+    public class YourClassName {
+        @AuraEnabled(cacheable=false)
+        public static List<UltimatePopControllerHelper.SearchResult> initializeAndLoadPlanData(String clientId) {
+            // Method implementation
+        }
+    }
+}
+
+
+
+
+
 @AuraEnabled(cacheable=false)
 public static List<UltimatePopControllerHelper.SearchResult> initializeAndLoadPlanData(String clientId){
     Case currentCase = new Case();
