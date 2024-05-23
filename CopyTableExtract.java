@@ -1,3 +1,6 @@
+Class lightningPopControllerTest.UltimatePopControllerHelperMock must implement the method: Object System.StubProvider.handleMethodCall(Object, String, System.Type, List<System.Type>, List<String>, List<Object>)
+
+
 @isTest
 private class TestUltimatePopController {
 
