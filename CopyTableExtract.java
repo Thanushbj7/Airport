@@ -24,6 +24,89 @@ private class TestUltimatePopController {
     @isTest
     static void testInitializeAndLoadPlanData() {
         // Mocking the UltimatePopControllerHelper
+        Test.startTest();
+
+        // Use dependency injection or some other mechanism to set mock data in place of actual call.
+        TestUltimatePopControllerHelper.mockedAccount = new Account(Id='001xx000003DI12', Name='Mock Account', SSN__c='123-45-6789');
+        TestUltimatePopControllerHelper.mockedSearchResults = new List<UltimatePopControllerHelper.SearchResult> {
+            new UltimatePopControllerHelper.SearchResult('Mock Data')
+        };
+
+        // Test Execution
+        List<UltimatePopControllerHelper.SearchResult> result = YourClassName.initializeAndLoadPlanData('001xx000003DI12');
+        
+        Test.stopTest();
+        
+        // Assertions
+        System.assertNotEquals(null, result, 'Expected non-null result from initializeAndLoadPlanData.');
+        System.assertEquals(1, result.size(), 'Expected one SearchResult.');
+    }
+
+    // Mock class implementation
+    public class TestUltimatePopControllerHelper {
+        public static Account mockedAccount;
+        public static List<UltimatePopControllerHelper.SearchResult> mockedSearchResults;
+
+        public static Account getSFDCClientInfo(String ssn, Boolean flag) {
+            return mockedAccount;
+        }
+
+        public static List<UltimatePopControllerHelper.SearchResult> initializeAvailablePlans(Case currentCase, String clientSSN, String test, Account client) {
+            return mockedSearchResults;
+        }
+    }
+    
+    // Dummy method in your class for context. Replace with your actual class name and method if necessary.
+    public class YourClassName {
+        @AuraEnabled(cacheable=false)
+        public static List<UltimatePopControllerHelper.SearchResult> initializeAndLoadPlanData(String clientId) {
+            // Use the mock class instead of the actual class in your code for testing.
+            Account client = TestUltimatePopControllerHelper.getSFDCClientInfo('123-45-6789', true);
+            return TestUltimatePopControllerHelper.initializeAvailablePlans(new Case(), '123-45-6789', 'test', client);
+        }
+    }
+    
+    // Dummy class for the wrapper class.
+    public class UltimatePopControllerHelper {
+        public class SearchResult {
+            public String someField;
+            public SearchResult(String field) {
+                someField = field;
+            }
+        }
+    }
+}
+
+
+
+
+
+@isTest
+private class TestUltimatePopController {
+
+    @testSetup
+    static void setupTestData() {
+        // Create Accounts
+        Account testAccount = new Account(Name='Test Account', SSN__c='123-45-6789');
+        insert testAccount;
+
+        // Create a Case
+        Case testCase = new Case(AccountId=testAccount.Id, Status='New', Origin='Web');
+        insert testCase;
+        
+        // Create CTI_Console_Pop__c record
+        CTI_Console_Pop__c ctiConsolePop = new CTI_Console_Pop__c(
+            Account__c=testAccount.Id,
+            CTI_Params__c='clientId:123;VRUAPP:test;',
+            Case__c=testCase.Id,
+            Offer_Pop__c=testCase.Id
+        );
+        insert ctiConsolePop;
+    }
+
+    @isTest
+    static void testInitializeAndLoadPlanData() {
+        // Mocking the UltimatePopControllerHelper
         UltimatePopControllerHelper mockHelper = (UltimatePopControllerHelper) Test.createStub(UltimatePopControllerHelper.class, new UltimatePopControllerHelperMock());
 
         // Set mock implementation for static methods
