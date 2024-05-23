@@ -1,3 +1,5 @@
+Only one method per type can be defined with: TestSetup
+
 @isTest
 private class TestUltimatePopController {
     
