@@ -1,4 +1,35 @@
- public Case_Actions__c caseAction {get;set;}
+@isTest
+public class CaseActionWrapperTest {
+
+    @isTest
+    static void testCaseActionWrapper() {
+        // Step 1: Setup test data
+        Case_Actions__c caseAction = new Case_Actions__c(
+            // Initialize required fields here
+            Name = 'Test Case Action'
+            // Add other required fields if necessary
+        );
+        
+        insert caseAction; // Insert the record to simulate real scenario (if necessary)
+
+        String createdDate = '2024-05-24 12:34:56';
+        
+        // Step 2: Instantiate CaseActionWrapper
+        CaseActionWrapper wrapper = new CaseActionWrapper(caseAction, createdDate);
+        
+        // Step 3: Assert results
+        System.assertNotEquals(null, wrapper.caseAction, 'caseAction should not be null');
+        System.assertEquals(caseAction.Id, wrapper.caseAction.Id, 'caseAction ID should match');
+        System.assertEquals('Test Case Action', wrapper.caseAction.Name, 'caseAction Name should match');
+        System.assertEquals(createdDate, wrapper.createdDate, 'createdDate should match');
+    }
+}
+
+
+
+
+
+public Case_Actions__c caseAction {get;set;}
     public String createdDate {get;set;}
     
     public CaseActionWrapper(Case_Actions__c caseAction, string createdDate) {
