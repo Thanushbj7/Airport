@@ -1,3 +1,13 @@
+ public Case_Actions__c caseAction {get;set;}
+    public String createdDate {get;set;}
+    
+    public CaseActionWrapper(Case_Actions__c caseAction, string createdDate) {
+        this.caseAction = caseAction;
+        this.createdDate = createdDate;
+    }
+
+
+
 @isTest
 public class KnowledgeArticleWrapperTest {
 
