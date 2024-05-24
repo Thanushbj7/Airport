@@ -1,4 +1,96 @@
- public static Map<Id,String> getNomalizedScore(Set<Id> articleId){
+@isTest
+public class KnowledgeArticleWrapperTest {
+
+    @isTest
+    static void testGetNomalizedScore() {
+        // Step 1: Setup test data
+        List<KnowledgeArticleViewStat> viewStats = new List<KnowledgeArticleViewStat>();
+        
+        Id articleId1 = 'kaId1';
+        Id articleId2 = 'kaId2';
+        
+        // Create KnowledgeArticleViewStat records
+        KnowledgeArticleViewStat stat1 = new KnowledgeArticleViewStat();
+        stat1.Id = 'statId1';
+        stat1.ParentId = articleId1;
+        stat1.NormalizedScore = 15;
+        viewStats.add(stat1);
+        
+        KnowledgeArticleViewStat stat2 = new KnowledgeArticleViewStat();
+        stat2.Id = 'statId2';
+        stat2.ParentId = articleId1;
+        stat2.NormalizedScore = 45;
+        viewStats.add(stat2);
+        
+        KnowledgeArticleViewStat stat3 = new KnowledgeArticleViewStat();
+        stat3.Id = 'statId3';
+        stat3.ParentId = articleId2;
+        stat3.NormalizedScore = 75;
+        viewStats.add(stat3);
+        
+        KnowledgeArticleViewStat stat4 = new KnowledgeArticleViewStat();
+        stat4.Id = 'statId4';
+        stat4.ParentId = articleId2;
+        stat4.NormalizedScore = 95;
+        viewStats.add(stat4);
+        
+        insert viewStats;
+        
+        // Step 2: Set up the article IDs
+        Set<Id> articleIds = new Set<Id>{articleId1, articleId2};
+        
+        // Step 3: Call the method
+        Test.startTest();
+        Map<Id, String> result = YourClassName.getNomalizedScore(articleIds);
+        Test.stopTest();
+        
+        // Step 4: Assert results
+        System.assertEquals(2, result.size(), 'Expected two entries in the result map');
+        
+        // Verify the normalized scores
+        System.assertEquals('40', result.get(articleId1), 'Expected normalized score for articleId1 to be 40');
+        System.assertEquals('100', result.get(articleId2), 'Expected normalized score for articleId2 to be 100');
+    }
+    
+    // Mock class for the getNomalizedScore method when running tests
+    @isTest
+    private static void testGetNomalizedScoreWhenRunningTest() {
+        // Step 1: Setup test data
+        List<KnowledgeArticleViewStat> viewStats = new List<KnowledgeArticleViewStat>();
+        
+        Id articleId1 = 'kaId1';
+        
+        // Create KnowledgeArticleViewStat records
+        KnowledgeArticleViewStat stat1 = new KnowledgeArticleViewStat();
+        stat1.Id = 'statId1';
+        stat1.ParentId = articleId1;
+        stat1.NormalizedScore = 15;
+        viewStats.add(stat1);
+        
+        insert viewStats;
+        
+        // Step 2: Set up the article IDs
+        Set<Id> articleIds = new Set<Id>{articleId1};
+        
+        // Step 3: Call the method
+        Test.startTest();
+        Map<Id, String> result = YourClassName.getNomalizedScore(articleIds);
+        Test.stopTest();
+        
+        // Step 4: Assert results
+        System.assertEquals(1, result.size(), 'Expected one entry in the result map');
+        
+        // Verify the normalized scores
+        System.assertEquals('100', result.get(articleId1), 'Expected normalized score for articleId1 to be 100 due to test context');
+    }
+}
+
+
+
+
+
+
+public static Map<Id,String> getNomalizedScore(Set<Id> articleId){
   	  
       	Map<Id,Decimal> articleIdToNormScoreMap=new Map<Id,Decimal>();
           Map<Id,String> articleIdToNormScoreMapNew=new Map<Id,String>();
