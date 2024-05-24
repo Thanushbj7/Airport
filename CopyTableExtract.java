@@ -1,3 +1,19 @@
+@isTest
+    static void testgetKnowledgeId() {
+        String Id='Test Id';
+        String tmArticleName='Test Title';
+        Knowledge__kav testKnowledge=new Knowledge__kav(Title=tmArticleName);
+        testKnowledge.UrlName='https:voyasmartworks--accpcc2.sandbox.my.salesforce.com/_ui/common/apex/debug/ApexCSIPage?action=selectTests';
+        insert testKnowledge;
+         Test.startTest();
+        Id KnowledgeId=cTargetedMessage.getKnowledgeId(tmArticleName);
+        Test.stopTest();
+         Knowledge__kav createdKnowledge=[select Id,Title from Knowledge__kav where Title=:tmArticleName];
+        System.assertNotEquals(null, createdKnowledge, 'Knowledge__kav should have been created.');
+        
+    }
+
+
 System.DmlException: Insert failed. First exception on row 0; first error: FIELD_INTEGRITY_EXCEPTION, Invalid URL name. The URL name can include only unicode characters and hyphens, and it can't begin or end with a hyphen.: [UrlName]
 
 
