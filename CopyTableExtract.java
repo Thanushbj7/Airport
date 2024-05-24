@@ -1,3 +1,6 @@
+System.DmlException: Insert failed. First exception on row 0; first error: FIELD_INTEGRITY_EXCEPTION, Invalid URL name. The URL name can include only unicode characters and hyphens, and it can't begin or end with a hyphen.: [UrlName]
+
+
 @isTest
 public class CaseActionWrapperTest {
 
