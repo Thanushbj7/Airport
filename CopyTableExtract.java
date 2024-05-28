@@ -1,3 +1,86 @@
+@isTest
+private class UltimatePopControllerHelperTest {
+    
+    private static Case createSampleCase() {
+        return new Case(
+            Id = '5001X00001234AB',
+            CaseNumber = '12345'
+        );
+    }
+    
+    private static Account createSampleAccount() {
+        return new Account(
+            Id = '0011X00001234AB',
+            SSN__c = '123-45-6789'
+        );
+    }
+
+    private static List<Plan__c> createSamplePlans() {
+        List<Plan__c> plans = new List<Plan__c>();
+        
+        Plan__c plan1 = new Plan__c(
+            Id = 'a001X00001234AB',
+            Native_Plan_ID__c = 'None'
+        );
+        
+        Plan__c plan2 = new Plan__c(
+            Id = 'a001X00005678CD',
+            Native_Plan_ID__c = 'MYVOYA'
+        );
+        
+        plans.add(plan1);
+        plans.add(plan2);
+
+        insert plans;
+
+        return plans;
+    }
+
+    @isTest
+    static void testInitializeAvailablePlans() {
+        // Arrange
+        Case currentCase = createSampleCase();
+        String clientSSN = '123-45-6789';
+        String ctiVRUApp = 'TestApp';
+        Account client = createSampleAccount();
+        List<Plan__c> samplePlans = createSamplePlans();
+
+        // Mock the loadPlans method
+        Test.startTest();
+        Test.setMock(ApexMocks.class, new UltimatePopControllerHelperMock());
+
+        // Insert mock data for CTI_Console_Pop__c
+        CTI_Console_Pop__c ctiConsolePop = new CTI_Console_Pop__c(
+            ExternalID__c = (UserInfo.getUserId() + ConstantUtils.UNIQUE_SEPERATOR + clientSSN),
+            DC_Serialized_Result__c = '[{"planId":"Plan123"}]',
+            Case__c = currentCase.Id
+        );
+        insert ctiConsolePop;
+
+        // Act
+        List<UltimatePopControllerHelper.SearchResult> result = YourClassName.initializeAvailablePlans(currentCase, clientSSN, ctiVRUApp, client);
+        Test.stopTest();
+        
+        // Assert
+        System.assertNotEquals(null, result, 'The result list should not be null.');
+        System.assertEquals(1, result.size(), 'The result list should contain 1 element.');
+        System.assertEquals('Plan123', result[0].planId, 'Plan ID should match.');
+    }
+    
+    // Mock class for the loadPlans method
+    private class UltimatePopControllerHelperMock implements HttpCalloutMock {
+        public HTTPResponse respond(HTTPRequest req) {
+            HttpResponse res = new HttpResponse();
+            res.setStatusCode(200);
+            res.setBody('[{"planId":"Plan123"}]');
+            return res;
+        }
+    }
+}
+
+
+
+
 public static List<UltimatePopControllerHelper.SearchResult> initializeAvailablePlans(Case currentCase,String clientSSN,String ctiVRUApp,Account client ) {
     List<Selectoption> planIdSelectList = new List<Selectoption>();
     List<Plan__c> p  = [Select Native_Plan_ID__c, id from Plan__c where Native_Plan_ID__c in ('None')];
