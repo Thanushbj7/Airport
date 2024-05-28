@@ -1,3 +1,74 @@
+public static List<UltimatePopControllerHelper.SearchResult> initializeAvailablePlans(Case currentCase,String clientSSN,String ctiVRUApp,Account client ) {
+    List<Selectoption> planIdSelectList = new List<Selectoption>();
+    List<Plan__c> p  = [Select Native_Plan_ID__c, id from Plan__c where Native_Plan_ID__c in ('None')];
+    String paPlanId; 
+    CTI_Console_Pop__c ctiConsolePop = new CTI_Console_Pop__c();
+    Participant_Alert__c newPAlert = new Participant_Alert__c();
+    String externalId = (UserInfo.getUserId() + ConstantUtils.UNIQUE_SEPERATOR + clientSSN); 
+    List<UltimatePopControllerHelper.SearchResult> dcSearchResults;
+    try {
+        ctiConsolePop = [select Id, Account__r.SSN__c, DC_Serialized_Result__c,
+         Case__c, Case__r.Id, Case__r.CaseNumber from CTI_Console_Pop__c where ExternalID__c = :externalId limit 1];
+        dcSearchResults = (List<UltimatePopControllerHelper.SearchResult>)JSON.deserialize(ctiConsolePop.DC_Serialized_Result__c, List<UltimatePopControllerHelper.SearchResult>.class);
+    }
+    catch(Exception e) {
+        //system.debug('initializeAvailablePlans() failed due to : ' + e + '[' + externalId + ']');
+    }
+    if(dcSearchResults != null && dcSearchResults.size() > 0) {
+        //this.planIdSelectList.add(new Selectoption('', '--None--'));
+        planIdSelectList.add(new Selectoption('All Plans', 'All Plans'));
+        for(UltimatePopControllerHelper.SearchResult sr : dcSearchResults) {
+            if(sr.planId !=null) {
+                planIdSelectList.add(new Selectoption(sr.planId, sr.planId));
+            }
+        }
+        //system.debug('Vru App '+ctiVRUApp);
+        // Start -Added as part of MY VOYA chnages.
+       /* if(ctiVRUApp.equalsIgnoreCase('MYVOYA'))
+        {
+            for(Plan__c pc:p)
+            {
+               if(pc.Native_Plan_ID__c.equalsIgnoreCase('MYVOYA'))
+                   planIdSelectList.add(new Selectoption(pc.Native_Plan_ID__c, pc.Native_Plan_ID__c));
+            }
+        }*/
+        
+        // End-Added as part of MY VOYA chnages.
+        //system.debug('================================================ this.planIdSelectList > ' + planIdSelectList);
+        
+        //PlanId will be defaulted if only 1 Plan is returned from OLTP/PDAB
+        if(dcSearchResults != null && dcSearchResults.size() == 1 && dcSearchResults.get(0).planId != null ) {
+            
+            paPlanId = dcSearchResults.get(0).planId;
+            
+            if(newPAlert != null )
+                newPAlert.PlanID_Text__c = dcSearchResults.get(0).planId;
+            
+        }
+        
+        //system.debug('================================================ initializeAvailablePlans() - this.paPlanId > ' + paPlanId);
+    }
+    else {
+        /*  Plan__c p  = [Select Native_Plan_ID__c, id from Plan__c where Native_Plan_ID__c = 'None' limit 1]; 
+this.planIdSelectList.add(new Selectoption(p.Native_Plan_ID__c, 'None'));
+this.planIdSelectList.add(new Selectoption('All Plans', 'All Plans')); */
+        planIdSelectList.add(new Selectoption('', '--None--'));
+        for(Plan__c pc:p)
+        {
+            if(pc.Native_Plan_ID__c =='None')
+                planIdSelectList.add(new Selectoption(pc.Native_Plan_ID__c, 'None'));
+          //  if(pc.Native_Plan_ID__c =='MYVOYA' && ctiVRUApp =='MYVOYA')
+            //    planIdSelectList.add(new Selectoption(pc.Native_Plan_ID__c, 'MYVOYA'));
+        }
+        
+    }
+    List<UltimatePopControllerHelper.SearchResult> dcSearchResults2 = loadPlans(ctiConsolePop,currentCase,client);
+    //system.debug('dcSearchResults2 '+dcSearchResults2);
+    return dcSearchResults2;
+}
+
+
+
 @isTest
 private class KnowledgeArticleWrapperTest {
     
