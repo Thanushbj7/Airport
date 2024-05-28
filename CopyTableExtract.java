@@ -1,3 +1,109 @@
+@isTest
+private class KnowledgeArticleWrapperTest {
+    
+    private static List<Knowledge__kav> createSampleKnowledgeArticles() {
+        List<Knowledge__kav> knowledgeArticles = new List<Knowledge__kav>();
+        
+        // Creating sample knowledge articles
+        Knowledge__kav article1 = new Knowledge__kav(
+            Id = '0011X00001234AB',
+            Title = 'Sample Article 1',
+            ArticleNumber = '0001',
+            ValidationStatus = 'Validated',
+            PublishStatus = 'Online',
+            KnowledgeArticleId = 'KA0001',
+            Summary = 'Summary of Article 1',
+            RecordTypeId = '0123456789',
+            IsVisibleInPkb = true,
+            LastPublishedDate = DateTime.now().addDays(-10),
+            LastModifiedDate = DateTime.now().addDays(-5)
+        );
+
+        Knowledge__kav article2 = new Knowledge__kav(
+            Id = '0011X00005678CD',
+            Title = 'Sample Article 2',
+            ArticleNumber = '0002',
+            ValidationStatus = 'Validated',
+            PublishStatus = 'Draft',
+            KnowledgeArticleId = 'KA0002',
+            Summary = 'Summary of Article 2',
+            RecordTypeId = '0123456789',
+            IsVisibleInPkb = false,
+            LastPublishedDate = DateTime.now().addDays(-15),
+            LastModifiedDate = DateTime.now().addDays(-2)
+        );
+
+        knowledgeArticles.add(article1);
+        knowledgeArticles.add(article2);
+
+        return knowledgeArticles;
+    }
+    
+    @isTest
+    static void testGenerateWrapperData() {
+        // Arrange
+        List<Knowledge__kav> sampleArticles = createSampleKnowledgeArticles();
+        
+        // Mock the getNomalizedScore method
+        Test.startTest();
+        Test.setMock(ApexMocks.class, new KnowledgeArticleWrapperMock());
+        
+        // Act
+        List<knowledgeArticleWrapper> result = YourClassName.generateWrapperData(sampleArticles);
+        Test.stopTest();
+        
+        // Assert
+        System.assertEquals(2, result.size(), 'The result list should contain 2 elements.');
+        
+        knowledgeArticleWrapper article1 = result[0];
+        System.assertEquals('0011X00001234AB', article1.id, 'ID should match.');
+        System.assertEquals('Sample Article 1', article1.title, 'Title should match.');
+        System.assertEquals('0001', article1.articleNumber, 'Article number should match.');
+        System.assertEquals('Validated', article1.validationStatus, 'Validation status should match.');
+        System.assertEquals('Online', article1.publishStatus, 'Publish status should match.');
+        System.assertEquals('KA0001', article1.knowledgeArticleId, 'Knowledge Article ID should match.');
+        System.assertEquals('Summary of Article 1', article1.summary, 'Summary should match.');
+        System.assertEquals('0123456789', article1.recordTypeName, 'Record Type Name should match.');
+        System.assertEquals(true, article1.visibleInPublicKnowledgeBase, 'Visibility in public knowledge base should match.');
+        System.assertNotEquals(null, article1.viewCountDS, 'View Count should not be null.');
+        System.assertEquals(true, article1.displayGenericKnowArticles, 'Display Generic Knowledge Articles should be true.');
+        System.assertEquals(false, article1.displayCopytoClipboardIcon, 'Display Copy to Clipboard Icon should be false.');
+        System.assertEquals(false, article1.articleAttachedToCase, 'Article should not be attached to case.');
+        System.assertNotEquals(null, article1.lastPublishedDate, 'Last Published Date should not be null.');
+        System.assertEquals(null, article1.lastModifiedDate, 'Last Modified Date should be null for online articles.');
+        
+        knowledgeArticleWrapper article2 = result[1];
+        System.assertEquals('0011X00005678CD', article2.id, 'ID should match.');
+        System.assertEquals('Sample Article 2', article2.title, 'Title should match.');
+        System.assertEquals('0002', article2.articleNumber, 'Article number should match.');
+        System.assertEquals('Validated', article2.validationStatus, 'Validation status should match.');
+        System.assertEquals('Draft', article2.publishStatus, 'Publish status should match.');
+        System.assertEquals('KA0002', article2.knowledgeArticleId, 'Knowledge Article ID should match.');
+        System.assertEquals('Summary of Article 2', article2.summary, 'Summary should match.');
+        System.assertEquals('0123456789', article2.recordTypeName, 'Record Type Name should match.');
+        System.assertEquals(false, article2.visibleInPublicKnowledgeBase, 'Visibility in public knowledge base should match.');
+        System.assertNotEquals(null, article2.viewCountDS, 'View Count should not be null.');
+        System.assertEquals(true, article2.displayGenericKnowArticles, 'Display Generic Knowledge Articles should be true.');
+        System.assertEquals(false, article2.displayCopytoClipboardIcon, 'Display Copy to Clipboard Icon should be false.');
+        System.assertEquals(false, article2.articleAttachedToCase, 'Article should not be attached to case.');
+        System.assertEquals(null, article2.lastPublishedDate, 'Last Published Date should be null for draft articles.');
+        System.assertNotEquals(null, article2.lastModifiedDate, 'Last Modified Date should not be null.');
+    }
+    
+    // Mock class for the getNomalizedScore method
+    private class KnowledgeArticleWrapperMock implements HttpCalloutMock {
+        public HTTPResponse respond(HTTPRequest req) {
+            HttpResponse res = new HttpResponse();
+            res.setStatusCode(200);
+            res.setBody('{"KA0001":"10","KA0002":"5"}');
+            return res;
+        }
+    }
+}
+
+
+
+
 private static List<knowledgeArticleWrapper> generateWrapperData(List<Knowledge__kav> knowledeArticles) {
     // Add the existing Articles attached to Case
     Set<Id> existingKAIds = new Set<Id>();
