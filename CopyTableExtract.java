@@ -1,5 +1,75 @@
 @isTest
 private class UltimatePopControllerHelperTest {
+
+    @isTest
+    static void testInitializeAvailablePlans() {
+        // Arrange
+        Case currentCase = new Case(
+            Id = '5001X00001234AB',
+            CaseNumber = '12345'
+        );
+        
+        String clientSSN = '123-45-6789';
+        String ctiVRUApp = 'TestApp';
+        
+        Account client = new Account(
+            Id = '0011X00001234AB',
+            SSN__c = '123-45-6789'
+        );
+        
+        // Insert sample Plan records
+        Plan__c plan1 = new Plan__c(
+            Id = 'a001X00001234AB',
+            Native_Plan_ID__c = 'None'
+        );
+        
+        Plan__c plan2 = new Plan__c(
+            Id = 'a001X00005678CD',
+            Native_Plan_ID__c = 'MYVOYA'
+        );
+        
+        insert new List<Plan__c>{ plan1, plan2 };
+
+        // Insert mock data for CTI_Console_Pop__c
+        CTI_Console_Pop__c ctiConsolePop = new CTI_Console_Pop__c(
+            ExternalID__c = (UserInfo.getUserId() + ConstantUtils.UNIQUE_SEPERATOR + clientSSN),
+            DC_Serialized_Result__c = '[{"planId":"Plan123"}]',
+            Case__c = currentCase.Id
+        );
+        
+        insert ctiConsolePop;
+
+        // Mock the loadPlans method
+        Test.startTest();
+        Test.setMock(ApexMocks.class, new UltimatePopControllerHelperMock());
+        
+        // Act
+        List<UltimatePopControllerHelper.SearchResult> result = YourClassName.initializeAvailablePlans(currentCase, clientSSN, ctiVRUApp, client);
+        Test.stopTest();
+        
+        // Assert
+        System.assertNotEquals(null, result, 'The result list should not be null.');
+        System.assertEquals(1, result.size(), 'The result list should contain 1 element.');
+        System.assertEquals('Plan123', result.get(0).planId, 'Plan ID should match.');
+    }
+    
+    // Mock class for the loadPlans method
+    private class UltimatePopControllerHelperMock implements HttpCalloutMock {
+        public HTTPResponse respond(HTTPRequest req) {
+            HttpResponse res = new HttpResponse();
+            res.setStatusCode(200);
+            res.setBody('[{"planId":"Plan123"}]');
+            return res;
+        }
+    }
+}
+
+
+
+
+
+@isTest
+private class UltimatePopControllerHelperTest {
     
     private static Case createSampleCase() {
         return new Case(
