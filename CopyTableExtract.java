@@ -1,3 +1,13 @@
+ @AuraEnabled(cacheable=true)
+public static String getCampaignArticleName(String campaignId) {
+List<Campaign> campList= new List<Campaign>();
+campList= [ SELECT Id, TM_Article_Name__c
+FROM Campaign WHERE Id= :campaignId
+LIMIT 1 ];//Id, Name , 
+return campList[0].TM_Article_Name__c;
+}  
+
+
 @isTest
 private class CaseActionTest {
 
