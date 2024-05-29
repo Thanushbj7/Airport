@@ -1,3 +1,33 @@
+@AuraEnabled
+    	public static void recordCaseAction(Opportunity opp,id caseid, string SSN) {
+            if(String.isBlank(caseid))
+                 return;
+                 
+            Case_Actions__c caseAction = new Case_Actions__c();
+            caseAction.Case__c = caseid;
+            caseAction.PlanID_Text__c = opp.Offer_Plan_Number__c;
+            
+            if(!String.isBlank(opp.plan__c))
+                caseAction.PlanID__c = opp.plan__c;
+            
+            caseAction.Call_Activity__c = 'Proactive';
+            caseAction.Call_Type__c = 'Targeted Message';
+            caseAction.Account_Balance__c = opp.at_Risk__c;
+            
+            Map<String, String> planEmployeeStatusMap = UltimatePopControllerHelper.getPlanEmployeeStatusMapFromDC(SSN);
+            caseAction.Employee_Status__c = planEmployeeStatusMap.get(opp.Offer_Plan_Number__c);
+            
+            caseAction.Opportunity_Name__c = opp.Id;
+            
+            DataBase.insert(caseAction);
+            
+            //Update the Case Object (TM_Action_Taken__c)
+            Case c = new Case(Id = caseid);
+            c.TM_Action_Taken__c = 'Yes';
+            Database.update(c);
+        }
+
+
 
 @isTest
 private class KnowledgeArticleWrapperTest {
