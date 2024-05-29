@@ -1,3 +1,110 @@
+
+@isTest
+private class KnowledgeArticleWrapperTest {
+
+    // Mock class for knowledgeArticleWrapper
+    private class knowledgeArticleWrapper {
+        public Id id;
+        public String title;
+        public String articleNumber;
+        public String validationStatus;
+        public String publishStatus;
+        public Id knowledgeArticleId;
+        public String summary;
+        public String recordTypeName;
+        public Boolean visibleInPublicKnowledgeBase;
+        public String viewCountDS;
+        public Boolean displayGenericKnowArticles;
+        public Boolean displayCopytoClipboardIcon;
+        public Boolean articleAttachedToCase;
+        public String lastPublishedDate;
+        public String lastModifiedDate;
+    }
+
+    @isTest
+    static void testGenerateWrapperData() {
+        // Arrange
+        List<Knowledge__kav> knowledgeArticles = new List<Knowledge__kav>();
+
+        Knowledge__kav article1 = new Knowledge__kav(
+            Id = 'ka01t0000001F6vAAE',
+            Title = 'Test Article 1',
+            ArticleNumber = '000001',
+            ValidationStatus = 'Valid',
+            PublishStatus = 'Draft',
+            KnowledgeArticleId = 'kA01t0000001F6vMAE',
+            Summary = 'Summary of Test Article 1',
+            RecordTypeId = '012000000000000AAA',
+            IsVisibleInPkb = true,
+            LastPublishedDate = System.today(),
+            LastModifiedDate = System.now()
+        );
+
+        Knowledge__kav article2 = new Knowledge__kav(
+            Id = 'ka01t0000001F7vAAE',
+            Title = 'Test Article 2',
+            ArticleNumber = '000002',
+            ValidationStatus = 'Valid',
+            PublishStatus = 'Online',
+            KnowledgeArticleId = 'kA01t0000001F7vMAE',
+            Summary = 'Summary of Test Article 2',
+            RecordTypeId = '012000000000000AAA',
+            IsVisibleInPkb = true,
+            LastPublishedDate = System.today(),
+            LastModifiedDate = System.now()
+        );
+
+        knowledgeArticles.add(article1);
+        knowledgeArticles.add(article2);
+
+        // Mock the scoreMap
+        Map<Id, String> scoreMap = new Map<Id, String>();
+        scoreMap.put('kA01t0000001F6vMAE', '10');
+        scoreMap.put('kA01t0000001F7vMAE', '20');
+
+        // Act
+        List<knowledgeArticleWrapper> result = YourClassName.generateWrapperData(knowledgeArticles);
+
+        // Assert
+        System.assertNotEquals(null, result, 'The result list should not be null.');
+        System.assertEquals(2, result.size(), 'The result list should contain 2 elements.');
+
+        knowledgeArticleWrapper kaWrap1 = result[0];
+        System.assertEquals('ka01t0000001F6vAAE', kaWrap1.id, 'ID should match.');
+        System.assertEquals('Test Article 1', kaWrap1.title, 'Title should match.');
+        System.assertEquals('000001', kaWrap1.articleNumber, 'Article Number should match.');
+        System.assertEquals('Valid', kaWrap1.validationStatus, 'Validation Status should match.');
+        System.assertEquals('Draft', kaWrap1.publishStatus, 'Publish Status should match.');
+        System.assertEquals('kA01t0000001F6vMAE', kaWrap1.knowledgeArticleId, 'Knowledge Article ID should match.');
+        System.assertEquals('Summary of Test Article 1', kaWrap1.summary, 'Summary should match.');
+        System.assertEquals('012000000000000AAA', kaWrap1.recordTypeName, 'Record Type Name should match.');
+        System.assertEquals(true, kaWrap1.visibleInPublicKnowledgeBase, 'Visibility in Public Knowledge Base should match.');
+        System.assertEquals('10', kaWrap1.viewCountDS, 'View Count should match.');
+        System.assertEquals(true, kaWrap1.displayGenericKnowArticles, 'Generic Knowledge Articles display status should match.');
+        System.assertEquals(false, kaWrap1.displayCopytoClipboardIcon, 'Copy to Clipboard Icon display status should match.');
+        System.assertEquals(false, kaWrap1.articleAttachedToCase, 'Article Attached to Case status should match.');
+        System.assertEquals(article1.LastModifiedDate.format('MMM d, yyyy, HH:mm a'), kaWrap1.lastModifiedDate, 'Last Modified Date should match.');
+
+        knowledgeArticleWrapper kaWrap2 = result[1];
+        System.assertEquals('ka01t0000001F7vAAE', kaWrap2.id, 'ID should match.');
+        System.assertEquals('Test Article 2', kaWrap2.title, 'Title should match.');
+        System.assertEquals('000002', kaWrap2.articleNumber, 'Article Number should match.');
+        System.assertEquals('Valid', kaWrap2.validationStatus, 'Validation Status should match.');
+        System.assertEquals('Online', kaWrap2.publishStatus, 'Publish Status should match.');
+        System.assertEquals('kA01t0000001F7vMAE', kaWrap2.knowledgeArticleId, 'Knowledge Article ID should match.');
+        System.assertEquals('Summary of Test Article 2', kaWrap2.summary, 'Summary should match.');
+        System.assertEquals('012000000000000AAA', kaWrap2.recordTypeName, 'Record Type Name should match.');
+        System.assertEquals(true, kaWrap2.visibleInPublicKnowledgeBase, 'Visibility in Public Knowledge Base should match.');
+        System.assertEquals('20', kaWrap2.viewCountDS, 'View Count should match.');
+        System.assertEquals(true, kaWrap2.displayGenericKnowArticles, 'Generic Knowledge Articles display status should match.');
+        System.assertEquals(false, kaWrap2.displayCopytoClipboardIcon, 'Copy to Clipboard Icon display status should match.');
+        System.assertEquals(article2.LastPublishedDate.format('MMM d, yyyy, HH:mm a'), kaWrap2.lastPublishedDate, 'Last Published Date should match.');
+    }
+}
+
+
+
+
 List<knowledgeArticleWrapper> kaWrapperList = new List<knowledgeArticleWrapper>();
     for (Knowledge__kav kav : knowledeArticles) {
         knowledgeArticleWrapper kaWrap = new knowledgeArticleWrapper();
