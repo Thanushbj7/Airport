@@ -1,3 +1,82 @@
+@isTest
+private class CaseActionTest {
+
+    @isTest
+    static void testRecordCaseAction() {
+        // Arrange
+        Opportunity opp = new Opportunity(
+            Name = 'Test Opportunity',
+            StageName = 'Prospecting',
+            CloseDate = System.today(),
+            Offer_Plan_Number__c = '12345',
+            plan__c = 'Plan123',
+            at_Risk__c = 5000.0
+        );
+        insert opp;
+
+        Case testCase = new Case(
+            Subject = 'Test Case',
+            Status = 'New'
+        );
+        insert testCase;
+
+        String SSN = '123-45-6789';
+
+        // Mock the getPlanEmployeeStatusMapFromDC method in UltimatePopControllerHelper
+        Map<String, String> planEmployeeStatusMap = new Map<String, String>();
+        planEmployeeStatusMap.put('12345', 'Active');
+
+        Test.startTest();
+        // Use a custom mock for the UltimatePopControllerHelper class
+        Test.setMock(ApexMocks.class, new UltimatePopControllerHelperMock(planEmployeeStatusMap));
+
+        // Act
+        YourClassName.recordCaseAction(opp, testCase.Id, SSN);
+        Test.stopTest();
+
+        // Assert
+        // Verify Case_Actions__c record was created
+        List<Case_Actions__c> caseActions = [SELECT Id, Case__c, PlanID_Text__c, PlanID__c, Call_Activity__c, Call_Type__c, Account_Balance__c, Employee_Status__c, Opportunity_Name__c
+                                             FROM Case_Actions__c
+                                             WHERE Case__c = :testCase.Id];
+        System.assertEquals(1, caseActions.size(), 'There should be one Case_Actions__c record.');
+
+        Case_Actions__c caseAction = caseActions[0];
+        System.assertEquals(testCase.Id, caseAction.Case__c, 'Case ID should match.');
+        System.assertEquals(opp.Offer_Plan_Number__c, caseAction.PlanID_Text__c, 'PlanID_Text__c should match.');
+        System.assertEquals(opp.plan__c, caseAction.PlanID__c, 'PlanID__c should match.');
+        System.assertEquals('Proactive', caseAction.Call_Activity__c, 'Call Activity should be Proactive.');
+        System.assertEquals('Targeted Message', caseAction.Call_Type__c, 'Call Type should be Targeted Message.');
+        System.assertEquals(opp.at_Risk__c, caseAction.Account_Balance__c, 'Account Balance should match.');
+        System.assertEquals(planEmployeeStatusMap.get(opp.Offer_Plan_Number__c), caseAction.Employee_Status__c, 'Employee Status should match.');
+        System.assertEquals(opp.Id, caseAction.Opportunity_Name__c, 'Opportunity Name should match.');
+
+        // Verify Case record was updated
+        Case updatedCase = [SELECT TM_Action_Taken__c FROM Case WHERE Id = :testCase.Id];
+        System.assertEquals('Yes', updatedCase.TM_Action_Taken__c, 'TM_Action_Taken__c should be Yes.');
+    }
+
+    // Mock class for the UltimatePopControllerHelper
+    private class UltimatePopControllerHelperMock implements HttpCalloutMock {
+        private Map<String, String> planEmployeeStatusMap;
+        
+        public UltimatePopControllerHelperMock(Map<String, String> planEmployeeStatusMap) {
+            this.planEmployeeStatusMap = planEmployeeStatusMap;
+        }
+
+        public HTTPResponse respond(HTTPRequest req) {
+            HttpResponse res = new HttpResponse();
+            res.setStatusCode(200);
+            res.setBody(JSON.serialize(planEmployeeStatusMap));
+            return res;
+        }
+    }
+}
+
+
+
+
+
 @AuraEnabled
     	public static void recordCaseAction(Opportunity opp,id caseid, string SSN) {
             if(String.isBlank(caseid))
