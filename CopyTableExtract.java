@@ -1,4 +1,49 @@
- @AuraEnabled(cacheable=true)
+@isTest
+private class CampaignArticleTest {
+
+    @isTest
+    static void testGetCampaignArticleName() {
+        // Arrange
+        Campaign testCampaign = new Campaign(
+            Name = 'Test Campaign',
+            TM_Article_Name__c = 'Test Article Name'
+        );
+        insert testCampaign;
+
+        Test.startTest();
+        // Act
+        String result = YourClassName.getCampaignArticleName(testCampaign.Id);
+        Test.stopTest();
+
+        // Assert
+        System.assertEquals('Test Article Name', result, 'The article name should match the TM_Article_Name__c field of the campaign.');
+    }
+
+    @isTest
+    static void testGetCampaignArticleNameNoResult() {
+        // Arrange
+        String invalidCampaignId = 'invalidId';
+
+        Test.startTest();
+        // Act
+        String result = '';
+        try {
+            result = YourClassName.getCampaignArticleName(invalidCampaignId);
+        } catch (Exception e) {
+            // Handle exception for invalid campaign ID
+        }
+        Test.stopTest();
+
+        // Assert
+        System.assertEquals('', result, 'The result should be an empty string if the campaign ID is invalid.');
+    }
+}
+
+
+
+
+
+@AuraEnabled(cacheable=true)
 public static String getCampaignArticleName(String campaignId) {
 List<Campaign> campList= new List<Campaign>();
 campList= [ SELECT Id, TM_Article_Name__c
