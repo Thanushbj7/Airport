@@ -1,3 +1,6 @@
+System.DmlException: Insert failed. First exception on row 0; first error: FIELD_CUSTOM_VALIDATION_EXCEPTION, SSN/TIN Field must be a numeric &amp;amp;amp; 9 digits.: [SSN__c]
+
+
 @isTest
 public class CreateOpportunityWithPlanAndCampaignTest {
     
