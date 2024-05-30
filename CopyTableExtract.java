@@ -1,3 +1,98 @@
+@isTest
+public class CreateOpportunityWithPlanAndCampaignTest {
+    
+    @testSetup
+    static void setupTestData() {
+        // Create a Campaign
+        Campaign campaign = new Campaign(
+            Name = 'Test Campaign',
+            Offer_Code__c = 'testcode',
+            Offer_Priority__c = '1',
+            Offer_Opportunity_Record_Type_ID__c = '012xxxxxxxxxxxxxxx'
+        );
+        insert campaign;
+
+        // Create a Plan
+        Plan__c plan = new Plan__c(
+            Name = 'Test Plan',
+            Native_Plan_ID__c = 'TestPlanID'
+        );
+        insert plan;
+
+        // Create an Account
+        Account account = new Account(
+            LastName = 'Doe',
+            FirstName = 'John',
+            SSN__c = '123-45-6789',
+            PersonBirthdate = Date.today().addYears(-30),
+            PersonMailingStreet = '123 Test St',
+            PersonMailingCity = 'Test City',
+            PersonMailingState = 'TX',
+            PersonMailingPostalCode = '12345',
+            PersonEmail = 'john.doe@test.com',
+            PersonHomePhone = '555-555-5555',
+            Sex__c = 'M'
+        );
+        insert account;
+
+        // Create a Client_Offer__c record
+        Client_Offer__c clientOffer = new Client_Offer__c(
+            Account_Last_Name__c = 'Doe',
+            Account_First_Name__c = 'John',
+            Account_Ext_Id__c = '123-45-6789',
+            Account_Birthdate__c = Date.today().addYears(-30),
+            Account_Address1__c = '123 Test St',
+            Account_City__c = 'Test City',
+            Account_State__c = 'TX',
+            Account_Zip__c = '12345',
+            Account_Email__c = 'john.doe@test.com',
+            Account_Phone__c = '555-555-5555',
+            Account_Gender__c = 'M',
+            PlanId_testcode__c = plan.Id
+        );
+        insert clientOffer;
+
+        // Create a CTI_Console_Pop__c record
+        CTI_Console_Pop__c ctiPop = new CTI_Console_Pop__c(
+            Account__c = account.Id,
+            CTI_Params__c = 'param1;param2;param3:testDNIS'
+        );
+        insert ctiPop;
+    }
+    
+    @isTest
+    static void testCreateOpportunityWithPlanAndCampaign() {
+        // Retrieve test data
+        Campaign campaign = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
+        Plan__c plan = [SELECT Id, Name FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
+        Account account = [SELECT Id, LastName, FirstName FROM Account WHERE LastName = 'Doe' LIMIT 1];
+        Client_Offer__c clientOffer = [SELECT Id FROM Client_Offer__c LIMIT 1];
+        
+        // Call the method to test
+        Test.startTest();
+        String opportunityName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(
+            campaign.Name, plan.Name, account.LastName, UserInfo.getUserId(), 'Response', 'Reason', 'Comment', account.Id
+        );
+        Test.stopTest();
+        
+        // Verify the results
+        Opportunity createdOpportunity = [SELECT Id, Name, AccountId, CampaignId, OwnerId, StageName FROM Opportunity WHERE Name = :opportunityName LIMIT 1];
+        System.assertEquals(account.Id, createdOpportunity.AccountId);
+        System.assertEquals(campaign.Id, createdOpportunity.CampaignId);
+        System.assertEquals('Needs Analysis', createdOpportunity.StageName);
+        
+        // Additional assertions can be added as needed
+    }
+}
+
+
+
+
+
+
+
+
+
 @AuraEnabled
     public static String createOpportunityWithPlanAndCampaign(String messageName, String planId, String clientLastName, string ownerId,string response, string responseReason, string comment, string Clientid) 
     { 
