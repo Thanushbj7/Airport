@@ -68,7 +68,7 @@ String planIdText = (String)clientOffer.get('planid_' + campaign.offer_code__c +
         }
         
         
-        re
+         return opportunity.name;
 
 
 @isTest
