@@ -1,3 +1,207 @@
+@isTest
+public class CampaignOfferSummaryTest {
+    
+    @testSetup
+    static void setup() {
+        // Create necessary records for the test setup
+        
+        Account acc = new Account(Name='Test Account', SSN__c='123-45-6789');
+        insert acc;
+        
+        Campaign camp = new Campaign(Name='Test Campaign', offer_code__c='TestOfferCode');
+        insert camp;
+        
+        Opportunity opp = new Opportunity(Name='Test Opportunity', StageName='Prospecting', CloseDate=Date.today(), Track_Summary__c='Yes', AccountId=acc.Id, Summary_Code__c='TestSummaryCode');
+        insert opp;
+    }
+    
+    @isTest
+    static void testInsertNewCampaignOfferSummary() {
+        // Retrieve the setup data
+        Account acc = [SELECT Id, SSN__c FROM Account WHERE Name='Test Account' LIMIT 1];
+        Campaign camp = [SELECT Id, offer_code__c FROM Campaign WHERE Name='Test Campaign' LIMIT 1];
+        Opportunity opp = [SELECT Id, Summary_Code__c FROM Opportunity WHERE Name='Test Opportunity' LIMIT 1];
+        
+        // Initialize the clientOffer Map
+        Map<String, String> clientOffer = new Map<String, String>{'planid_TestOfferCode__c' => 'TestPlanId'};
+        
+        Test.startTest();
+        
+        // Call the method you are testing
+        String planIdText = (String)clientOffer.get('planid_' + camp.offer_code__c + '__c');
+        if(planIdText == null || planIdText == '')
+            planIdText = 'None';
+        
+        Savepoint sp1 = Database.setSavepoint();
+        
+        try {
+            if(opp.Track_Summary__c == 'Yes' && acc.SSN__c != null && acc.SSN__c != ''){
+                
+                Campaign_Offer_Summary__c cos = null;
+                List<Campaign_Offer_Summary__c> cosList = [select id,Account_Name__c,Summary_Code__c,Phone_Message_History__c,Phone_Message_Count__c,Last_Phone_Opportunity__c from Campaign_Offer_Summary__c where Summary_Code__c=:opp.Summary_Code__c];
+                
+                if(cosList != null && cosList.size() > 0)
+                    cos = cosList[0];
+                
+                String history = null;
+                
+                if(cos == null){
+                    cos = new Campaign_Offer_Summary__c();
+                    cos.Summary_Code__c = opp.Summary_Code__c;
+                    cos.Account_Name__c = acc.id;
+                    cos.Customer_SSN__c = acc.SSN__c;
+                    cos.OfferCode__c = camp.offer_code__c;
+                    cos.Planid_Text__c = planIdText;
+                    cos.Last_Phone_Opportunity__c = opp.id;
+                    cos.Phone_Message_Count__c = 1;
+                    cos.Phone_Message_History__c = opp.CreatedDate.format('MM/dd/yyyy') + '-' + opp.Offer_Response_Reason__c + '; ';
+                    if(cos.Account_Name__c == null)
+                        cos.Account_Name__c = opp.AccountId; 
+                    
+                    insert(cos);    
+                }
+                else {
+                    cos.Last_Phone_Opportunity__c=opp.id;
+                    
+                    if(cos.Phone_Message_Count__c == null)
+                        cos.Phone_Message_Count__c = 0;
+                    
+                    cos.Phone_Message_Count__c+=1;
+                    
+                    history = opp.CreatedDate.format('MM/dd/yyyy') + '-' + opp.Offer_Response_Reason__c + '; ' + (cos.Phone_Message_History__c == null ? '' : cos.Phone_Message_History__c);
+                    if(history.length() >= 300)
+                        history = history.substring(0, 300);
+                    
+                    cos.Phone_Message_History__c = history;
+                    if(cos.Account_Name__c==null)
+                        cos.Account_Name__c=opp.AccountId;
+                    
+                    update(cos); 
+                }
+                
+                I_OfferController.updateDB2PhoneSection(acc.SSN__c, planIdText, opp.offer_code__c, opp.Offer_Response__c, opp.CreatedDate);
+            }
+        }
+        catch(Exception e) {
+            Database.rollback(sp1);
+        }
+        
+        Test.stopTest();
+        
+        // Verify results
+        Campaign_Offer_Summary__c result = [SELECT Id, Summary_Code__c, Account_Name__c, Customer_SSN__c, OfferCode__c, Planid_Text__c, Last_Phone_Opportunity__c, Phone_Message_Count__c, Phone_Message_History__c FROM Campaign_Offer_Summary__c WHERE Summary_Code__c=:opp.Summary_Code__c LIMIT 1];
+        
+        System.assertEquals('TestSummaryCode', result.Summary_Code__c);
+        System.assertEquals(acc.Id, result.Account_Name__c);
+        System.assertEquals('123-45-6789', result.Customer_SSN__c);
+        System.assertEquals('TestOfferCode', result.OfferCode__c);
+        System.assertEquals('TestPlanId', result.Planid_Text__c);
+        System.assertEquals(opp.Id, result.Last_Phone_Opportunity__c);
+        System.assertEquals(1, result.Phone_Message_Count__c);
+        System.assert(result.Phone_Message_History__c.startsWith(Date.today().format('MM/dd/yyyy')));
+    }
+    
+    @isTest
+    static void testUpdateExistingCampaignOfferSummary() {
+        // Create a Campaign_Offer_Summary__c record
+        Account acc = [SELECT Id, SSN__c FROM Account WHERE Name='Test Account' LIMIT 1];
+        Campaign camp = [SELECT Id, offer_code__c FROM Campaign WHERE Name='Test Campaign' LIMIT 1];
+        Opportunity opp = [SELECT Id, Summary_Code__c FROM Opportunity WHERE Name='Test Opportunity' LIMIT 1];
+        
+        Campaign_Offer_Summary__c cos = new Campaign_Offer_Summary__c(Summary_Code__c=opp.Summary_Code__c, Account_Name__c=acc.Id, Customer_SSN__c=acc.SSN__c, OfferCode__c=camp.offer_code__c, Planid_Text__c='TestPlanId', Last_Phone_Opportunity__c=opp.Id, Phone_Message_Count__c=1, Phone_Message_History__c=Date.today().format('MM/dd/yyyy') + '-Test; ');
+        insert cos;
+        
+        Test.startTest();
+        
+        // Initialize the clientOffer Map
+        Map<String, String> clientOffer = new Map<String, String>{'planid_TestOfferCode__c' => 'UpdatedPlanId'};
+        
+        // Call the method you are testing
+        String planIdText = (String)clientOffer.get('planid_' + camp.offer_code__c + '__c');
+        if(planIdText == null || planIdText == '')
+            planIdText = 'None';
+        
+        Savepoint sp1 = Database.setSavepoint();
+        
+        try {
+            if(opp.Track_Summary__c == 'Yes' && acc.SSN__c != null && acc.SSN__c != ''){
+                
+                Campaign_Offer_Summary__c cos = null;
+                List<Campaign_Offer_Summary__c> cosList = [select id,Account_Name__c,Summary_Code__c,Phone_Message_History__c,Phone_Message_Count__c,Last_Phone_Opportunity__c from Campaign_Offer_Summary__c where Summary_Code__c=:opp.Summary_Code__c];
+                
+                if(cosList != null && cosList.size() > 0)
+                    cos = cosList[0];
+                
+                String history = null;
+                
+                if(cos == null){
+                    cos = new Campaign_Offer_Summary__c();
+                    cos.Summary_Code__c = opp.Summary_Code__c;
+                    cos.Account_Name__c = acc.id;
+                    cos.Customer_SSN__c = acc.SSN__c;
+                    cos.OfferCode__c = camp.offer_code__c;
+                    cos.Planid_Text__c = planIdText;
+                    cos.Last_Phone_Opportunity__c = opp.id;
+                    cos.Phone_Message_Count__c = 1;
+                    cos.Phone_Message_History
+
+// Continue from previous code
+History__c = opp.CreatedDate.format('MM/dd/yyyy') + '-' + opp.Offer_Response_Reason__c + '; ';
+                    if(cos.Account_Name__c == null)
+                        cos.Account_Name__c = opp.AccountId; 
+                    
+                    insert(cos);    
+                }
+                else {
+                    cos.Last_Phone_Opportunity__c = opp.id;
+                    
+                    if(cos.Phone_Message_Count__c == null)
+                        cos.Phone_Message_Count__c = 0;
+                    
+                    cos.Phone_Message_Count__c += 1;
+                    
+                    history = opp.CreatedDate.format('MM/dd/yyyy') + '-' + opp.Offer_Response_Reason__c + '; ' + (cos.Phone_Message_History__c == null ? '' : cos.Phone_Message_History__c);
+                    if(history.length() >= 300)
+                        history = history.substring(0, 300);
+                    
+                    cos.Phone_Message_History__c = history;
+                    if(cos.Account_Name__c == null)
+                        cos.Account_Name__c = opp.AccountId;
+                    
+                    update(cos); 
+                }
+                
+                // Update DB2 database
+                I_OfferController.updateDB2PhoneSection(acc.SSN__c, planIdText, opp.offer_code__c, opp.Offer_Response__c, opp.CreatedDate);
+            }
+        }
+        catch(Exception e) {
+            Database.rollback(sp1);
+        }
+        
+        Test.stopTest();
+        
+        // Verify results
+        Campaign_Offer_Summary__c result = [SELECT Id, Summary_Code__c, Account_Name__c, Customer_SSN__c, OfferCode__c, Planid_Text__c, Last_Phone_Opportunity__c, Phone_Message_Count__c, Phone_Message_History__c FROM Campaign_Offer_Summary__c WHERE Summary_Code__c = :opp.Summary_Code__c LIMIT 1];
+        
+        System.assertEquals('TestSummaryCode', result.Summary_Code__c);
+        System.assertEquals(acc.Id, result.Account_Name__c);
+        System.assertEquals('123-45-6789', result.Customer_SSN__c);
+        System.assertEquals('TestOfferCode', result.OfferCode__c);
+        System.assertEquals('UpdatedPlanId', result.Planid_Text__c);
+        System.assertEquals(opp.Id, result.Last_Phone_Opportunity__c);
+        System.assertEquals(1, result.Phone_Message_Count__c);
+        System.assert(result.Phone_Message_History__c.startsWith(Date.today().format('MM/dd/yyyy')));
+    }
+}
+
+
+
+
+
+
+
+
 String planIdText = (String)clientOffer.get('planid_' + campaign.offer_code__c + '__c');
         if(planIdText == null || planIdText == '')
             planIdText = 'None';
