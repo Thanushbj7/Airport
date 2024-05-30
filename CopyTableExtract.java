@@ -1,1059 +1,460 @@
-@isTest
-private class CampaignArticleTest {
-
-    @isTest
-    static void testGetCampaignArticleName() {
-        // Arrange
-        Campaign testCampaign = new Campaign(
-            Name = 'Test Campaign',
-            TM_Article_Name__c = 'Test Article Name'
-        );
-        insert testCampaign;
-
-        Test.startTest();
-        // Act
-        String result = YourClassName.getCampaignArticleName(testCampaign.Id);
-        Test.stopTest();
-
-        // Assert
-        System.assertEquals('Test Article Name', result, 'The article name should match the TM_Article_Name__c field of the campaign.');
-    }
-
-    @isTest
-    static void testGetCampaignArticleNameNoResult() {
-        // Arrange
-        String invalidCampaignId = 'invalidId';
-
-        Test.startTest();
-        // Act
-        String result = '';
-        try {
-            result = YourClassName.getCampaignArticleName(invalidCampaignId);
-        } catch (Exception e) {
-            // Handle exception for invalid campaign ID
-        }
-        Test.stopTest();
-
-        // Assert
-        System.assertEquals('', result, 'The result should be an empty string if the campaign ID is invalid.');
-    }
-}
-
-
-
-
-
-@AuraEnabled(cacheable=true)
-public static String getCampaignArticleName(String campaignId) {
-List<Campaign> campList= new List<Campaign>();
-campList= [ SELECT Id, TM_Article_Name__c
-FROM Campaign WHERE Id= :campaignId
-LIMIT 1 ];//Id, Name , 
-return campList[0].TM_Article_Name__c;
-}  
-
-
-@isTest
-private class CaseActionTest {
-
-    @isTest
-    static void testRecordCaseAction() {
-        // Arrange
-        Opportunity opp = new Opportunity(
-            Name = 'Test Opportunity',
-            StageName = 'Prospecting',
-            CloseDate = System.today(),
-            Offer_Plan_Number__c = '12345',
-            plan__c = 'Plan123',
-            at_Risk__c = 5000.0
-        );
-        insert opp;
-
-        Case testCase = new Case(
-            Subject = 'Test Case',
-            Status = 'New'
-        );
-        insert testCase;
-
-        String SSN = '123-45-6789';
-
-        // Mock the getPlanEmployeeStatusMapFromDC method in UltimatePopControllerHelper
-        Map<String, String> planEmployeeStatusMap = new Map<String, String>();
-        planEmployeeStatusMap.put('12345', 'Active');
-
-        Test.startTest();
-        // Use a custom mock for the UltimatePopControllerHelper class
-        Test.setMock(ApexMocks.class, new UltimatePopControllerHelperMock(planEmployeeStatusMap));
-
-        // Act
-        YourClassName.recordCaseAction(opp, testCase.Id, SSN);
-        Test.stopTest();
-
-        // Assert
-        // Verify Case_Actions__c record was created
-        List<Case_Actions__c> caseActions = [SELECT Id, Case__c, PlanID_Text__c, PlanID__c, Call_Activity__c, Call_Type__c, Account_Balance__c, Employee_Status__c, Opportunity_Name__c
-                                             FROM Case_Actions__c
-                                             WHERE Case__c = :testCase.Id];
-        System.assertEquals(1, caseActions.size(), 'There should be one Case_Actions__c record.');
-
-        Case_Actions__c caseAction = caseActions[0];
-        System.assertEquals(testCase.Id, caseAction.Case__c, 'Case ID should match.');
-        System.assertEquals(opp.Offer_Plan_Number__c, caseAction.PlanID_Text__c, 'PlanID_Text__c should match.');
-        System.assertEquals(opp.plan__c, caseAction.PlanID__c, 'PlanID__c should match.');
-        System.assertEquals('Proactive', caseAction.Call_Activity__c, 'Call Activity should be Proactive.');
-        System.assertEquals('Targeted Message', caseAction.Call_Type__c, 'Call Type should be Targeted Message.');
-        System.assertEquals(opp.at_Risk__c, caseAction.Account_Balance__c, 'Account Balance should match.');
-        System.assertEquals(planEmployeeStatusMap.get(opp.Offer_Plan_Number__c), caseAction.Employee_Status__c, 'Employee Status should match.');
-        System.assertEquals(opp.Id, caseAction.Opportunity_Name__c, 'Opportunity Name should match.');
-
-        // Verify Case record was updated
-        Case updatedCase = [SELECT TM_Action_Taken__c FROM Case WHERE Id = :testCase.Id];
-        System.assertEquals('Yes', updatedCase.TM_Action_Taken__c, 'TM_Action_Taken__c should be Yes.');
-    }
-
-    // Mock class for the UltimatePopControllerHelper
-    private class UltimatePopControllerHelperMock implements HttpCalloutMock {
-        private Map<String, String> planEmployeeStatusMap;
-        
-        public UltimatePopControllerHelperMock(Map<String, String> planEmployeeStatusMap) {
-            this.planEmployeeStatusMap = planEmployeeStatusMap;
-        }
-
-        public HTTPResponse respond(HTTPRequest req) {
-            HttpResponse res = new HttpResponse();
-            res.setStatusCode(200);
-            res.setBody(JSON.serialize(planEmployeeStatusMap));
-            return res;
-        }
-    }
-}
-
-
-
-
-
 @AuraEnabled
-    	public static void recordCaseAction(Opportunity opp,id caseid, string SSN) {
-            if(String.isBlank(caseid))
-                 return;
-                 
-            Case_Actions__c caseAction = new Case_Actions__c();
-            caseAction.Case__c = caseid;
-            caseAction.PlanID_Text__c = opp.Offer_Plan_Number__c;
-            
-            if(!String.isBlank(opp.plan__c))
-                caseAction.PlanID__c = opp.plan__c;
-            
-            caseAction.Call_Activity__c = 'Proactive';
-            caseAction.Call_Type__c = 'Targeted Message';
-            caseAction.Account_Balance__c = opp.at_Risk__c;
-            
-            Map<String, String> planEmployeeStatusMap = UltimatePopControllerHelper.getPlanEmployeeStatusMapFromDC(SSN);
-            caseAction.Employee_Status__c = planEmployeeStatusMap.get(opp.Offer_Plan_Number__c);
-            
-            caseAction.Opportunity_Name__c = opp.Id;
-            
-            DataBase.insert(caseAction);
-            
-            //Update the Case Object (TM_Action_Taken__c)
-            Case c = new Case(Id = caseid);
-            c.TM_Action_Taken__c = 'Yes';
-            Database.update(c);
-        }
-
-
-
-@isTest
-private class KnowledgeArticleWrapperTest {
-
-    // Mock class for knowledgeArticleWrapper
-    private class knowledgeArticleWrapper {
-        public Id id;
-        public String title;
-        public String articleNumber;
-        public String validationStatus;
-        public String publishStatus;
-        public Id knowledgeArticleId;
-        public String summary;
-        public String recordTypeName;
-        public Boolean visibleInPublicKnowledgeBase;
-        public String viewCountDS;
-        public Boolean displayGenericKnowArticles;
-        public Boolean displayCopytoClipboardIcon;
-        public Boolean articleAttachedToCase;
-        public String lastPublishedDate;
-        public String lastModifiedDate;
-    }
-
-    @isTest
-    static void testGenerateWrapperData() {
-        // Arrange
-        List<Knowledge__kav> knowledgeArticles = new List<Knowledge__kav>();
-
-        Knowledge__kav article1 = new Knowledge__kav(
-            Id = 'ka01t0000001F6vAAE',
-            Title = 'Test Article 1',
-            ArticleNumber = '000001',
-            ValidationStatus = 'Valid',
-            PublishStatus = 'Draft',
-            KnowledgeArticleId = 'kA01t0000001F6vMAE',
-            Summary = 'Summary of Test Article 1',
-            RecordTypeId = '012000000000000AAA',
-            IsVisibleInPkb = true,
-            LastPublishedDate = System.today(),
-            LastModifiedDate = System.now()
-        );
-
-        Knowledge__kav article2 = new Knowledge__kav(
-            Id = 'ka01t0000001F7vAAE',
-            Title = 'Test Article 2',
-            ArticleNumber = '000002',
-            ValidationStatus = 'Valid',
-            PublishStatus = 'Online',
-            KnowledgeArticleId = 'kA01t0000001F7vMAE',
-            Summary = 'Summary of Test Article 2',
-            RecordTypeId = '012000000000000AAA',
-            IsVisibleInPkb = true,
-            LastPublishedDate = System.today(),
-            LastModifiedDate = System.now()
-        );
-
-        knowledgeArticles.add(article1);
-        knowledgeArticles.add(article2);
-
-        // Mock the scoreMap
-        Map<Id, String> scoreMap = new Map<Id, String>();
-        scoreMap.put('kA01t0000001F6vMAE', '10');
-        scoreMap.put('kA01t0000001F7vMAE', '20');
-
-        // Act
-        List<knowledgeArticleWrapper> result = YourClassName.generateWrapperData(knowledgeArticles);
-
-        // Assert
-        System.assertNotEquals(null, result, 'The result list should not be null.');
-        System.assertEquals(2, result.size(), 'The result list should contain 2 elements.');
-
-        knowledgeArticleWrapper kaWrap1 = result[0];
-        System.assertEquals('ka01t0000001F6vAAE', kaWrap1.id, 'ID should match.');
-        System.assertEquals('Test Article 1', kaWrap1.title, 'Title should match.');
-        System.assertEquals('000001', kaWrap1.articleNumber, 'Article Number should match.');
-        System.assertEquals('Valid', kaWrap1.validationStatus, 'Validation Status should match.');
-        System.assertEquals('Draft', kaWrap1.publishStatus, 'Publish Status should match.');
-        System.assertEquals('kA01t0000001F6vMAE', kaWrap1.knowledgeArticleId, 'Knowledge Article ID should match.');
-        System.assertEquals('Summary of Test Article 1', kaWrap1.summary, 'Summary should match.');
-        System.assertEquals('012000000000000AAA', kaWrap1.recordTypeName, 'Record Type Name should match.');
-        System.assertEquals(true, kaWrap1.visibleInPublicKnowledgeBase, 'Visibility in Public Knowledge Base should match.');
-        System.assertEquals('10', kaWrap1.viewCountDS, 'View Count should match.');
-        System.assertEquals(true, kaWrap1.displayGenericKnowArticles, 'Generic Knowledge Articles display status should match.');
-        System.assertEquals(false, kaWrap1.displayCopytoClipboardIcon, 'Copy to Clipboard Icon display status should match.');
-        System.assertEquals(false, kaWrap1.articleAttachedToCase, 'Article Attached to Case status should match.');
-        System.assertEquals(article1.LastModifiedDate.format('MMM d, yyyy, HH:mm a'), kaWrap1.lastModifiedDate, 'Last Modified Date should match.');
-
-        knowledgeArticleWrapper kaWrap2 = result[1];
-        System.assertEquals('ka01t0000001F7vAAE', kaWrap2.id, 'ID should match.');
-        System.assertEquals('Test Article 2', kaWrap2.title, 'Title should match.');
-        System.assertEquals('000002', kaWrap2.articleNumber, 'Article Number should match.');
-        System.assertEquals('Valid', kaWrap2.validationStatus, 'Validation Status should match.');
-        System.assertEquals('Online', kaWrap2.publishStatus, 'Publish Status should match.');
-        System.assertEquals('kA01t0000001F7vMAE', kaWrap2.knowledgeArticleId, 'Knowledge Article ID should match.');
-        System.assertEquals('Summary of Test Article 2', kaWrap2.summary, 'Summary should match.');
-        System.assertEquals('012000000000000AAA', kaWrap2.recordTypeName, 'Record Type Name should match.');
-        System.assertEquals(true, kaWrap2.visibleInPublicKnowledgeBase, 'Visibility in Public Knowledge Base should match.');
-        System.assertEquals('20', kaWrap2.viewCountDS, 'View Count should match.');
-        System.assertEquals(true, kaWrap2.displayGenericKnowArticles, 'Generic Knowledge Articles display status should match.');
-        System.assertEquals(false, kaWrap2.displayCopytoClipboardIcon, 'Copy to Clipboard Icon display status should match.');
-        System.assertEquals(article2.LastPublishedDate.format('MMM d, yyyy, HH:mm a'), kaWrap2.lastPublishedDate, 'Last Published Date should match.');
-    }
-}
-
-
-
-
-List<knowledgeArticleWrapper> kaWrapperList = new List<knowledgeArticleWrapper>();
-    for (Knowledge__kav kav : knowledeArticles) {
-        knowledgeArticleWrapper kaWrap = new knowledgeArticleWrapper();
-        kaWrap.id = kav.Id;
-        kaWrap.title = kav.Title;
-        kaWrap.articleNumber = kav.ArticleNumber;
-        kaWrap.validationStatus = kav.ValidationStatus;
-        kaWrap.publishStatus = kav.PublishStatus;
-        kaWrap.knowledgeArticleId = kav.KnowledgeArticleId;
-        kaWrap.summary = kav.Summary;
-        kaWrap.recordTypeName = kav.RecordType.Name;
-        kaWrap.visibleInPublicKnowledgeBase = kav.IsVisibleInPkb;
-        kaWrap.viewCountDS = scoreMap.get(kav.KnowledgeArticleId);
-       
+    public static String createOpportunityWithPlanAndCampaign(String messageName, String planId, String clientLastName, string ownerId,string response, string responseReason, string comment, string Clientid) 
+    { 
+        System.debug('messageName'+ messageName);
+        System.debug('ClientidClientid'+ Clientid);
+        Client_Offer__c clientOffer ;
+        opportunity opportunity = new opportunity();
+        Campaign campaign = [select id, name, offer_code__c, offer_priority__c,Offer_Opportunity_Record_Type_ID__c from campaign where Name=:messageName  Limit 1];
         
-            kaWrap.displayGenericKnowArticles = true;
+        string offerCode = campaign.offer_code__c;        
         
+        Plan__c p=(Plan__c)[Select Id,Name from Plan__c where Name=:planId Limit 1];
         
-            kaWrap.displayCopytoClipboardIcon = false;
+        Account account = [SELECT Id, lastname,firstname,ssn__c FROM Account  WHERE Id = :Clientid];
+        Offer_Pop__c  offerPop;
         
-         
-
-        if (kav.PublishStatus == 'Draft') {
-            kaWrap.articleAttachedToCase = false;
+        CTI_Console_Pop__c cp= [select Id, Case__c,CTI_Params__c from CTI_Console_Pop__c where account__c = :clientId  order by LastModifiedDate desc  limit 1];
+        String dnisNumber;
+        String ctiParams = cp.CTI_Params__c;
+        if(ctiParams != null && ctiParams != '') {
+            String[] ctiParamArr = ctiParams.split(';');            
+            dnisNumber = (ctiParamArr[2].split(':').size() == 2 ? ctiParamArr[2].split(':')[1] : ' ');
         }
         
-        if (kav.PublishStatus.equalsIgnoreCase('Online') && kaWrap.lastPublishedDate!=null) {
-            kaWrap.lastPublishedDate = kav.LastPublishedDate.format('MMM d, yyyy, HH:mm a');
-        } 
-        
-        if (kav.PublishStatus.equalsIgnoreCase('Draft')) {
-            kaWrap.lastModifiedDate = kav.LastModifiedDate.format('MMM d, yyyy, HH:mm a');
-        }
-        
-        kaWrapperList.add(kaWrap); 
-    }
-
-    return kaWrapperList;
-}
-
-
-@isTest
-private class UltimatePopControllerHelperTest {
-
-    @isTest
-    static void testInitializeAvailablePlans() {
-        // Arrange
-        Case currentCase = new Case(
-            Id = '5001X00001234AB',
-            CaseNumber = '12345'
-        );
-        
-        String clientSSN = '123-45-6789';
-        String ctiVRUApp = 'TestApp';
-        
-        Account client = new Account(
-            Id = '0011X00001234AB',
-            SSN__c = '123-45-6789'
-        );
-        
-        // Insert sample Plan records
-        Plan__c plan1 = new Plan__c(
-            Id = 'a001X00001234AB',
-            Native_Plan_ID__c = 'None'
-        );
-        
-        Plan__c plan2 = new Plan__c(
-            Id = 'a001X00005678CD',
-            Native_Plan_ID__c = 'MYVOYA'
-        );
-        
-        insert new List<Plan__c>{ plan1, plan2 };
-
-        // Insert mock data for CTI_Console_Pop__c
-        CTI_Console_Pop__c ctiConsolePop = new CTI_Console_Pop__c(
-            ExternalID__c = (UserInfo.getUserId() + ConstantUtils.UNIQUE_SEPERATOR + clientSSN),
-            DC_Serialized_Result__c = '[{"planId":"Plan123"}]',
-            Case__c = currentCase.Id
-        );
-        
-        insert ctiConsolePop;
-
-        // Mock the loadPlans method
-        Test.startTest();
-        Test.setMock(ApexMocks.class, new UltimatePopControllerHelperMock());
-        
-        // Act
-        List<UltimatePopControllerHelper.SearchResult> result = YourClassName.initializeAvailablePlans(currentCase, clientSSN, ctiVRUApp, client);
-        Test.stopTest();
-        
-        // Assert
-        System.assertNotEquals(null, result, 'The result list should not be null.');
-        System.assertEquals(1, result.size(), 'The result list should contain 1 element.');
-        System.assertEquals('Plan123', result.get(0).planId, 'Plan ID should match.');
-    }
-    
-    // Mock class for the loadPlans method
-    private class UltimatePopControllerHelperMock implements HttpCalloutMock {
-        public HTTPResponse respond(HTTPRequest req) {
-            HttpResponse res = new HttpResponse();
-            res.setStatusCode(200);
-            res.setBody('[{"planId":"Plan123"}]');
-            return res;
-        }
-    }
-}
-
-
-
-
-
-@isTest
-private class UltimatePopControllerHelperTest {
-    
-    private static Case createSampleCase() {
-        return new Case(
-            Id = '5001X00001234AB',
-            CaseNumber = '12345'
-        );
-    }
-    
-    private static Account createSampleAccount() {
-        return new Account(
-            Id = '0011X00001234AB',
-            SSN__c = '123-45-6789'
-        );
-    }
-
-    private static List<Plan__c> createSamplePlans() {
-        List<Plan__c> plans = new List<Plan__c>();
-        
-        Plan__c plan1 = new Plan__c(
-            Id = 'a001X00001234AB',
-            Native_Plan_ID__c = 'None'
-        );
-        
-        Plan__c plan2 = new Plan__c(
-            Id = 'a001X00005678CD',
-            Native_Plan_ID__c = 'MYVOYA'
-        );
-        
-        plans.add(plan1);
-        plans.add(plan2);
-
-        insert plans;
-
-        return plans;
-    }
-
-    @isTest
-    static void testInitializeAvailablePlans() {
-        // Arrange
-        Case currentCase = createSampleCase();
-        String clientSSN = '123-45-6789';
-        String ctiVRUApp = 'TestApp';
-        Account client = createSampleAccount();
-        List<Plan__c> samplePlans = createSamplePlans();
-
-        // Mock the loadPlans method
-        Test.startTest();
-        Test.setMock(ApexMocks.class, new UltimatePopControllerHelperMock());
-
-        // Insert mock data for CTI_Console_Pop__c
-        CTI_Console_Pop__c ctiConsolePop = new CTI_Console_Pop__c(
-            ExternalID__c = (UserInfo.getUserId() + ConstantUtils.UNIQUE_SEPERATOR + clientSSN),
-            DC_Serialized_Result__c = '[{"planId":"Plan123"}]',
-            Case__c = currentCase.Id
-        );
-        insert ctiConsolePop;
-
-        // Act
-        List<UltimatePopControllerHelper.SearchResult> result = YourClassName.initializeAvailablePlans(currentCase, clientSSN, ctiVRUApp, client);
-        Test.stopTest();
-        
-        // Assert
-        System.assertNotEquals(null, result, 'The result list should not be null.');
-        System.assertEquals(1, result.size(), 'The result list should contain 1 element.');
-        System.assertEquals('Plan123', result[0].planId, 'Plan ID should match.');
-    }
-    
-    // Mock class for the loadPlans method
-    private class UltimatePopControllerHelperMock implements HttpCalloutMock {
-        public HTTPResponse respond(HTTPRequest req) {
-            HttpResponse res = new HttpResponse();
-            res.setStatusCode(200);
-            res.setBody('[{"planId":"Plan123"}]');
-            return res;
-        }
-    }
-}
-
-
-
-
-public static List<UltimatePopControllerHelper.SearchResult> initializeAvailablePlans(Case currentCase,String clientSSN,String ctiVRUApp,Account client ) {
-    List<Selectoption> planIdSelectList = new List<Selectoption>();
-    List<Plan__c> p  = [Select Native_Plan_ID__c, id from Plan__c where Native_Plan_ID__c in ('None')];
-    String paPlanId; 
-    CTI_Console_Pop__c ctiConsolePop = new CTI_Console_Pop__c();
-    Participant_Alert__c newPAlert = new Participant_Alert__c();
-    String externalId = (UserInfo.getUserId() + ConstantUtils.UNIQUE_SEPERATOR + clientSSN); 
-    List<UltimatePopControllerHelper.SearchResult> dcSearchResults;
-    try {
-        ctiConsolePop = [select Id, Account__r.SSN__c, DC_Serialized_Result__c,
-         Case__c, Case__r.Id, Case__r.CaseNumber from CTI_Console_Pop__c where ExternalID__c = :externalId limit 1];
-        dcSearchResults = (List<UltimatePopControllerHelper.SearchResult>)JSON.deserialize(ctiConsolePop.DC_Serialized_Result__c, List<UltimatePopControllerHelper.SearchResult>.class);
-    }
-    catch(Exception e) {
-        //system.debug('initializeAvailablePlans() failed due to : ' + e + '[' + externalId + ']');
-    }
-    if(dcSearchResults != null && dcSearchResults.size() > 0) {
-        //this.planIdSelectList.add(new Selectoption('', '--None--'));
-        planIdSelectList.add(new Selectoption('All Plans', 'All Plans'));
-        for(UltimatePopControllerHelper.SearchResult sr : dcSearchResults) {
-            if(sr.planId !=null) {
-                planIdSelectList.add(new Selectoption(sr.planId, sr.planId));
+        if(offerPop == null) {
+            String externalId = (UserInfo.getUserId() + ConstantUtils.UNIQUE_SEPERATOR + account.ssn__c);
+            List<CTI_Console_Pop__c> ctiConsolePopList = [select Id, Offer_Pop__c, Offer_Pop__r.Id from CTI_Console_Pop__c where ExternalID__c = :externalId];
+            
+            if(ctiConsolePopList != null && ctiConsolePopList.size() > 0) {
+                if(ctiConsolePopList[0].Offer_Pop__c != null) {
+                    offerPop = [select id, CTI_DNIS_Number__c from offer_pop__c where id = :ctiConsolePopList[0].Offer_Pop__r.Id limit 1];
+                    // system.debug('offerPop'+offerPop);
+                }
             }
         }
-        //system.debug('Vru App '+ctiVRUApp);
-        // Start -Added as part of MY VOYA chnages.
-       /* if(ctiVRUApp.equalsIgnoreCase('MYVOYA'))
-        {
-            for(Plan__c pc:p)
-            {
-               if(pc.Native_Plan_ID__c.equalsIgnoreCase('MYVOYA'))
-                   planIdSelectList.add(new Selectoption(pc.Native_Plan_ID__c, pc.Native_Plan_ID__c));
+        
+        
+        
+        Savepoint sp = Database.setSavepoint();
+        
+        String lastModifiedDate;
+        
+        List<RecordType> mAIpsTypeList = [Select Id from RecordType where (Name ='Managed Accounts-IPS' AND SobjectType ='Opportunity')];
+       
+        
+        List<Client_Offer__c> co =  dynamicClientOfferQuery(new Set<String>{account.ssn__c});
+        if(co != null && co.size() > 0)
+            clientOffer = co[0];
+       
+        
+        if(clientOffer != null)
+            lastModifiedDate = String.valueOf((clientOffer.LastModifiedDate).format('MM/dd/yyyy'));
+        
+        try {
+            if (account.id == null) {
+                
+                if (clientOffer.account_last_name__c != null) {
+                    account.lastname = I_AIFUtils.properCaseConvert((clientOffer.account_last_name__c.length() > 80) ? clientOffer.account_last_name__c.substring(0, 80) : clientOffer.account_last_name__c);
+                }
+                if (clientOffer.account_first_name__c != null) {
+                    account.firstname = I_AIFUtils.properCaseConvert((clientOffer.account_first_name__c.length() > 40) ? clientOffer.account_first_name__c.substring(0, 40) : clientOffer.account_first_name__c);
+                }
+                account.ssn__c = clientOffer.account_ext_id__c;
+                account.PersonBirthdate = clientOffer.Account_Birthdate__c;
+                account.PersonMailingStreet = I_AIFUtils.properCaseConvert(clientOffer.Account_Address1__c);
+                if (clientOffer.Account_Address2__c != null) {
+                    account.PersonMailingStreet += I_AIFUtils.properCaseConvert(' ' + clientOffer.Account_Address2__c);   
+                }  
+                account.PersonMailingCity = I_AIFUtils.properCaseConvert(clientOffer.Account_City__c);
+                account.PersonMailingState = I_AIFUtils.properCaseConvert(clientOffer.Account_State__c);
+                account.PersonMailingPostalCode = clientOffer.Account_Zip__c;
+                account.PersonEmail = clientOffer.Account_Email__c; 
+                account.PersonMailingCountry = clientOffer.Account_Country__c;
+                account.PersonHomePhone = (account.PersonHomePhone == null) ? clientOffer.Account_Phone__c : account.PersonHomePhone;
+                account.Sex__c = clientOffer.Account_Gender__c;
+                account.OwnerId = Label.I_ENV_DefaultISTAccountOwner;
+                
+                
+                //Code of first name splitting. 
+                I_ConversionUtility cu = new I_ConversionUtility();
+                account = cu.firstNameConversionSingleRecord(account);
+                
+                insert(account); 
+            } else {
+                update(account); 
             }
-        }*/
-        
-        // End-Added as part of MY VOYA chnages.
-        //system.debug('================================================ this.planIdSelectList > ' + planIdSelectList);
-        
-        //PlanId will be defaulted if only 1 Plan is returned from OLTP/PDAB
-        if(dcSearchResults != null && dcSearchResults.size() == 1 && dcSearchResults.get(0).planId != null ) {
             
-            paPlanId = dcSearchResults.get(0).planId;
             
-            if(newPAlert != null )
-                newPAlert.PlanID_Text__c = dcSearchResults.get(0).planId;
             
-        }
-        
-        //system.debug('================================================ initializeAvailablePlans() - this.paPlanId > ' + paPlanId);
-    }
-    else {
-        /*  Plan__c p  = [Select Native_Plan_ID__c, id from Plan__c where Native_Plan_ID__c = 'None' limit 1]; 
-this.planIdSelectList.add(new Selectoption(p.Native_Plan_ID__c, 'None'));
-this.planIdSelectList.add(new Selectoption('All Plans', 'All Plans')); */
-        planIdSelectList.add(new Selectoption('', '--None--'));
-        for(Plan__c pc:p)
-        {
-            if(pc.Native_Plan_ID__c =='None')
-                planIdSelectList.add(new Selectoption(pc.Native_Plan_ID__c, 'None'));
-          //  if(pc.Native_Plan_ID__c =='MYVOYA' && ctiVRUApp =='MYVOYA')
-            //    planIdSelectList.add(new Selectoption(pc.Native_Plan_ID__c, 'MYVOYA'));
-        }
-        
-    }
-    List<UltimatePopControllerHelper.SearchResult> dcSearchResults2 = loadPlans(ctiConsolePop,currentCase,client);
-    //system.debug('dcSearchResults2 '+dcSearchResults2);
-    return dcSearchResults2;
-}
+            if (account.id != null) {
+                
+                
+                Plan__c offerPlan = null;
+                
+                
 
-
-
-@isTest
-private class KnowledgeArticleWrapperTest {
-    
-    private static List<Knowledge__kav> createSampleKnowledgeArticles() {
-        List<Knowledge__kav> knowledgeArticles = new List<Knowledge__kav>();
-        
-        // Creating sample knowledge articles
-        Knowledge__kav article1 = new Knowledge__kav(
-            Id = '0011X00001234AB',
-            Title = 'Sample Article 1',
-            ArticleNumber = '0001',
-            ValidationStatus = 'Validated',
-            PublishStatus = 'Online',
-            KnowledgeArticleId = 'KA0001',
-            Summary = 'Summary of Article 1',
-            RecordTypeId = '0123456789',
-            IsVisibleInPkb = true,
-            LastPublishedDate = DateTime.now().addDays(-10),
-            LastModifiedDate = DateTime.now().addDays(-5)
-        );
-
-        Knowledge__kav article2 = new Knowledge__kav(
-            Id = '0011X00005678CD',
-            Title = 'Sample Article 2',
-            ArticleNumber = '0002',
-            ValidationStatus = 'Validated',
-            PublishStatus = 'Draft',
-            KnowledgeArticleId = 'KA0002',
-            Summary = 'Summary of Article 2',
-            RecordTypeId = '0123456789',
-            IsVisibleInPkb = false,
-            LastPublishedDate = DateTime.now().addDays(-15),
-            LastModifiedDate = DateTime.now().addDays(-2)
-        );
-
-        knowledgeArticles.add(article1);
-        knowledgeArticles.add(article2);
-
-        return knowledgeArticles;
-    }
-    
-    @isTest
-    static void testGenerateWrapperData() {
-        // Arrange
-        List<Knowledge__kav> sampleArticles = createSampleKnowledgeArticles();
-        
-        // Mock the getNomalizedScore method
-        Test.startTest();
-        Test.setMock(ApexMocks.class, new KnowledgeArticleWrapperMock());
-        
-        // Act
-        List<knowledgeArticleWrapper> result = YourClassName.generateWrapperData(sampleArticles);
-        Test.stopTest();
-        
-        // Assert
-        System.assertEquals(2, result.size(), 'The result list should contain 2 elements.');
-        
-        knowledgeArticleWrapper article1 = result[0];
-        System.assertEquals('0011X00001234AB', article1.id, 'ID should match.');
-        System.assertEquals('Sample Article 1', article1.title, 'Title should match.');
-        System.assertEquals('0001', article1.articleNumber, 'Article number should match.');
-        System.assertEquals('Validated', article1.validationStatus, 'Validation status should match.');
-        System.assertEquals('Online', article1.publishStatus, 'Publish status should match.');
-        System.assertEquals('KA0001', article1.knowledgeArticleId, 'Knowledge Article ID should match.');
-        System.assertEquals('Summary of Article 1', article1.summary, 'Summary should match.');
-        System.assertEquals('0123456789', article1.recordTypeName, 'Record Type Name should match.');
-        System.assertEquals(true, article1.visibleInPublicKnowledgeBase, 'Visibility in public knowledge base should match.');
-        System.assertNotEquals(null, article1.viewCountDS, 'View Count should not be null.');
-        System.assertEquals(true, article1.displayGenericKnowArticles, 'Display Generic Knowledge Articles should be true.');
-        System.assertEquals(false, article1.displayCopytoClipboardIcon, 'Display Copy to Clipboard Icon should be false.');
-        System.assertEquals(false, article1.articleAttachedToCase, 'Article should not be attached to case.');
-        System.assertNotEquals(null, article1.lastPublishedDate, 'Last Published Date should not be null.');
-        System.assertEquals(null, article1.lastModifiedDate, 'Last Modified Date should be null for online articles.');
-        
-        knowledgeArticleWrapper article2 = result[1];
-        System.assertEquals('0011X00005678CD', article2.id, 'ID should match.');
-        System.assertEquals('Sample Article 2', article2.title, 'Title should match.');
-        System.assertEquals('0002', article2.articleNumber, 'Article number should match.');
-        System.assertEquals('Validated', article2.validationStatus, 'Validation status should match.');
-        System.assertEquals('Draft', article2.publishStatus, 'Publish status should match.');
-        System.assertEquals('KA0002', article2.knowledgeArticleId, 'Knowledge Article ID should match.');
-        System.assertEquals('Summary of Article 2', article2.summary, 'Summary should match.');
-        System.assertEquals('0123456789', article2.recordTypeName, 'Record Type Name should match.');
-        System.assertEquals(false, article2.visibleInPublicKnowledgeBase, 'Visibility in public knowledge base should match.');
-        System.assertNotEquals(null, article2.viewCountDS, 'View Count should not be null.');
-        System.assertEquals(true, article2.displayGenericKnowArticles, 'Display Generic Knowledge Articles should be true.');
-        System.assertEquals(false, article2.displayCopytoClipboardIcon, 'Display Copy to Clipboard Icon should be false.');
-        System.assertEquals(false, article2.articleAttachedToCase, 'Article should not be attached to case.');
-        System.assertEquals(null, article2.lastPublishedDate, 'Last Published Date should be null for draft articles.');
-        System.assertNotEquals(null, article2.lastModifiedDate, 'Last Modified Date should not be null.');
-    }
-    
-    // Mock class for the getNomalizedScore method
-    private class KnowledgeArticleWrapperMock implements HttpCalloutMock {
-        public HTTPResponse respond(HTTPRequest req) {
-            HttpResponse res = new HttpResponse();
-            res.setStatusCode(200);
-            res.setBody('{"KA0001":"10","KA0002":"5"}');
-            return res;
-        }
-    }
-}
-
-
-
-
-private static List<knowledgeArticleWrapper> generateWrapperData(List<Knowledge__kav> knowledeArticles) {
-    // Add the existing Articles attached to Case
-    Set<Id> existingKAIds = new Set<Id>();
-    Set<Id> storeIdForView = new Set<Id>();
-    for (Knowledge__kav kav : knowledeArticles) {
-        storeIdForView.add(kav.KnowledgeArticleId);
-    }
-    map<Id,String> scoreMap = new map<Id,String>();
-    
-    scoreMap = getNomalizedScore(storeIdForView);
-    
-
-    List<knowledgeArticleWrapper> kaWrapperList = new List<knowledgeArticleWrapper>();
-    for (Knowledge__kav kav : knowledeArticles) {
-        knowledgeArticleWrapper kaWrap = new knowledgeArticleWrapper();
-        kaWrap.id = kav.Id;
-        kaWrap.title = kav.Title;
-        kaWrap.articleNumber = kav.ArticleNumber;
-        kaWrap.validationStatus = kav.ValidationStatus;
-        kaWrap.publishStatus = kav.PublishStatus;
-        kaWrap.knowledgeArticleId = kav.KnowledgeArticleId;
-        kaWrap.summary = kav.Summary;
-        kaWrap.recordTypeName = kav.RecordType.Name;
-        kaWrap.visibleInPublicKnowledgeBase = kav.IsVisibleInPkb;
-        kaWrap.viewCountDS = scoreMap.get(kav.KnowledgeArticleId);
-       
-        
-            kaWrap.displayGenericKnowArticles = true;
-        
-        
-            kaWrap.displayCopytoClipboardIcon = false;
-        
-         
-
-        if (kav.PublishStatus == 'Draft') {
-            kaWrap.articleAttachedToCase = false;
-        }
-        
-        if (kav.PublishStatus.equalsIgnoreCase('Online') && kaWrap.lastPublishedDate!=null) {
-            kaWrap.lastPublishedDate = kav.LastPublishedDate.format('MMM d, yyyy, HH:mm a');
-        } 
-        
-        if (kav.PublishStatus.equalsIgnoreCase('Draft')) {
-            kaWrap.lastModifiedDate = kav.LastModifiedDate.format('MMM d, yyyy, HH:mm a');
-        }
-        
-        kaWrapperList.add(kaWrap); 
-    }
-
-    return kaWrapperList;
-}
-
-
-
-
-
-
-
-
-@isTest
-    static void testgetKnowledgeId() {
-        String Id='Test Id';
-        String tmArticleName='Test Title';
-        Knowledge__kav testKnowledge=new Knowledge__kav(Title=tmArticleName);
-        testKnowledge.UrlName='https:voyasmartworks--accpcc2.sandbox.my.salesforce.com/_ui/common/apex/debug/ApexCSIPage?action=selectTests';
-        insert testKnowledge;
-         Test.startTest();
-        Id KnowledgeId=cTargetedMessage.getKnowledgeId(tmArticleName);
-        Test.stopTest();
-         Knowledge__kav createdKnowledge=[select Id,Title from Knowledge__kav where Title=:tmArticleName];
-        System.assertNotEquals(null, createdKnowledge, 'Knowledge__kav should have been created.');
-        
-    }
-
-
-System.DmlException: Insert failed. First exception on row 0; first error: FIELD_INTEGRITY_EXCEPTION, Invalid URL name. The URL name can include only unicode characters and hyphens, and it can't begin or end with a hyphen.: [UrlName]
-
-
-@isTest
-public class CaseActionWrapperTest {
-
-    @isTest
-    static void testCaseActionWrapper() {
-        // Step 1: Setup test data
-        Case_Actions__c caseAction = new Case_Actions__c(
-            // Initialize required fields here
-            Name = 'Test Case Action'
-            // Add other required fields if necessary
-        );
-        
-        insert caseAction; // Insert the record to simulate real scenario (if necessary)
-
-        String createdDate = '2024-05-24 12:34:56';
-        
-        // Step 2: Instantiate CaseActionWrapper
-        CaseActionWrapper wrapper = new CaseActionWrapper(caseAction, createdDate);
-        
-        // Step 3: Assert results
-        System.assertNotEquals(null, wrapper.caseAction, 'caseAction should not be null');
-        System.assertEquals(caseAction.Id, wrapper.caseAction.Id, 'caseAction ID should match');
-        System.assertEquals('Test Case Action', wrapper.caseAction.Name, 'caseAction Name should match');
-        System.assertEquals(createdDate, wrapper.createdDate, 'createdDate should match');
-    }
-}
-
-
-
-
-
-public Case_Actions__c caseAction {get;set;}
-    public String createdDate {get;set;}
-    
-    public CaseActionWrapper(Case_Actions__c caseAction, string createdDate) {
-        this.caseAction = caseAction;
-        this.createdDate = createdDate;
-    }
-
-
-
-@isTest
-public class KnowledgeArticleWrapperTest {
-
-    @isTest
-    static void testGetNomalizedScore() {
-        // Step 1: Setup test data
-        List<KnowledgeArticleViewStat> viewStats = new List<KnowledgeArticleViewStat>();
-        
-        Id articleId1 = 'kaId1';
-        Id articleId2 = 'kaId2';
-        
-        // Create KnowledgeArticleViewStat records
-        KnowledgeArticleViewStat stat1 = new KnowledgeArticleViewStat();
-        stat1.Id = 'statId1';
-        stat1.ParentId = articleId1;
-        stat1.NormalizedScore = 15;
-        viewStats.add(stat1);
-        
-        KnowledgeArticleViewStat stat2 = new KnowledgeArticleViewStat();
-        stat2.Id = 'statId2';
-        stat2.ParentId = articleId1;
-        stat2.NormalizedScore = 45;
-        viewStats.add(stat2);
-        
-        KnowledgeArticleViewStat stat3 = new KnowledgeArticleViewStat();
-        stat3.Id = 'statId3';
-        stat3.ParentId = articleId2;
-        stat3.NormalizedScore = 75;
-        viewStats.add(stat3);
-        
-        KnowledgeArticleViewStat stat4 = new KnowledgeArticleViewStat();
-        stat4.Id = 'statId4';
-        stat4.ParentId = articleId2;
-        stat4.NormalizedScore = 95;
-        viewStats.add(stat4);
-        
-        insert viewStats;
-        
-        // Step 2: Set up the article IDs
-        Set<Id> articleIds = new Set<Id>{articleId1, articleId2};
-        
-        // Step 3: Call the method
-        Test.startTest();
-        Map<Id, String> result = YourClassName.getNomalizedScore(articleIds);
-        Test.stopTest();
-        
-        // Step 4: Assert results
-        System.assertEquals(2, result.size(), 'Expected two entries in the result map');
-        
-        // Verify the normalized scores
-        System.assertEquals('40', result.get(articleId1), 'Expected normalized score for articleId1 to be 40');
-        System.assertEquals('100', result.get(articleId2), 'Expected normalized score for articleId2 to be 100');
-    }
-    
-    // Mock class for the getNomalizedScore method when running tests
-    @isTest
-    private static void testGetNomalizedScoreWhenRunningTest() {
-        // Step 1: Setup test data
-        List<KnowledgeArticleViewStat> viewStats = new List<KnowledgeArticleViewStat>();
-        
-        Id articleId1 = 'kaId1';
-        
-        // Create KnowledgeArticleViewStat records
-        KnowledgeArticleViewStat stat1 = new KnowledgeArticleViewStat();
-        stat1.Id = 'statId1';
-        stat1.ParentId = articleId1;
-        stat1.NormalizedScore = 15;
-        viewStats.add(stat1);
-        
-        insert viewStats;
-        
-        // Step 2: Set up the article IDs
-        Set<Id> articleIds = new Set<Id>{articleId1};
-        
-        // Step 3: Call the method
-        Test.startTest();
-        Map<Id, String> result = YourClassName.getNomalizedScore(articleIds);
-        Test.stopTest();
-        
-        // Step 4: Assert results
-        System.assertEquals(1, result.size(), 'Expected one entry in the result map');
-        
-        // Verify the normalized scores
-        System.assertEquals('100', result.get(articleId1), 'Expected normalized score for articleId1 to be 100 due to test context');
-    }
-}
-
-
-
-
-
-
-public static Map<Id,String> getNomalizedScore(Set<Id> articleId){
-  	  
-      	Map<Id,Decimal> articleIdToNormScoreMap=new Map<Id,Decimal>();
-          Map<Id,String> articleIdToNormScoreMapNew=new Map<Id,String>();
-
-      if(Test.isRunningTest()){
-        articleIdToNormScoreMap.put([SELECT NormalizedScore, Id, ParentId FROM KnowledgeArticleViewStat WHERE ParentId in :articleId limit 1].Id,Decimal.valueOf(100));
-      }
-      else {
-      	List<KnowledgeArticleViewStat>  kavs = Database.query('SELECT NormalizedScore, Id, ParentId FROM KnowledgeArticleViewStat WHERE ParentId in :articleId  ORDER BY NormalizedScore desc');
-      	
-       
-        
-        
-        for( KnowledgeArticleViewStat cc:kavs ){
-            Integer normscore;
-            String StringValue;
-        normscore = cc.NormalizedScore.round().intValue();
+                opportunity.RecordTypeId = (offerCode == 'rrma' && mAIpsTypeList != null && mAIpsTypeList.size() > 0 ? mAIpsTypeList[0].Id : campaign.Offer_Opportunity_Record_Type_ID__c);
+                
+               
+                
+               
+                opportunity.Offer_File_Hardship_Suspension_End_Date__c = clientOffer.Hardship_Suspension_Ends_Hardship__c;
+                opportunity.Offer_File_Last_Hardship_Withdrawal_Date__c = clientOffer.Last_Hardship_Withdrawal_Date_Hardship__c;
+                
+                if(campaign.name == 'Retirement Readiness') {
+                    opportunity.Name = account.lastname + ' - Planning';
+                    opportunity.Type = 'Retirement Snapshot';
+                } else if(campaign.name == 'Retirement Readiness -  Managed Account Eligible') {
+                    opportunity.Name = account.lastname + ' - Planning -  Managed Account Eligible';
+                } else {
+                    opportunity.Name = account.lastname + ' - ' + campaign.name;
+                }
+                opportunity.at_Risk__c = (Decimal)clientOffer.get('accountbalance_' + campaign.offer_code__c + '__c');
+                opportunity.StageName = 'Needs Analysis';
+                opportunity.Opportunity_Status__c = 'Closed - No Sale';
+                
+                
+                opportunity.Offer_Plan_Number__c = (String)clientOffer.get('PlanId_' + campaign.offer_code__c + '__c');
+                
+               
+                opportunity.Offer_Active_Mailer__c = (String)clientOffer.get('Active_Mailer_' + campaign.offer_code__c + '__c');
+                
+                String agentTin = (String)clientOffer.get('AgentId_' + campaign.offer_code__c + '__c');
+                if (agentTin!=null && agentTin.length()==9) {
+                    opportunity.AgentTIN__c = (String)clientOffer.get('AgentId_' + campaign.offer_code__c + '__c');
+                    
+                   
+                    RecordType producerRecType = [Select Id From RecordType Where sObjectType = 'Account' and Name = 'Producer' limit 1];
+                    List<Account> producerObjList = [select Id from Account where Producer_SSN__c = :agentTin and RecordTypeId = :producerRecType.Id];
+                    if(producerObjList != null && producerObjList.size() > 0)
+                        opportunity.Agent_Name__c = producerObjList[0].Id;
+                }
+                
+                
+                for (Offer_Opportuntiy_Status_Rule__c rule : [Select Opportunity_Stagename__c, Opportunity_Status__c, Opportunity_Sales_Outcome__c, Opportunity_Outcome_Reason__c from Offer_Opportuntiy_Status_Rule__c where offer_code__c = :campaign.offer_code__c and Opportunity_Offer_Response__c = :opportunity.Offer_Response__c and (Opportunity_Offer_Response_Reason__c = :opportunity.Offer_Response_Reason__c or Opportunity_Offer_Response_Reason__c = null)  limit 1]) {
+                    system.debug('rule'+rule);
+                    opportunity.StageName = rule.Opportunity_Stagename__c;
+                    opportunity.Opportunity_status__c = rule.opportunity_status__c;
+                    
+                    //Rahul Sahay - Added for CTI Console Pop (06/16/2014)
+                    opportunity.Sales_Outcome__c = rule.Opportunity_Sales_Outcome__c;
+                    opportunity.Outcome_Reason__c = rule.Opportunity_Outcome_Reason__c;
+                } 
+                opportunity.Offer_Response__c=response;
+                opportunity.Offer_Response_Reason__c=responseReason;
+                opportunity.Message_Comments__c=comment;
+                
+                opportunity.LeadSource = 'Participant Offer';//TO-DO Task - UltimatePopController.doLeadSourceTranslation();
+                opportunity.closeDate = Date.today();
+                opportunity.CampaignId = campaign.id;
+                opportunity.AccountId = account.id;
+                for (Plan__c p1 : [Select Native_Plan_ID__c, id from Plan__c where Native_Plan_ID__c = :(String)clientOffer.get('planid_' + campaign.offer_code__c + '__c') and native_Plan_ID__c != null limit 1]) {
+                    opportunity.plan__c = p1.id;
+                    offerPlan = p1;
+                }
+                if (opportunity.plan__c == null) {
+                    for (Plan__c p2 : [Select Native_Plan_ID__c, id from Plan__c where Native_Plan_ID__c = 'None' limit 1]) {
+                        opportunity.plan__c = p2.id;
+                    }
+                }
+                
+               
+                String temp = opportunity.OwnerId;
+               
+                opportunity.OwnerId = UserInfo.getUserId(); //keep the ownerId as logged in user
+                
+                if (offerPop != null) {
+                    opportunity.Offer_Pop__c = offerPop.id;
+                }
+                
+               
+                opportunity.Offer_Created_Manually__c = true;
+               
+                if(offerCode == 'edelivery'){
+                    system.debug('edelivery');
+                    opportunity.Offer_File_Registered_for_Online_Access__c = clientOffer.Reg_online_access_Edelivery__c;
+                    
+                }else if(offerCode == 'inccont'){
+                    
+                    opportunity.Offer_File_Last_Contrib_Rate_Change_Date__c = clientOffer.Last_Contrib_Rate_Change_Date_Inccont__c;
+                    opportunity.Offer_File_Last_Hardship_Withdrawal_Date__c = clientOffer.Last_Hardship_Withdrawal_Date_Inccont__c;     
+                    opportunity.Offer_File_Max_Employer_Match_Pct__c = clientOffer.Max_Employer_Match_Pct_Inccont__c;   
+                    opportunity.Offer_File_Partic_Auto_Increase__c = clientOffer.Partic_Auto_Increase_Inccont__c;   
+                    opportunity.Offer_File_Plan_Offers_Auto_Increase__c = clientOffer.Plan_Auto_Increase_Inccont__c;        
+                    opportunity.Offer_File_Plan_Max_Deferral_Amount__c = clientOffer.Plan_Max_Deferral_Amt_Inccont__c;      
+                    opportunity.Offer_File_Plan_Max_Deferral_Pct__c = clientOffer.Plan_Max_Deferral_Pct_Inccont__c;             
+                    opportunity.Offer_File_Current_Post_Tax_Deferral_Amt__c = clientOffer.PostTax_Deferral_Amt_Inccont__c;              
+                    opportunity.Offer_File_Current_Post_Tax_Deferral_Pct__c = clientOffer.PostTax_Deferral_Pct_Inccont__c;  
+                    opportunity.Offer_File_Current_Pre_Tax_Deferral_Amt__c = clientOffer.PreTax_Deferral_Amt_Inccont__c;    
+                    opportunity.Offer_File_Current_Pre_Tax_Deferral_Pct__c = clientOffer.PreTax_Deferral_Pct_Inccont__c;
+                    
+                   
+                    opportunity.Offer_File_Current_Roth_Deferral_Pct__c = clientOffer.Current_Roth_Deferral_Pct_Inccont__c;
+                    opportunity.Offer_File_Current_Roth_Deferral_Amount__c = clientOffer.Current_Roth_Deferral_Amt_Inccont__c;
+                    
+                }else if(offerCode == 'catchup'){
+                    
+                    opportunity.Offer_File_Catch_Up_Amt__c = clientOffer.Catch_Up_Amt_Catchup__c;                           
+                    opportunity.Offer_File_Catch_Up_Pct__c = clientOffer.Catch_Up_Pct_Catchup__c;                           
+                    opportunity.Offer_File_Last_Contrib_Rate_Change_Date__c = clientOffer.Last_Contrib_Rate_Change_Date_Catchup__c; 
+                    opportunity.Offer_File_Partic_Auto_Increase__c = clientOffer.Partic_Auto_Increase_Catchup__c;                                   
+                    opportunity.Offer_File_Plan_Offers_Auto_Increase__c = clientOffer.Plan_Auto_Increase_Catchup__c;                            
+                    opportunity.Offer_File_Plan_Max_Deferral_Amount__c = clientOffer.Plan_Max_Deferral_Amt_Catchup__c;                              
+                    opportunity.Offer_File_Plan_Max_Deferral_Pct__c = clientOffer.Plan_Max_Deferral_Pct_Catchup__c;                                     
+                    opportunity.Offer_File_Current_Pre_Tax_Deferral_Amt__c = clientOffer.PreTax_Deferral_Amt_Catchup__c;                                
+                    opportunity.Offer_File_Current_Pre_Tax_Deferral_Pct__c = clientOffer.PreTax_Deferral_Pct_Catchup__c;
+                    
+                   
+                    opportunity.Offer_File_Current_Roth_Deferral_Pct__c = clientOffer.Current_Roth_Deferral_Pct_Catchup__c;
+                    opportunity.Offer_File_Current_Roth_Deferral_Amount__c = clientOffer.Current_Roth_Deferral_Amt_Catchup__c;
+                    opportunity.Offer_CurrentCatchUp_RothDeferral_Pct__c = clientOffer.Cur_Catch_Up_Roth_Deferral_Pct_Catchup__c;
+                    opportunity.Offer_CurrentCatchUp_RothDeferral_Amt__c = clientOffer.Cur_Catch_Up_Roth_Deferral_Amt_Catchup__c;
+                    
+                }else if(offerCode == 'manacct'){
+                    
+                    opportunity.Offer_File_Manage_Acct_Plan_Offers__c = clientOffer.Manage_Acct_Plan_Offered_Manacct__c;
+                    opportunity.Offer_File_Registered_for_Online_Access__c = clientOffer.Reg_online_access_Manacct__c;  
+                    
+                }else if(offerCode == 'manactips' || offerCode == 'manactadv'){
+                    
+                    opportunity.Offer_File_Manage_Acct_Plan_Offers__c = clientOffer.Manage_Acct_Plan_Offered_Manactips__c;      
+                    opportunity.Offer_File_Registered_for_Online_Access__c = clientOffer.Reg_online_access_Manactips__c;
+                    
+                }else if(offerCode == 'rr' || offerCode == 'rrma'){//Case # 00011254/00011255:For Retirement Readiness Offer
+                    
+                    system.debug('=================================== offerCode ' + offerCode);
+                    
+                    Boolean isRRMarketingNumber = false;
+                    
+                    if(offerPop != null && offerPop.CTI_DNIS_Number__c != null) {
+                        List<Rule__c> ruleList = [Select Value_ist__c, Name, Rule_Group_ist__c, Description_ist__c From Rule__c where Name =:offerPop.CTI_DNIS_Number__c and Rule_Group_ist__c = 'Campaign-Lead-Source-Translation'];
+                        if(ruleList != null && ruleList.size() > 0) {
+                            for(Rule__c rule : ruleList) {
+                                if(rule.Description_ist__c != null && rule.Description_ist__c.contains(UltimatePopControllerHelper.CAMPAIGN_LEAD_SOURCE_TYPE_RR)) {
+                                    isRRMarketingNumber = true;
+                                    break;
+                                }
+                                else
+                                    isRRMarketingNumber = false;
+                            }    
+                        }
+                        
+                        
+                       
+                        if(!isRRMarketingNumber)
+                            opportunity.RR_Campaign__c = CTIPopController.getCampaignInfo(offerPop.CTI_DNIS_Number__c, account);
+                    }
+                    
+                    if(!isRRMarketingNumber && opportunity.RR_Campaign__c == null) {
+                        
+                        List<Account> clientList = [Select Id, Name, PersonContactId from Account Where Id =: account.Id];
+                        if(clientList.size() > 0 && clientList[0].PersonContactId != null) {
+                            
+                            List<Selectoption> rrCampaigns = ClientProfileHelper.getRRCampaigns(clientList[0].PersonContactId, false);
+                            if(rrCampaigns.size() > 0)
+                                opportunity.RR_Campaign__c = rrCampaigns[0].getValue();
+                        }
+                    }
+                    
+                    system.debug('=================================== isRRMarketingNumber ' + isRRMarketingNumber);
+                    system.debug('=================================== opportunity.RR_Campaign__c ' + opportunity.RR_Campaign__c);
+                    
+                }
+                
+                insert(opportunity);
+                
+                
+                try {
+                   
+                    
+                    if(opportunity != null && opportunity.Id != null && opportunity.OwnerId != temp) {
+                        
+                        system.debug('Previous Owner : ' + opportunity.OwnerId);
+                        system.debug('New Owner : ' + temp);
+                        
+                        Opportunity tempOpp = new Opportunity();
+                        tempOpp.Id = opportunity.Id;
+                        tempOpp.OwnerId = temp;
+                        
+                        
+                        update(tempOpp);
+                    }
+                }
+                catch(Exception e) {
+                    system.debug('Error while changing the OwnerId for the Opportunity due to : ' + e);
+                }
+                
+                
+                if((offerCode == 'rr' || offerCode == 'rrma') && offerPlan != null){
+                    if (account.RR_Eligible__pc==false || account.RR_Eligible__pc==null || account.OwnerId!=Label.I_ENV_DefaultISTAccountOwner){
+                        account.RR_Eligible__pc = true;
+                        account.OwnerId=Label.I_ENV_DefaultISTAccountOwner;
+                        update account;
+                    }
+                    RRBatchProcessHelper.ClientWrapper clientW = new RRBatchProcessHelper.ClientWrapper(account, (Double)clientOffer.get('accountbalance_' + offerCode + '__c'), (Date)clientOffer.get('OfferDate_' + offerCode+ '__c'));
+                    RRBatchProcessHelper.executeRRBatchForClient(clientW, offerPlan);
+                   
+                    RRAgentPermissionBatchProcessHelper.acessAssignmentForRRProducerByPlanIds(new Set<String> {offerPlan.Native_Plan_ID__c}, new Set<String> {account.SSN__c});
+                }
+                
+            }       
             
-      if(normscore < 20)
-        
-      StringValue = String.valueOf(0);
-        else if(normscore >= 20 && normscore < 40 )
-        StringValue =  String.valueOf(20);
-        
-        else if(normscore >= 40 && normscore < 60 )
-          
-        StringValue =  String.valueOf(40);
-        else if(normscore >= 60 && normscore < 80 )
-          
-        StringValue =  String.valueOf(60);
-        else if(normscore >= 80 && normscore <   100 )
-          
-        StringValue =  String.valueOf(80);
-        else
-          
-        StringValue = String.valueOf(100);
-
-        if (articleIdToNormScoreMap.containsKey(cc.ParentId) && articleIdToNormScoreMapNew.containsKey(cc.ParentId)) {
-            system.debug('Knowledge Test '+cc.parentId+' - '+articleIdToNormScoreMap.get(cc.ParentId));
-            Decimal currentScore = articleIdToNormScoreMap.get(cc.ParentId);
-            if (cc.normalizedScore > currentScore) {
-                articleIdToNormScoreMap.put(cc.ParentId, cc.normalizedScore);
-                articleIdToNormScoreMapNew.put(cc.parentId,StringValue);
+            // When a user is navigated to the offer pop page and records a targeted message add 
+            // the text of "Record Targeted Message" and associate the opportunity to the offer pop.
+            if(offerPop != null) {
+                offerPop.Opportunity__c = opportunity.Id;
+                offerPop.Action__c = UltimatePopControllerHelper.OFFERPOP_STATUS_RTM;
+                update offerPop;
             }
-        } else {
-            articleIdToNormScoreMap.put(cc.ParentId, cc.normalizedScore);
-            articleIdToNormScoreMapNew.put(cc.parentId,StringValue);
+            
+            
+                          
+            recordCaseAction(opportunity,cp.Case__c, account.SSN__c);
+           
+            
+            
+            
+            
+            if(offerPop == null)
+                offerPop = new Offer_Pop__c(); 
+            
+            
+            offerPop.OfferPop_Transaction_ID__c = account.SSN__c + ConstantUtils.UNIQUE_SEPERATOR + UserInfo.getSessionId()+campaign.id;
+            offerPop.Client_ID__c = account.SSN__c;
+            offerPop.User__c = Userinfo.getUserId();
+            
+            
+            if(campaign != null) {
+                offerPop.Offers_Available__c = 'Yes';
+                offerPop.Top_Offer__c = campaign.id;
+            }
+            else {
+                offerPop.Offers_Available__c = 'No';
+            }
+            
+            
+            offerPop.CTI_DNIS_Number__c = dnisNumber;
+            offerPop.Client__c = account.Id;
+            offerPop.Campaign__c = CTIPopController.getCampaignInfo(dnisNumber, account); 
+            offerPop.Lead_Source__c = CTIPopController.doLeadSourceTranslation(dnisNumber);
+            
+           
+           
+            offerPop.Source__c = UltimatePopControllerHelper.SOURCE_CTI;
+            
+            
+            offerPop.Action__c = UltimatePopControllerHelper.OFFERPOP_STATUS_RTM;
+            offerPop.Opportunity__c = opportunity.Id;
+            
+            system.debug('><<><><><><><><><><<><><><><><><><><><><><> offerPop : ' + offerPop);
+            
+            if(offerPop.Id == null)
+                DataBase.insert(offerPop);
+            else
+                DataBase.update(offerPop); 
+            
+            
+            
+          
+            if (opportunity.id != null && (opportunity.offer_response_reason__c != 'Ask me again next time' && opportunity.offer_response_reason__c != 'Misdirected Call' && opportunity.offer_response_reason__c != 'Security Not Validated/Other Caller' && opportunity.offer_response_reason__c != 'Escalated Call' && opportunity.offer_response_reason__c != 'Does Not Meet Criteria' && opportunity.offer_response_reason__c != 'Send email' && opportunity.offer_response_reason__c != 'Send me materials')) {
+                clientOffer.put('status_' + campaign.offer_code__c + '__c','Closed');
+                update(clientOffer);  
+               
+            }
+        } catch (Exception e) {
+            Database.rollback(sp); //Rollback
+            try {
+                Client_Share_Audit__c csaEx = new Client_Share_Audit__c();          
+                csaEx.Exception__c = String.valueOf(e); 
+                csaEx.Row_cause__c = 'ERROR PROCESSING OFFER FOR USER : ' + UserInfo.getName();
+                Database.insert(csaEx, false);
+            }
+            catch (Exception ex) {
+               
+            }
         }
-
-    }
-}
-return articleIdToNormScoreMapNew;
-  }
-
-
-
-
-
-
-
-
-@isTest
-public class KnowledgeArticleWrapperTest {
-    
-    @isTest
-    static void testGenerateWrapperData() {
-        // Step 1: Setup test data
-        List<Knowledge__kav> knowledgeArticles = new List<Knowledge__kav>();
         
-        Knowledge__kav kav1 = new Knowledge__kav();
-        kav1.Id = 'kavId1';
-        kav1.Title = 'Test Title 1';
-        kav1.ArticleNumber = '000001';
-        kav1.ValidationStatus = 'Approved';
-        kav1.PublishStatus = 'Draft';
-        kav1.KnowledgeArticleId = 'kaId1';
-        kav1.Summary = 'Test Summary 1';
-        kav1.RecordTypeId = Schema.SObjectType.Knowledge__kav.getRecordTypeInfosByName().get('RecordType1').getRecordTypeId();
-        kav1.IsVisibleInPkb = true;
-        kav1.LastModifiedDate = System.now();
-        
-        Knowledge__kav kav2 = new Knowledge__kav();
-        kav2.Id = 'kavId2';
-        kav2.Title = 'Test Title 2';
-        kav2.ArticleNumber = '000002';
-        kav2.ValidationStatus = 'Pending';
-        kav2.PublishStatus = 'Online';
-        kav2.KnowledgeArticleId = 'kaId2';
-        kav2.Summary = 'Test Summary 2';
-        kav2.RecordTypeId = Schema.SObjectType.Knowledge__kav.getRecordTypeInfosByName().get('RecordType2').getRecordTypeId();
-        kav2.IsVisibleInPkb = false;
-        kav2.LastPublishedDate = System.now();
-        
-        knowledgeArticles.add(kav1);
-        knowledgeArticles.add(kav2);
-        
-        // Step 2: Mock the getNomalizedScore method
-        Test.startTest();
-        
-        // Mocking the getNomalizedScore method call
-        // Here we assume that this method is in the same class, you might need to adjust the class name
-        // Replace 'YourClassName' with the actual class name that contains the generateWrapperData method
-        Test.setMock(HttpCalloutMock.class, new MockNomalizedScoreResponse());
-        
-        // Step 3: Call the method
-        List<YourClassName.knowledgeArticleWrapper> result = YourClassName.generateWrapperData(knowledgeArticles);
-        
-        Test.stopTest();
-        
-        // Step 4: Assert results
-        System.assertEquals(2, result.size(), 'Expected two knowledgeArticleWrapper objects');
-        
-        // Verify the first wrapper
-        YourClassName.knowledgeArticleWrapper kaWrap1 = result[0];
-        System.assertEquals('kavId1', kaWrap1.id);
-        System.assertEquals('Test Title 1', kaWrap1.title);
-        System.assertEquals('000001', kaWrap1.articleNumber);
-        System.assertEquals('Approved', kaWrap1.validationStatus);
-        System.assertEquals('Draft', kaWrap1.publishStatus);
-        System.assertEquals('kaId1', kaWrap1.knowledgeArticleId);
-        System.assertEquals('Test Summary 1', kaWrap1.summary);
-        System.assertTrue(kaWrap1.visibleInPublicKnowledgeBase);
-        System.assertEquals(false, kaWrap1.articleAttachedToCase);
-        System.assertEquals(kav1.LastModifiedDate.format('MMM d, yyyy, HH:mm a'), kaWrap1.lastModifiedDate);
-        
-        // Verify the second wrapper
-        YourClassName.knowledgeArticleWrapper kaWrap2 = result[1];
-        System.assertEquals('kavId2', kaWrap2.id);
-        System.assertEquals('Test Title 2', kaWrap2.title);
-        System.assertEquals('000002', kaWrap2.articleNumber);
-        System.assertEquals('Pending', kaWrap2.validationStatus);
-        System.assertEquals('Online', kaWrap2.publishStatus);
-        System.assertEquals('kaId2', kaWrap2.knowledgeArticleId);
-        System.assertEquals('Test Summary 2', kaWrap2.summary);
-        System.assertFalse(kaWrap2.visibleInPublicKnowledgeBase);
-        System.assertEquals(kav2.LastPublishedDate.format('MMM d, yyyy, HH:mm a'), kaWrap2.lastPublishedDate);
-    }
-    
-    // Mock class for the getNomalizedScore method
-    private class MockNomalizedScoreResponse implements HttpCalloutMock {
-        public HTTPResponse respond(HTTPRequest req) {
-            HttpResponse res = new HttpResponse();
-            res.setHeader('Content-Type', 'application/json');
-            res.setBody('{"kaId1": "10", "kaId2": "20"}');
-            res.setStatusCode(200);
-            return res;
-        }
-    }
-}
-
-
-
-
-
-private static List<knowledgeArticleWrapper> generateWrapperData(List<Knowledge__kav> knowledeArticles) {
-    // Add the existing Articles attached to Case
-    Set<Id> existingKAIds = new Set<Id>();
-    Set<Id> storeIdForView = new Set<Id>();
-    for (Knowledge__kav kav : knowledeArticles) {
-        storeIdForView.add(kav.KnowledgeArticleId);
-    }
-    map<Id,String> scoreMap = new map<Id,String>();
-    
-    scoreMap = getNomalizedScore(storeIdForView);
-    
-
-    List<knowledgeArticleWrapper> kaWrapperList = new List<knowledgeArticleWrapper>();
-    for (Knowledge__kav kav : knowledeArticles) {
-        knowledgeArticleWrapper kaWrap = new knowledgeArticleWrapper();
-        kaWrap.id = kav.Id;
-        kaWrap.title = kav.Title;
-        kaWrap.articleNumber = kav.ArticleNumber;
-        kaWrap.validationStatus = kav.ValidationStatus;
-        kaWrap.publishStatus = kav.PublishStatus;
-        kaWrap.knowledgeArticleId = kav.KnowledgeArticleId;
-        kaWrap.summary = kav.Summary;
-        kaWrap.recordTypeName = kav.RecordType.Name;
-        kaWrap.visibleInPublicKnowledgeBase = kav.IsVisibleInPkb;
-        kaWrap.viewCountDS = scoreMap.get(kav.KnowledgeArticleId);
        
         
-            kaWrap.displayGenericKnowArticles = true;
+        List<Opportunity> oppList = [select Id, Track_Summary__c, Summary_Code__c,SSN_TIN__c ,Offer_Plan_Number__c,
+                                     CreatedDate, Offer_Response_Reason__c, AccountId, Offer_Response__c, offer_code__c ,Account.SSN_TIN__c
+                                     from Opportunity where Id = :opportunity.Id];
+      
         
+        Opportunity opp = oppList[0];
         
-            kaWrap.displayCopytoClipboardIcon = false;
+     
         
-         
-
-        if (kav.PublishStatus == 'Draft') {
-            kaWrap.articleAttachedToCase = false;
+        String planIdText = (String)clientOffer.get('planid_' + campaign.offer_code__c + '__c');
+        if(planIdText == null || planIdText == '')
+            planIdText = 'None';
+        
+        Savepoint sp1 = Database.setSavepoint();
+        
+        try {
+            if(opp.Track_Summary__c == 'Yes' && account.SSN__c != null && account.SSN__c != ''){
+                
+                Campaign_Offer_Summary__c cos = null;
+                List<Campaign_Offer_Summary__c> cosList = [select id,Account_Name__c,Summary_Code__c,Phone_Message_History__c,Phone_Message_Count__c,Last_Phone_Opportunity__c from Campaign_Offer_Summary__c where Summary_Code__c=:opp.Summary_Code__c];
+                
+                if(cosList != null && cosList.size() > 0)
+                    cos = cosList[0];
+                
+                
+               
+                String history = null;
+                
+                if(cos == null){
+                    cos = new Campaign_Offer_Summary__c();
+                    cos.Summary_Code__c = opp.Summary_Code__c;// account.SSN__c + plan.Native_Plan_ID__c + campaign.offer_code__c;
+                    cos.Account_Name__c = account.id;
+                    cos.Customer_SSN__c = account.SSN__c;
+                    cos.OfferCode__c = campaign.offer_code__c;
+                    
+                    cos.Planid_Text__c = planIdText;
+                    cos.Last_Phone_Opportunity__c = opp.id;
+                    cos.Phone_Message_Count__c = 1;
+                    cos.Phone_Message_History__c = opp.CreatedDate.format('MM/dd/yyyy') + '-' + opp.Offer_Response_Reason__c + '; ';
+                    if(cos.Account_Name__c == null)
+                        cos.Account_Name__c = opp.AccountId; 
+                    
+                    insert(cos);    
+                }
+                else {
+                    cos.Last_Phone_Opportunity__c=opp.id;
+                    
+                    if(cos.Phone_Message_Count__c == null)
+                        cos.Phone_Message_Count__c = 0;
+                    
+                    cos.Phone_Message_Count__c+=1;
+                    
+                    
+                    history = opp.CreatedDate.format('MM/dd/yyyy') + '-' + opp.Offer_Response_Reason__c + '; ' + (cos.Phone_Message_History__c == null ? '' : cos.Phone_Message_History__c);
+                    if(history.length() >= 300)
+                        history = history.substring(0, 300);
+                    
+                    cos.Phone_Message_History__c = history;
+                    if(cos.Account_Name__c==null)
+                        cos.Account_Name__c=opp.AccountId;
+                    
+                    update(cos); 
+                }
+                
+                
+                I_OfferController.updateDB2PhoneSection(account.SSN__c, planIdText, opp.offer_code__c, opp.Offer_Response__c, opp.CreatedDate);
+                
+                system.debug('=================================================== In insertCampaignOfferSummary() : After Insert/Update cos ' + cos);
+            }
+        }
+        catch(Exception e) {
+            system.debug('Error while Insert/Update record in Campaign_Offer_Summary__c due to : ' + e);
+            
+            Database.rollback(sp1); //Rollback
+            
+            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, 'An error occurred while processing the request.'));
         }
         
-        if (kav.PublishStatus.equalsIgnoreCase('Online') && kaWrap.lastPublishedDate!=null) {
-            kaWrap.lastPublishedDate = kav.LastPublishedDate.format('MMM d, yyyy, HH:mm a');
-        } 
         
-        if (kav.PublishStatus.equalsIgnoreCase('Draft')) {
-            kaWrap.lastModifiedDate = kav.LastModifiedDate.format('MMM d, yyyy, HH:mm a');
-        }
-        
-        kaWrapperList.add(kaWrap); 
-    }
-
-    return kaWrapperList;
-}
+        return opportunity.name;
+    } 
