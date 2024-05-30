@@ -1,3 +1,76 @@
+String planIdText = (String)clientOffer.get('planid_' + campaign.offer_code__c + '__c');
+        if(planIdText == null || planIdText == '')
+            planIdText = 'None';
+        
+        Savepoint sp1 = Database.setSavepoint();
+        
+        try {
+            if(opp.Track_Summary__c == 'Yes' && account.SSN__c != null && account.SSN__c != ''){
+                
+                Campaign_Offer_Summary__c cos = null;
+                List<Campaign_Offer_Summary__c> cosList = [select id,Account_Name__c,Summary_Code__c,Phone_Message_History__c,Phone_Message_Count__c,Last_Phone_Opportunity__c from Campaign_Offer_Summary__c where Summary_Code__c=:opp.Summary_Code__c];
+                
+                if(cosList != null && cosList.size() > 0)
+                    cos = cosList[0];
+                
+                
+               // system.debug('=================================================== In insertCampaignOfferSummary() : cos ' + cos);
+                String history = null;
+                
+                if(cos == null){
+                    cos = new Campaign_Offer_Summary__c();
+                    cos.Summary_Code__c = opp.Summary_Code__c;// account.SSN__c + plan.Native_Plan_ID__c + campaign.offer_code__c;
+                    cos.Account_Name__c = account.id;
+                    cos.Customer_SSN__c = account.SSN__c;
+                    cos.OfferCode__c = campaign.offer_code__c;
+                    //cos.Planid__c = plan.id; - Rahul Sahay - this is moved to PlanIdUpdateInsertHandlerTrigger
+                    cos.Planid_Text__c = planIdText;
+                    cos.Last_Phone_Opportunity__c = opp.id;
+                    cos.Phone_Message_Count__c = 1;
+                    cos.Phone_Message_History__c = opp.CreatedDate.format('MM/dd/yyyy') + '-' + opp.Offer_Response_Reason__c + '; ';
+                    if(cos.Account_Name__c == null)
+                        cos.Account_Name__c = opp.AccountId; 
+                    
+                    insert(cos);    
+                }
+                else {
+                    cos.Last_Phone_Opportunity__c=opp.id;
+                    
+                    if(cos.Phone_Message_Count__c == null)
+                        cos.Phone_Message_Count__c = 0;
+                    
+                    cos.Phone_Message_Count__c+=1;
+                    
+                    // Check the length. should not exceed 300
+                    history = opp.CreatedDate.format('MM/dd/yyyy') + '-' + opp.Offer_Response_Reason__c + '; ' + (cos.Phone_Message_History__c == null ? '' : cos.Phone_Message_History__c);
+                    if(history.length() >= 300)
+                        history = history.substring(0, 300);
+                    
+                    cos.Phone_Message_History__c = history;
+                    if(cos.Account_Name__c==null)
+                        cos.Account_Name__c=opp.AccountId;
+                    
+                    update(cos); 
+                }
+                
+                //Update DB2 database
+                I_OfferController.updateDB2PhoneSection(account.SSN__c, planIdText, opp.offer_code__c, opp.Offer_Response__c, opp.CreatedDate);
+                
+                system.debug('=================================================== In insertCampaignOfferSummary() : After Insert/Update cos ' + cos);
+            }
+        }
+        catch(Exception e) {
+            system.debug('Error while Insert/Update record in Campaign_Offer_Summary__c due to : ' + e);
+            
+            Database.rollback(sp1); //Rollback
+            
+            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, 'An error occurred while processing the request.'));
+        }
+        
+        
+        re
+
+
 @isTest
 public class CreateOpportunityWithPlanAndCampaignTest {
     
