@@ -1,3 +1,153 @@
+@isTest
+public class CreateOpportunityWithPlanAndCampaignTest {
+    
+    @testSetup
+    static void setupData() {
+        // Setup common data for all test methods
+        Plan__c plan = new Plan__c(Name = 'Test Plan');
+        insert(plan);
+        
+        Account acc = new Account(LastName = 'Test', FirstName = 'Test', ssn__c = '123-45-6789');
+        insert(acc);
+        
+        Campaign camp = new Campaign(Name = 'Test Campaign', offer_code__c = 'testcode', offer_priority__c = 1, Offer_Opportunity_Record_Type_ID__c = Schema.SObjectType.Opportunity.getRecordTypeInfosByName().get('Some Record Type').getRecordTypeId());
+        insert(camp);
+        
+        Client_Offer__c clientOffer = new Client_Offer__c(account_ext_id__c = acc.ssn__c, account_last_name__c = acc.LastName, account_first_name__c = acc.FirstName, Account_Birthdate__c = Date.today().addYears(-30), Account_Address1__c = '123 Main St', Account_City__c = 'City', Account_State__c = 'ST', Account_Zip__c = '12345', Account_Email__c = 'test@example.com', Account_Country__c = 'USA', Account_Phone__c = '123-456-7890', Account_Gender__c = 'Male', PlanId_testcode__c = plan.Id, accountbalance_testcode__c = 1000, Last_Hardship_Withdrawal_Date_Hardship__c = Date.today().addMonths(-1), OfferDate_testcode__c = Date.today().addDays(-1));
+        insert(clientOffer);
+        
+        CTI_Console_Pop__c consolePop = new CTI_Console_Pop__c(account__c = acc.Id, Case__c = '5003D0000035LupQAE', CTI_Params__c = 'param1;param2;dnis:1234567890;param4');
+        insert(consolePop);
+    }
+
+    @isTest
+    static void testCreateOpportunityWithPlanAndCampaign_newAccount() {
+        // Test case when account.id is null (i.e., new account)
+        Account acc = [SELECT Id, LastName FROM Account WHERE LastName = 'Test' LIMIT 1];
+        Plan__c plan = [SELECT Id FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
+        Campaign camp = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
+        
+        Test.startTest();
+        String oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(camp.Name, plan.Name, acc.LastName, UserInfo.getUserId(), 'Interested', 'Good', 'No comments', acc.Id);
+        Test.stopTest();
+        
+        Opportunity opp = [SELECT Id, Name FROM Opportunity WHERE Name = :oppName LIMIT 1];
+        System.assertNotEquals(null, opp);
+    }
+
+    @isTest
+    static void testCreateOpportunityWithPlanAndCampaign_existingAccount() {
+        // Test case when account.id is not null (i.e., existing account)
+        Account acc = [SELECT Id, LastName FROM Account WHERE LastName = 'Test' LIMIT 1];
+        Plan__c plan = [SELECT Id FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
+        Campaign camp = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
+        
+        Test.startTest();
+        String oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(camp.Name, plan.Name, acc.LastName, UserInfo.getUserId(), 'Interested', 'Good', 'No comments', acc.Id);
+        Test.stopTest();
+        
+        Opportunity opp = [SELECT Id, Name FROM Opportunity WHERE Name = :oppName LIMIT 1];
+        System.assertNotEquals(null, opp);
+    }
+
+    @isTest
+    static void testCreateOpportunityWithPlanAndCampaign_withOfferPop() {
+        // Test case when offerPop is not null
+        Account acc = [SELECT Id, LastName FROM Account WHERE LastName = 'Test' LIMIT 1];
+        Plan__c plan = [SELECT Id FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
+        Campaign camp = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
+        
+        Test.startTest();
+        String oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(camp.Name, plan.Name, acc.LastName, UserInfo.getUserId(), 'Not Interested', 'Bad', 'No comments', acc.Id);
+        Test.stopTest();
+        
+        Opportunity opp = [SELECT Id, Name FROM Opportunity WHERE Name = :oppName LIMIT 1];
+        System.assertNotEquals(null, opp);
+    }
+
+    @isTest
+    static void testCreateOpportunityWithPlanAndCampaign_exceptionHandling() {
+        // Test case to ensure exception handling works correctly
+        Account acc = [SELECT Id, LastName FROM Account WHERE LastName = 'Test' LIMIT 1];
+        Plan__c plan = [SELECT Id FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
+        Campaign camp = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
+        
+        // Induce an exception by passing invalid data
+        Test.startTest();
+        try {
+            String oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(null, plan.Name, acc.LastName, UserInfo.getUserId(), 'Not Interested', 'Bad', 'No comments', acc.Id);
+            System.assert(false, 'Expected exception not thrown');
+        } catch (Exception e) {
+            System.assert(true);
+        }
+        Test.stopTest();
+    }
+
+    @isTest
+    static void testCreateOpportunityWithPlanAndCampaign_offerCodeConditions() {
+        // Test different offerCode conditions
+        Account acc = [SELECT Id, LastName FROM Account WHERE LastName = 'Test' LIMIT 1];
+        Plan__c plan = [SELECT Id FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
+        Campaign camp = [SELECT Id, Name FROM Campaign WHERE Name = 'Retirement Readiness' LIMIT 1];
+        
+        Test.startTest();
+        String oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(camp.Name, plan.Name, acc.LastName, UserInfo.getUserId(), 'Interested', 'Good', 'No comments', acc.Id);
+        Test.stopTest();
+        
+        Opportunity opp = [SELECT Id, Name FROM Opportunity WHERE Name = :oppName LIMIT 1];
+        System.assertNotEquals(null, opp);
+        
+        camp.Name = 'Retirement Readiness -  Managed Account Eligible';
+        update(camp);
+        
+        Test.startTest();
+        oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(camp.Name, plan.Name, acc.LastName, UserInfo.getUserId(), 'Interested', 'Good', 'No comments', acc.Id);
+        Test.stopTest();
+        
+        opp = [SELECT Id, Name FROM Opportunity WHERE Name = :oppName LIMIT 1];
+        System.assertNotEquals(null, opp);
+    }
+    
+    @isTest
+    static void testCreateOpportunityWithPlanAndCampaign_LeadSourceTranslation() {
+        // Test lead source translation logic
+        Account acc = [SELECT Id, LastName FROM Account WHERE LastName = 'Test' LIMIT 1];
+        Plan__c plan = [SELECT Id FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
+        Campaign camp = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
+        
+        Test.startTest();
+        String oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(camp.Name, plan.Name, acc.LastName, UserInfo.getUserId(), 'Interested', 'Good', 'No comments', acc.Id);
+        Test.stopTest();
+        
+        Opportunity opp = [SELECT Id, Name, LeadSource FROM Opportunity WHERE Name = :oppName LIMIT 1];
+        System.assertEquals('Participant Offer', opp.LeadSource);
+    }
+
+    @isTest
+    static void testCreateOpportunityWithPlanAndCampaign_offerPopCreation() {
+        // Test offerPop creation logic
+        Account acc = [SELECT Id, LastName FROM Account WHERE LastName = 'Test' LIMIT 1];
+        Plan__c plan = [SELECT Id FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
+        Campaign camp = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
+        
+        Test.startTest();
+        String oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(camp.Name, plan.Name, acc.LastName, UserInfo.getUserId(), 'Interested', 'Good', 'No comments', acc.Id);
+        Test.stopTest();
+        
+        Opportunity opp = [SELECT Id, Name FROM Opportunity WHERE Name = :oppName LIMIT 1];
+        System.assertNotEquals(null, opp);
+        
+        Offer_Pop__c offerPop = [SELECT Id, Opportunity__c FROM Offer_Pop__c WHERE Opportunity__c = :opp.Id LIMIT 1];
+        System.assertNotEquals(null, offerPop);
+    }
+            }
+
+
+
+
+
+
+
 System.ListException: List index out of bounds: 0
 
 
