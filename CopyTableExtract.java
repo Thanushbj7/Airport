@@ -1,4 +1,113 @@
- if (clientOffer.account_last_name__c != null) {
+@isTest
+static void testCreateOpportunityWithPlanAndCampaign() {
+    boolean Manual = true;         
+
+    // Insert Campaign
+    Campaign campaign = new Campaign(
+        Name = 'Test Campaign',
+        Offer_Code__c = 'testcode',
+        Offer_Priority__c = 1.777,
+        Offer_Opportunity_Record_Type_ID__c = '012xxxxxxxxxxxxxxx'
+    );
+    insert campaign;
+
+    // Insert Plan
+    Plan__c plan = new Plan__c(
+        Name = 'Test Plan',
+        Native_Plan_ID__c = 'TestPlanID'
+    );
+    insert plan;
+
+    // Insert Account
+    Account account = new Account(
+        LastName = 'Doe',
+        FirstName = 'John',
+        SSN__c = '123456789',
+        PersonBirthdate = Date.today().addYears(-30),
+        PersonMailingStreet = '123 Test St',
+        PersonMailingCity = 'Test City',
+        PersonMailingState = 'TX',
+        PersonMailingPostalCode = '12345',
+        PersonEmail = 'john.doe@test.com',
+        PersonHomePhone = '555-555-5555',
+        Sex__c = 'M'
+    );
+    insert account;
+
+    // Insert Client Offer
+    Client_Offer__c clientOffer = new Client_Offer__c(
+        Account_Last_Name__c = 'Doe',
+        Account_First_Name__c = 'John',
+        Account_Ext_Id__c = '123456789',
+        Account_Birthdate__c = Date.today().addYears(-30),
+        Account_Address1__c = '123 Test St',
+        Account_Address2__c = 'Apt 101',
+        Account_City__c = 'Test City',
+        Account_State__c = 'TX',
+        Account_Zip__c = '12345',
+        Account_Email__c = 'john.doe@test.com',
+        Account_Phone__c = '555-555-5555',
+        Account_Gender__c = 'M',
+        Account_Country__c = 'USA',
+        PlanId_testcode__c = plan.Id // Ensure the relationship is set correctly
+    );
+    insert clientOffer;
+
+    // Insert CTI Console Pop
+    CTI_Console_Pop__c ctiPop = new CTI_Console_Pop__c(
+        Account__c = account.Id,
+        CTI_Params__c = 'param1;param2;param3:testDNIS',
+        ExternalID__c = '123456789'
+    );
+    insert ctiPop;
+
+    // Retrieve records for assertions
+    Campaign campaignRecord = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
+    Plan__c planRecord = [SELECT Id, Name FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
+    Account accountRecord = [SELECT Id, LastName, FirstName FROM Account WHERE LastName = 'Doe' LIMIT 1];
+    Client_Offer__c clientOfferRecord = [SELECT Id FROM Client_Offer__c LIMIT 1];
+
+    Test.startTest();
+    String opportunityName = cTargetedMessage.createOpportunityWithPlanAndCampaign(
+        campaignRecord.Name, planRecord.Name, accountRecord.LastName, UserInfo.getUserId(), 'Response', 'Reason', 'Comment', accountRecord.Id, Manual
+    );
+    Test.stopTest();
+
+    // Verify the results
+    Opportunity createdOpportunity = [SELECT Id, Name, AccountId, CampaignId, OwnerId, StageName FROM Opportunity WHERE Name = :opportunityName LIMIT 1];
+    System.assertNotEquals(null, createdOpportunity);
+    System.assertEquals(accountRecord.Id, createdOpportunity.AccountId);
+    System.assertEquals(campaignRecord.Id, createdOpportunity.CampaignId);
+    System.assertEquals('Needs Analysis', createdOpportunity.StageName);
+
+    // Additional Assertions to verify Account field updates
+    Account updatedAccount = [SELECT LastName, FirstName, SSN__c, PersonBirthdate, PersonMailingStreet, PersonMailingCity, PersonMailingState, PersonMailingPostalCode, PersonEmail, PersonMailingCountry, PersonHomePhone, Sex__c FROM Account WHERE Id = :account.Id];
+    System.assertEquals('Doe', updatedAccount.LastName);
+    System.assertEquals('John', updatedAccount.FirstName);
+    System.assertEquals('123456789', updatedAccount.SSN__c);
+    System.assertEquals(clientOffer.Account_Birthdate__c, updatedAccount.PersonBirthdate);
+    System.assertEquals('123 Test St Apt 101', updatedAccount.PersonMailingStreet);
+    System.assertEquals('Test City', updatedAccount.PersonMailingCity);
+    System.assertEquals('TX', updatedAccount.PersonMailingState);
+    System.assertEquals('12345', updatedAccount.PersonMailingPostalCode);
+    System.assertEquals('john.doe@test.com', updatedAccount.PersonEmail);
+    System.assertEquals('USA', updatedAccount.PersonMailingCountry);
+    System.assertEquals('555-555-5555', updatedAccount.PersonHomePhone);
+    System.assertEquals('M', updatedAccount.Sex__c);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+if (clientOffer.account_last_name__c != null) {
                     account.lastname = I_AIFUtils.properCaseConvert((clientOffer.account_last_name__c.length() > 80) ? clientOffer.account_last_name__c.substring(0, 80) : clientOffer.account_last_name__c);
                 }
                 if (clientOffer.account_first_name__c != null) {
