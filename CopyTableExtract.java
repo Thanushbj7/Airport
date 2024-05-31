@@ -1,4 +1,64 @@
 @isTest
+public class ClientOfferResponseControllerTest {
+    @testSetup
+    static void setup() {
+        // Create and insert necessary data: Account, Opportunity, Campaign, etc.
+        // Insert necessary records...
+    }
+
+    @isTest
+    static void testClientOfferResponseController() {
+        Test.startTest();
+
+        // Retrieve data set in @testSetup
+        // Retrieve necessary records...
+
+        // Call the method under test
+        ClientOfferResponseController controller = new ClientOfferResponseController();
+        controller.handleOfferResponse(
+            clientOffer.Id,
+            campaign.Id,
+            offerPop.Id,
+            'response',
+            'responseReason',
+            'comment',
+            plan.Id,
+            true,
+            'dnisNumber'
+        );
+
+        Test.stopTest();
+
+        // Verify the results
+        Opportunity updatedOpportunity = [SELECT Id, StageName, Opportunity_Status__c, OwnerId, RR_Campaign__c FROM Opportunity WHERE Id = :opportunity.Id];
+        System.assertEquals('Needs Analysis', updatedOpportunity.StageName, 'Opportunity stage name should be updated to "Needs Analysis"');
+        System.assertEquals('Closed - No Sale', updatedOpportunity.Opportunity_Status__c, 'Opportunity status should be updated to "Closed - No Sale"');
+
+        Offer_Pop__c updatedOfferPop = [SELECT Opportunity__c, Action__c FROM Offer_Pop__c WHERE Id = :offerPop.Id];
+        System.assertEquals(opportunity.Id, updatedOfferPop.Opportunity__c, 'Offer Pop should be associated with the updated Opportunity');
+        System.assertEquals(UltimatePopControllerHelper.OFFERPOP_STATUS_RTM, updatedOfferPop.Action__c, 'Offer Pop action should be updated to "Record Targeted Message"');
+
+        Account updatedAccount = [SELECT RR_Eligible__pc, OwnerId FROM Account WHERE Id = :account.Id];
+        System.assertEquals(true, updatedAccount.RR_Eligible__pc, 'RR Eligible flag on the Account should be updated to true');
+        System.assertEquals(Label.I_ENV_DefaultISTAccountOwner, updatedAccount.OwnerId, 'Account Owner should be updated to the default IST Account Owner');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@isTest
 static void testCreateOpportunityWithPlanAndCampaign() {
     boolean Manual = true;         
 
