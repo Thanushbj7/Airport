@@ -1,543 +1,16 @@
-@isTest
-public class CampaignOfferSummaryTest {
-    
-    @testSetup
-    static void setup() {
-        // Create necessary records for the test setup
-        
-        Account acc = new Account(Name='Test Account', SSN__c='123-45-6789');
-        insert acc;
-        
-        Campaign camp = new Campaign(Name='Test Campaign', offer_code__c='TestOfferCode');
-        insert camp;
-        
-        Opportunity opp = new Opportunity(Name='Test Opportunity', StageName='Prospecting', CloseDate=Date.today(), Track_Summary__c='Yes', AccountId=acc.Id, Summary_Code__c='TestSummaryCode');
-        insert opp;
-    }
-    
-    @isTest
-    static void testInsertNewCampaignOfferSummary() {
-        // Retrieve the setup data
-        Account acc = [SELECT Id, SSN__c FROM Account WHERE Name='Test Account' LIMIT 1];
-        Campaign camp = [SELECT Id, offer_code__c FROM Campaign WHERE Name='Test Campaign' LIMIT 1];
-        Opportunity opp = [SELECT Id, Summary_Code__c FROM Opportunity WHERE Name='Test Opportunity' LIMIT 1];
-        
-        // Initialize the clientOffer Map
-        Map<String, String> clientOffer = new Map<String, String>{'planid_TestOfferCode__c' => 'TestPlanId'};
-        
-        Test.startTest();
-        
-        // Call the method you are testing
-        String planIdText = (String)clientOffer.get('planid_' + camp.offer_code__c + '__c');
-        if(planIdText == null || planIdText == '')
-            planIdText = 'None';
-        
-        Savepoint sp1 = Database.setSavepoint();
-        
-        try {
-            if(opp.Track_Summary__c == 'Yes' && acc.SSN__c != null && acc.SSN__c != ''){
-                
-                Campaign_Offer_Summary__c cos = null;
-                List<Campaign_Offer_Summary__c> cosList = [select id,Account_Name__c,Summary_Code__c,Phone_Message_History__c,Phone_Message_Count__c,Last_Phone_Opportunity__c from Campaign_Offer_Summary__c where Summary_Code__c=:opp.Summary_Code__c];
-                
-                if(cosList != null && cosList.size() > 0)
-                    cos = cosList[0];
-                
-                String history = null;
-                
-                if(cos == null){
-                    cos = new Campaign_Offer_Summary__c();
-                    cos.Summary_Code__c = opp.Summary_Code__c;
-                    cos.Account_Name__c = acc.id;
-                    cos.Customer_SSN__c = acc.SSN__c;
-                    cos.OfferCode__c = camp.offer_code__c;
-                    cos.Planid_Text__c = planIdText;
-                    cos.Last_Phone_Opportunity__c = opp.id;
-                    cos.Phone_Message_Count__c = 1;
-                    cos.Phone_Message_History__c = opp.CreatedDate.format('MM/dd/yyyy') + '-' + opp.Offer_Response_Reason__c + '; ';
-                    if(cos.Account_Name__c == null)
-                        cos.Account_Name__c = opp.AccountId; 
-                    
-                    insert(cos);    
-                }
-                else {
-                    cos.Last_Phone_Opportunity__c=opp.id;
-                    
-                    if(cos.Phone_Message_Count__c == null)
-                        cos.Phone_Message_Count__c = 0;
-                    
-                    cos.Phone_Message_Count__c+=1;
-                    
-                    history = opp.CreatedDate.format('MM/dd/yyyy') + '-' + opp.Offer_Response_Reason__c + '; ' + (cos.Phone_Message_History__c == null ? '' : cos.Phone_Message_History__c);
-                    if(history.length() >= 300)
-                        history = history.substring(0, 300);
-                    
-                    cos.Phone_Message_History__c = history;
-                    if(cos.Account_Name__c==null)
-                        cos.Account_Name__c=opp.AccountId;
-                    
-                    update(cos); 
-                }
-                
-                I_OfferController.updateDB2PhoneSection(acc.SSN__c, planIdText, opp.offer_code__c, opp.Offer_Response__c, opp.CreatedDate);
-            }
-        }
-        catch(Exception e) {
-            Database.rollback(sp1);
-        }
-        
-        Test.stopTest();
-        
-        // Verify results
-        Campaign_Offer_Summary__c result = [SELECT Id, Summary_Code__c, Account_Name__c, Customer_SSN__c, OfferCode__c, Planid_Text__c, Last_Phone_Opportunity__c, Phone_Message_Count__c, Phone_Message_History__c FROM Campaign_Offer_Summary__c WHERE Summary_Code__c=:opp.Summary_Code__c LIMIT 1];
-        
-        System.assertEquals('TestSummaryCode', result.Summary_Code__c);
-        System.assertEquals(acc.Id, result.Account_Name__c);
-        System.assertEquals('123-45-6789', result.Customer_SSN__c);
-        System.assertEquals('TestOfferCode', result.OfferCode__c);
-        System.assertEquals('TestPlanId', result.Planid_Text__c);
-        System.assertEquals(opp.Id, result.Last_Phone_Opportunity__c);
-        System.assertEquals(1, result.Phone_Message_Count__c);
-        System.assert(result.Phone_Message_History__c.startsWith(Date.today().format('MM/dd/yyyy')));
-    }
-    
-    @isTest
-    static void testUpdateExistingCampaignOfferSummary() {
-        // Create a Campaign_Offer_Summary__c record
-        Account acc = [SELECT Id, SSN__c FROM Account WHERE Name='Test Account' LIMIT 1];
-        Campaign camp = [SELECT Id, offer_code__c FROM Campaign WHERE Name='Test Campaign' LIMIT 1];
-        Opportunity opp = [SELECT Id, Summary_Code__c FROM Opportunity WHERE Name='Test Opportunity' LIMIT 1];
-        
-        Campaign_Offer_Summary__c cos = new Campaign_Offer_Summary__c(Summary_Code__c=opp.Summary_Code__c, Account_Name__c=acc.Id, Customer_SSN__c=acc.SSN__c, OfferCode__c=camp.offer_code__c, Planid_Text__c='TestPlanId', Last_Phone_Opportunity__c=opp.Id, Phone_Message_Count__c=1, Phone_Message_History__c=Date.today().format('MM/dd/yyyy') + '-Test; ');
-        insert cos;
-        
-        Test.startTest();
-        
-        // Initialize the clientOffer Map
-        Map<String, String> clientOffer = new Map<String, String>{'planid_TestOfferCode__c' => 'UpdatedPlanId'};
-        
-        // Call the method you are testing
-        String planIdText = (String)clientOffer.get('planid_' + camp.offer_code__c + '__c');
-        if(planIdText == null || planIdText == '')
-            planIdText = 'None';
-        
-        Savepoint sp1 = Database.setSavepoint();
-        
-        try {
-            if(opp.Track_Summary__c == 'Yes' && acc.SSN__c != null && acc.SSN__c != ''){
-                
-                Campaign_Offer_Summary__c cos = null;
-                List<Campaign_Offer_Summary__c> cosList = [select id,Account_Name__c,Summary_Code__c,Phone_Message_History__c,Phone_Message_Count__c,Last_Phone_Opportunity__c from Campaign_Offer_Summary__c where Summary_Code__c=:opp.Summary_Code__c];
-                
-                if(cosList != null && cosList.size() > 0)
-                    cos = cosList[0];
-                
-                String history = null;
-                
-                if(cos == null){
-                    cos = new Campaign_Offer_Summary__c();
-                    cos.Summary_Code__c = opp.Summary_Code__c;
-                    cos.Account_Name__c = acc.id;
-                    cos.Customer_SSN__c = acc.SSN__c;
-                    cos.OfferCode__c = camp.offer_code__c;
-                    cos.Planid_Text__c = planIdText;
-                    cos.Last_Phone_Opportunity__c = opp.id;
-                    cos.Phone_Message_Count__c = 1;
-                    cos.Phone_Message_History
-
-// Continue from previous code
-History__c = opp.CreatedDate.format('MM/dd/yyyy') + '-' + opp.Offer_Response_Reason__c + '; ';
-                    if(cos.Account_Name__c == null)
-                        cos.Account_Name__c = opp.AccountId; 
-                    
-                    insert(cos);    
-                }
-                else {
-                    cos.Last_Phone_Opportunity__c = opp.id;
-                    
-                    if(cos.Phone_Message_Count__c == null)
-                        cos.Phone_Message_Count__c = 0;
-                    
-                    cos.Phone_Message_Count__c += 1;
-                    
-                    history = opp.CreatedDate.format('MM/dd/yyyy') + '-' + opp.Offer_Response_Reason__c + '; ' + (cos.Phone_Message_History__c == null ? '' : cos.Phone_Message_History__c);
-                    if(history.length() >= 300)
-                        history = history.substring(0, 300);
-                    
-                    cos.Phone_Message_History__c = history;
-                    if(cos.Account_Name__c == null)
-                        cos.Account_Name__c = opp.AccountId;
-                    
-                    update(cos); 
-                }
-                
-                // Update DB2 database
-                I_OfferController.updateDB2PhoneSection(acc.SSN__c, planIdText, opp.offer_code__c, opp.Offer_Response__c, opp.CreatedDate);
-            }
-        }
-        catch(Exception e) {
-            Database.rollback(sp1);
-        }
-        
-        Test.stopTest();
-        
-        // Verify results
-        Campaign_Offer_Summary__c result = [SELECT Id, Summary_Code__c, Account_Name__c, Customer_SSN__c, OfferCode__c, Planid_Text__c, Last_Phone_Opportunity__c, Phone_Message_Count__c, Phone_Message_History__c FROM Campaign_Offer_Summary__c WHERE Summary_Code__c = :opp.Summary_Code__c LIMIT 1];
-        
-        System.assertEquals('TestSummaryCode', result.Summary_Code__c);
-        System.assertEquals(acc.Id, result.Account_Name__c);
-        System.assertEquals('123-45-6789', result.Customer_SSN__c);
-        System.assertEquals('TestOfferCode', result.OfferCode__c);
-        System.assertEquals('UpdatedPlanId', result.Planid_Text__c);
-        System.assertEquals(opp.Id, result.Last_Phone_Opportunity__c);
-        System.assertEquals(1, result.Phone_Message_Count__c);
-        System.assert(result.Phone_Message_History__c.startsWith(Date.today().format('MM/dd/yyyy')));
-    }
-}
-
-
-
-
-
-
-
-
-String planIdText = (String)clientOffer.get('planid_' + campaign.offer_code__c + '__c');
-        if(planIdText == null || planIdText == '')
-            planIdText = 'None';
-        
-        Savepoint sp1 = Database.setSavepoint();
-        
-        try {
-            if(opp.Track_Summary__c == 'Yes' && account.SSN__c != null && account.SSN__c != ''){
-                
-                Campaign_Offer_Summary__c cos = null;
-                List<Campaign_Offer_Summary__c> cosList = [select id,Account_Name__c,Summary_Code__c,Phone_Message_History__c,Phone_Message_Count__c,Last_Phone_Opportunity__c from Campaign_Offer_Summary__c where Summary_Code__c=:opp.Summary_Code__c];
-                
-                if(cosList != null && cosList.size() > 0)
-                    cos = cosList[0];
-                
-                
-               // system.debug('=================================================== In insertCampaignOfferSummary() : cos ' + cos);
-                String history = null;
-                
-                if(cos == null){
-                    cos = new Campaign_Offer_Summary__c();
-                    cos.Summary_Code__c = opp.Summary_Code__c;// account.SSN__c + plan.Native_Plan_ID__c + campaign.offer_code__c;
-                    cos.Account_Name__c = account.id;
-                    cos.Customer_SSN__c = account.SSN__c;
-                    cos.OfferCode__c = campaign.offer_code__c;
-                    //cos.Planid__c = plan.id; - Rahul Sahay - this is moved to PlanIdUpdateInsertHandlerTrigger
-                    cos.Planid_Text__c = planIdText;
-                    cos.Last_Phone_Opportunity__c = opp.id;
-                    cos.Phone_Message_Count__c = 1;
-                    cos.Phone_Message_History__c = opp.CreatedDate.format('MM/dd/yyyy') + '-' + opp.Offer_Response_Reason__c + '; ';
-                    if(cos.Account_Name__c == null)
-                        cos.Account_Name__c = opp.AccountId; 
-                    
-                    insert(cos);    
-                }
-                else {
-                    cos.Last_Phone_Opportunity__c=opp.id;
-                    
-                    if(cos.Phone_Message_Count__c == null)
-                        cos.Phone_Message_Count__c = 0;
-                    
-                    cos.Phone_Message_Count__c+=1;
-                    
-                    // Check the length. should not exceed 300
-                    history = opp.CreatedDate.format('MM/dd/yyyy') + '-' + opp.Offer_Response_Reason__c + '; ' + (cos.Phone_Message_History__c == null ? '' : cos.Phone_Message_History__c);
-                    if(history.length() >= 300)
-                        history = history.substring(0, 300);
-                    
-                    cos.Phone_Message_History__c = history;
-                    if(cos.Account_Name__c==null)
-                        cos.Account_Name__c=opp.AccountId;
-                    
-                    update(cos); 
-                }
-                
-                //Update DB2 database
-                I_OfferController.updateDB2PhoneSection(account.SSN__c, planIdText, opp.offer_code__c, opp.Offer_Response__c, opp.CreatedDate);
-                
-                system.debug('=================================================== In insertCampaignOfferSummary() : After Insert/Update cos ' + cos);
-            }
-        }
-        catch(Exception e) {
-            system.debug('Error while Insert/Update record in Campaign_Offer_Summary__c due to : ' + e);
-            
-            Database.rollback(sp1); //Rollback
-            
-            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, 'An error occurred while processing the request.'));
-        }
-        
-        
-         return opportunity.name;
-
-
-@isTest
-public class CreateOpportunityWithPlanAndCampaignTest {
-    
-    @testSetup
-    static void setupData() {
-        // Setup common data for all test methods
-        Plan__c plan = new Plan__c(Name = 'Test Plan');
-        insert(plan);
-        
-        Account acc = new Account(LastName = 'Test', FirstName = 'Test', ssn__c = '123-45-6789');
-        insert(acc);
-        
-        Campaign camp = new Campaign(Name = 'Test Campaign', offer_code__c = 'testcode', offer_priority__c = 1, Offer_Opportunity_Record_Type_ID__c = Schema.SObjectType.Opportunity.getRecordTypeInfosByName().get('Some Record Type').getRecordTypeId());
-        insert(camp);
-        
-        Client_Offer__c clientOffer = new Client_Offer__c(account_ext_id__c = acc.ssn__c, account_last_name__c = acc.LastName, account_first_name__c = acc.FirstName, Account_Birthdate__c = Date.today().addYears(-30), Account_Address1__c = '123 Main St', Account_City__c = 'City', Account_State__c = 'ST', Account_Zip__c = '12345', Account_Email__c = 'test@example.com', Account_Country__c = 'USA', Account_Phone__c = '123-456-7890', Account_Gender__c = 'Male', PlanId_testcode__c = plan.Id, accountbalance_testcode__c = 1000, Last_Hardship_Withdrawal_Date_Hardship__c = Date.today().addMonths(-1), OfferDate_testcode__c = Date.today().addDays(-1));
-        insert(clientOffer);
-        
-        CTI_Console_Pop__c consolePop = new CTI_Console_Pop__c(account__c = acc.Id, Case__c = '5003D0000035LupQAE', CTI_Params__c = 'param1;param2;dnis:1234567890;param4');
-        insert(consolePop);
-    }
-
-    @isTest
-    static void testCreateOpportunityWithPlanAndCampaign_newAccount() {
-        // Test case when account.id is null (i.e., new account)
-        Account acc = [SELECT Id, LastName FROM Account WHERE LastName = 'Test' LIMIT 1];
-        Plan__c plan = [SELECT Id FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
-        Campaign camp = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
-        
-        Test.startTest();
-        String oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(camp.Name, plan.Name, acc.LastName, UserInfo.getUserId(), 'Interested', 'Good', 'No comments', acc.Id);
-        Test.stopTest();
-        
-        Opportunity opp = [SELECT Id, Name FROM Opportunity WHERE Name = :oppName LIMIT 1];
-        System.assertNotEquals(null, opp);
-    }
-
-    @isTest
-    static void testCreateOpportunityWithPlanAndCampaign_existingAccount() {
-        // Test case when account.id is not null (i.e., existing account)
-        Account acc = [SELECT Id, LastName FROM Account WHERE LastName = 'Test' LIMIT 1];
-        Plan__c plan = [SELECT Id FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
-        Campaign camp = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
-        
-        Test.startTest();
-        String oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(camp.Name, plan.Name, acc.LastName, UserInfo.getUserId(), 'Interested', 'Good', 'No comments', acc.Id);
-        Test.stopTest();
-        
-        Opportunity opp = [SELECT Id, Name FROM Opportunity WHERE Name = :oppName LIMIT 1];
-        System.assertNotEquals(null, opp);
-    }
-
-    @isTest
-    static void testCreateOpportunityWithPlanAndCampaign_withOfferPop() {
-        // Test case when offerPop is not null
-        Account acc = [SELECT Id, LastName FROM Account WHERE LastName = 'Test' LIMIT 1];
-        Plan__c plan = [SELECT Id FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
-        Campaign camp = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
-        
-        Test.startTest();
-        String oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(camp.Name, plan.Name, acc.LastName, UserInfo.getUserId(), 'Not Interested', 'Bad', 'No comments', acc.Id);
-        Test.stopTest();
-        
-        Opportunity opp = [SELECT Id, Name FROM Opportunity WHERE Name = :oppName LIMIT 1];
-        System.assertNotEquals(null, opp);
-    }
-
-    @isTest
-    static void testCreateOpportunityWithPlanAndCampaign_exceptionHandling() {
-        // Test case to ensure exception handling works correctly
-        Account acc = [SELECT Id, LastName FROM Account WHERE LastName = 'Test' LIMIT 1];
-        Plan__c plan = [SELECT Id FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
-        Campaign camp = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
-        
-        // Induce an exception by passing invalid data
-        Test.startTest();
-        try {
-            String oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(null, plan.Name, acc.LastName, UserInfo.getUserId(), 'Not Interested', 'Bad', 'No comments', acc.Id);
-            System.assert(false, 'Expected exception not thrown');
-        } catch (Exception e) {
-            System.assert(true);
-        }
-        Test.stopTest();
-    }
-
-    @isTest
-    static void testCreateOpportunityWithPlanAndCampaign_offerCodeConditions() {
-        // Test different offerCode conditions
-        Account acc = [SELECT Id, LastName FROM Account WHERE LastName = 'Test' LIMIT 1];
-        Plan__c plan = [SELECT Id FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
-        Campaign camp = [SELECT Id, Name FROM Campaign WHERE Name = 'Retirement Readiness' LIMIT 1];
-        
-        Test.startTest();
-        String oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(camp.Name, plan.Name, acc.LastName, UserInfo.getUserId(), 'Interested', 'Good', 'No comments', acc.Id);
-        Test.stopTest();
-        
-        Opportunity opp = [SELECT Id, Name FROM Opportunity WHERE Name = :oppName LIMIT 1];
-        System.assertNotEquals(null, opp);
-        
-        camp.Name = 'Retirement Readiness -  Managed Account Eligible';
-        update(camp);
-        
-        Test.startTest();
-        oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(camp.Name, plan.Name, acc.LastName, UserInfo.getUserId(), 'Interested', 'Good', 'No comments', acc.Id);
-        Test.stopTest();
-        
-        opp = [SELECT Id, Name FROM Opportunity WHERE Name = :oppName LIMIT 1];
-        System.assertNotEquals(null, opp);
-    }
-    
-    @isTest
-    static void testCreateOpportunityWithPlanAndCampaign_LeadSourceTranslation() {
-        // Test lead source translation logic
-        Account acc = [SELECT Id, LastName FROM Account WHERE LastName = 'Test' LIMIT 1];
-        Plan__c plan = [SELECT Id FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
-        Campaign camp = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
-        
-        Test.startTest();
-        String oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(camp.Name, plan.Name, acc.LastName, UserInfo.getUserId(), 'Interested', 'Good', 'No comments', acc.Id);
-        Test.stopTest();
-        
-        Opportunity opp = [SELECT Id, Name, LeadSource FROM Opportunity WHERE Name = :oppName LIMIT 1];
-        System.assertEquals('Participant Offer', opp.LeadSource);
-    }
-
-    @isTest
-    static void testCreateOpportunityWithPlanAndCampaign_offerPopCreation() {
-        // Test offerPop creation logic
-        Account acc = [SELECT Id, LastName FROM Account WHERE LastName = 'Test' LIMIT 1];
-        Plan__c plan = [SELECT Id FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
-        Campaign camp = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
-        
-        Test.startTest();
-        String oppName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(camp.Name, plan.Name, acc.LastName, UserInfo.getUserId(), 'Interested', 'Good', 'No comments', acc.Id);
-        Test.stopTest();
-        
-        Opportunity opp = [SELECT Id, Name FROM Opportunity WHERE Name = :oppName LIMIT 1];
-        System.assertNotEquals(null, opp);
-        
-        Offer_Pop__c offerPop = [SELECT Id, Opportunity__c FROM Offer_Pop__c WHERE Opportunity__c = :opp.Id LIMIT 1];
-        System.assertNotEquals(null, offerPop);
-    }
-            }
-
-
-
-
-
-
-
-System.ListException: List index out of bounds: 0
-
-
-System.DmlException: Insert failed. First exception on row 0; first error: FIELD_CUSTOM_VALIDATION_EXCEPTION, SSN/TIN Field must be a numeric &amp;amp;amp; 9 digits.: [SSN__c]
-
-
-@isTest
-public class CreateOpportunityWithPlanAndCampaignTest {
-    
-    @testSetup
-    static void setupTestData() {
-        // Create a Campaign
-        Campaign campaign = new Campaign(
-            Name = 'Test Campaign',
-            Offer_Code__c = 'testcode',
-            Offer_Priority__c = '1',
-            Offer_Opportunity_Record_Type_ID__c = '012xxxxxxxxxxxxxxx'
-        );
-        insert campaign;
-
-        // Create a Plan
-        Plan__c plan = new Plan__c(
-            Name = 'Test Plan',
-            Native_Plan_ID__c = 'TestPlanID'
-        );
-        insert plan;
-
-        // Create an Account
-        Account account = new Account(
-            LastName = 'Doe',
-            FirstName = 'John',
-            SSN__c = '123-45-6789',
-            PersonBirthdate = Date.today().addYears(-30),
-            PersonMailingStreet = '123 Test St',
-            PersonMailingCity = 'Test City',
-            PersonMailingState = 'TX',
-            PersonMailingPostalCode = '12345',
-            PersonEmail = 'john.doe@test.com',
-            PersonHomePhone = '555-555-5555',
-            Sex__c = 'M'
-        );
-        insert account;
-
-        // Create a Client_Offer__c record
-        Client_Offer__c clientOffer = new Client_Offer__c(
-            Account_Last_Name__c = 'Doe',
-            Account_First_Name__c = 'John',
-            Account_Ext_Id__c = '123-45-6789',
-            Account_Birthdate__c = Date.today().addYears(-30),
-            Account_Address1__c = '123 Test St',
-            Account_City__c = 'Test City',
-            Account_State__c = 'TX',
-            Account_Zip__c = '12345',
-            Account_Email__c = 'john.doe@test.com',
-            Account_Phone__c = '555-555-5555',
-            Account_Gender__c = 'M',
-            PlanId_testcode__c = plan.Id
-        );
-        insert clientOffer;
-
-        // Create a CTI_Console_Pop__c record
-        CTI_Console_Pop__c ctiPop = new CTI_Console_Pop__c(
-            Account__c = account.Id,
-            CTI_Params__c = 'param1;param2;param3:testDNIS'
-        );
-        insert ctiPop;
-    }
-    
-    @isTest
-    static void testCreateOpportunityWithPlanAndCampaign() {
-        // Retrieve test data
-        Campaign campaign = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
-        Plan__c plan = [SELECT Id, Name FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
-        Account account = [SELECT Id, LastName, FirstName FROM Account WHERE LastName = 'Doe' LIMIT 1];
-        Client_Offer__c clientOffer = [SELECT Id FROM Client_Offer__c LIMIT 1];
-        
-        // Call the method to test
-        Test.startTest();
-        String opportunityName = CreateOpportunityWithPlanAndCampaign.createOpportunityWithPlanAndCampaign(
-            campaign.Name, plan.Name, account.LastName, UserInfo.getUserId(), 'Response', 'Reason', 'Comment', account.Id
-        );
-        Test.stopTest();
-        
-        // Verify the results
-        Opportunity createdOpportunity = [SELECT Id, Name, AccountId, CampaignId, OwnerId, StageName FROM Opportunity WHERE Name = :opportunityName LIMIT 1];
-        System.assertEquals(account.Id, createdOpportunity.AccountId);
-        System.assertEquals(campaign.Id, createdOpportunity.CampaignId);
-        System.assertEquals('Needs Analysis', createdOpportunity.StageName);
-        
-        // Additional assertions can be added as needed
-    }
-}
-
-
-
-
-
-
-
-
-
-@AuraEnabled
-    public static String createOpportunityWithPlanAndCampaign(String messageName, String planId, String clientLastName, string ownerId,string response, string responseReason, string comment, string Clientid) 
+  @AuraEnabled
+    public static String createOpportunityWithPlanAndCampaign(String messageName, String planId, String clientLastName, string ownerId,string response, string responseReason, string comment, string Clientid,boolean Manual) 
     { 
         System.debug('messageName'+ messageName);
         System.debug('ClientidClientid'+ Clientid);
+        System.debug('planId'+ planId);
         Client_Offer__c clientOffer ;
         opportunity opportunity = new opportunity();
         Campaign campaign = [select id, name, offer_code__c, offer_priority__c,Offer_Opportunity_Record_Type_ID__c from campaign where Name=:messageName  Limit 1];
         
         string offerCode = campaign.offer_code__c;        
         
-        Plan__c p=(Plan__c)[Select Id,Name from Plan__c where Name=:planId Limit 1];
+        Plan__c p=(Plan__c)[Select Id,Name,Native_Plan_ID__c from Plan__c where Name=:planId Limit 1];
         
         Account account = [SELECT Id, lastname,firstname,ssn__c FROM Account  WHERE Id = :Clientid];
         Offer_Pop__c  offerPop;
@@ -562,7 +35,7 @@ public class CreateOpportunityWithPlanAndCampaignTest {
             }
         }
         
-        
+       
         
         Savepoint sp = Database.setSavepoint();
         
@@ -574,7 +47,7 @@ public class CreateOpportunityWithPlanAndCampaignTest {
         List<Client_Offer__c> co =  dynamicClientOfferQuery(new Set<String>{account.ssn__c});
         if(co != null && co.size() > 0)
             clientOffer = co[0];
-       
+      
         
         if(clientOffer != null)
             lastModifiedDate = String.valueOf((clientOffer.LastModifiedDate).format('MM/dd/yyyy'));
@@ -604,7 +77,7 @@ public class CreateOpportunityWithPlanAndCampaignTest {
                 account.OwnerId = Label.I_ENV_DefaultISTAccountOwner;
                 
                 
-                //Code of first name splitting. 
+               
                 I_ConversionUtility cu = new I_ConversionUtility();
                 account = cu.firstNameConversionSingleRecord(account);
                 
@@ -621,12 +94,12 @@ public class CreateOpportunityWithPlanAndCampaignTest {
                 Plan__c offerPlan = null;
                 
                 
-
+               
                 opportunity.RecordTypeId = (offerCode == 'rrma' && mAIpsTypeList != null && mAIpsTypeList.size() > 0 ? mAIpsTypeList[0].Id : campaign.Offer_Opportunity_Record_Type_ID__c);
                 
                
                 
-               
+                
                 opportunity.Offer_File_Hardship_Suspension_End_Date__c = clientOffer.Hardship_Suspension_Ends_Hardship__c;
                 opportunity.Offer_File_Last_Hardship_Withdrawal_Date__c = clientOffer.Last_Hardship_Withdrawal_Date_Hardship__c;
                 
@@ -645,7 +118,7 @@ public class CreateOpportunityWithPlanAndCampaignTest {
                 
                 opportunity.Offer_Plan_Number__c = (String)clientOffer.get('PlanId_' + campaign.offer_code__c + '__c');
                 
-               
+              
                 opportunity.Offer_Active_Mailer__c = (String)clientOffer.get('Active_Mailer_' + campaign.offer_code__c + '__c');
                 
                 String agentTin = (String)clientOffer.get('AgentId_' + campaign.offer_code__c + '__c');
@@ -661,11 +134,11 @@ public class CreateOpportunityWithPlanAndCampaignTest {
                 
                 
                 for (Offer_Opportuntiy_Status_Rule__c rule : [Select Opportunity_Stagename__c, Opportunity_Status__c, Opportunity_Sales_Outcome__c, Opportunity_Outcome_Reason__c from Offer_Opportuntiy_Status_Rule__c where offer_code__c = :campaign.offer_code__c and Opportunity_Offer_Response__c = :opportunity.Offer_Response__c and (Opportunity_Offer_Response_Reason__c = :opportunity.Offer_Response_Reason__c or Opportunity_Offer_Response_Reason__c = null)  limit 1]) {
-                    system.debug('rule'+rule);
+               
                     opportunity.StageName = rule.Opportunity_Stagename__c;
                     opportunity.Opportunity_status__c = rule.opportunity_status__c;
                     
-                    //Rahul Sahay - Added for CTI Console Pop (06/16/2014)
+                   
                     opportunity.Sales_Outcome__c = rule.Opportunity_Sales_Outcome__c;
                     opportunity.Outcome_Reason__c = rule.Opportunity_Outcome_Reason__c;
                 } 
@@ -677,30 +150,29 @@ public class CreateOpportunityWithPlanAndCampaignTest {
                 opportunity.closeDate = Date.today();
                 opportunity.CampaignId = campaign.id;
                 opportunity.AccountId = account.id;
-                for (Plan__c p1 : [Select Native_Plan_ID__c, id from Plan__c where Native_Plan_ID__c = :(String)clientOffer.get('planid_' + campaign.offer_code__c + '__c') and native_Plan_ID__c != null limit 1]) {
-                    opportunity.plan__c = p1.id;
-                    offerPlan = p1;
-                }
-                if (opportunity.plan__c == null) {
-                    for (Plan__c p2 : [Select Native_Plan_ID__c, id from Plan__c where Native_Plan_ID__c = 'None' limit 1]) {
-                        opportunity.plan__c = p2.id;
-                    }
-                }
+               
+                opportunity.plan__c = p.id;
+                 offerPlan = p;
                 
-               
+           
                 String temp = opportunity.OwnerId;
-               
+                // if(opportunity.OwnerId == null)
                 opportunity.OwnerId = UserInfo.getUserId(); //keep the ownerId as logged in user
                 
                 if (offerPop != null) {
                     opportunity.Offer_Pop__c = offerPop.id;
                 }
                 
-               
+   				
+   				system.debug('Manual'+Manual);
+   				if(Manual==true)
                 opportunity.Offer_Created_Manually__c = true;
+                
+                else
+                 opportunity.Offer_Created_Manually__c = false;
                
                 if(offerCode == 'edelivery'){
-                    system.debug('edelivery');
+                
                     opportunity.Offer_File_Registered_for_Online_Access__c = clientOffer.Reg_online_access_Edelivery__c;
                     
                 }else if(offerCode == 'inccont'){
@@ -717,7 +189,7 @@ public class CreateOpportunityWithPlanAndCampaignTest {
                     opportunity.Offer_File_Current_Pre_Tax_Deferral_Amt__c = clientOffer.PreTax_Deferral_Amt_Inccont__c;    
                     opportunity.Offer_File_Current_Pre_Tax_Deferral_Pct__c = clientOffer.PreTax_Deferral_Pct_Inccont__c;
                     
-                   
+                    //Code added for RS Data feed functionality: case # 00008723.
                     opportunity.Offer_File_Current_Roth_Deferral_Pct__c = clientOffer.Current_Roth_Deferral_Pct_Inccont__c;
                     opportunity.Offer_File_Current_Roth_Deferral_Amount__c = clientOffer.Current_Roth_Deferral_Amt_Inccont__c;
                     
@@ -733,7 +205,7 @@ public class CreateOpportunityWithPlanAndCampaignTest {
                     opportunity.Offer_File_Current_Pre_Tax_Deferral_Amt__c = clientOffer.PreTax_Deferral_Amt_Catchup__c;                                
                     opportunity.Offer_File_Current_Pre_Tax_Deferral_Pct__c = clientOffer.PreTax_Deferral_Pct_Catchup__c;
                     
-                   
+                    //Code added for RS Data feed functionality: case # 00008723.
                     opportunity.Offer_File_Current_Roth_Deferral_Pct__c = clientOffer.Current_Roth_Deferral_Pct_Catchup__c;
                     opportunity.Offer_File_Current_Roth_Deferral_Amount__c = clientOffer.Current_Roth_Deferral_Amt_Catchup__c;
                     opportunity.Offer_CurrentCatchUp_RothDeferral_Pct__c = clientOffer.Cur_Catch_Up_Roth_Deferral_Pct_Catchup__c;
@@ -769,13 +241,13 @@ public class CreateOpportunityWithPlanAndCampaignTest {
                         }
                         
                         
-                       
+                      
                         if(!isRRMarketingNumber)
                             opportunity.RR_Campaign__c = CTIPopController.getCampaignInfo(offerPop.CTI_DNIS_Number__c, account);
                     }
                     
                     if(!isRRMarketingNumber && opportunity.RR_Campaign__c == null) {
-                        
+                       
                         List<Account> clientList = [Select Id, Name, PersonContactId from Account Where Id =: account.Id];
                         if(clientList.size() > 0 && clientList[0].PersonContactId != null) {
                             
@@ -795,6 +267,7 @@ public class CreateOpportunityWithPlanAndCampaignTest {
                 
                 try {
                    
+                   
                     
                     if(opportunity != null && opportunity.Id != null && opportunity.OwnerId != temp) {
                         
@@ -813,7 +286,7 @@ public class CreateOpportunityWithPlanAndCampaignTest {
                     system.debug('Error while changing the OwnerId for the Opportunity due to : ' + e);
                 }
                 
-                
+               
                 if((offerCode == 'rr' || offerCode == 'rrma') && offerPlan != null){
                     if (account.RR_Eligible__pc==false || account.RR_Eligible__pc==null || account.OwnerId!=Label.I_ENV_DefaultISTAccountOwner){
                         account.RR_Eligible__pc = true;
@@ -822,26 +295,23 @@ public class CreateOpportunityWithPlanAndCampaignTest {
                     }
                     RRBatchProcessHelper.ClientWrapper clientW = new RRBatchProcessHelper.ClientWrapper(account, (Double)clientOffer.get('accountbalance_' + offerCode + '__c'), (Date)clientOffer.get('OfferDate_' + offerCode+ '__c'));
                     RRBatchProcessHelper.executeRRBatchForClient(clientW, offerPlan);
-                   
+                    
                     RRAgentPermissionBatchProcessHelper.acessAssignmentForRRProducerByPlanIds(new Set<String> {offerPlan.Native_Plan_ID__c}, new Set<String> {account.SSN__c});
                 }
                 
             }       
             
-            // When a user is navigated to the offer pop page and records a targeted message add 
-            // the text of "Record Targeted Message" and associate the opportunity to the offer pop.
+           
             if(offerPop != null) {
                 offerPop.Opportunity__c = opportunity.Id;
                 offerPop.Action__c = UltimatePopControllerHelper.OFFERPOP_STATUS_RTM;
                 update offerPop;
             }
             
-            
-                          
+              
+                       
             recordCaseAction(opportunity,cp.Case__c, account.SSN__c);
            
-            
-            
             
             
             if(offerPop == null)
@@ -867,10 +337,10 @@ public class CreateOpportunityWithPlanAndCampaignTest {
             offerPop.Campaign__c = CTIPopController.getCampaignInfo(dnisNumber, account); 
             offerPop.Lead_Source__c = CTIPopController.doLeadSourceTranslation(dnisNumber);
             
-           
-           
-            offerPop.Source__c = UltimatePopControllerHelper.SOURCE_CTI;
             
+            
+            offerPop.Source__c = UltimatePopControllerHelper.SOURCE_CTI;
+           
             
             offerPop.Action__c = UltimatePopControllerHelper.OFFERPOP_STATUS_RTM;
             offerPop.Opportunity__c = opportunity.Id;
@@ -882,7 +352,7 @@ public class CreateOpportunityWithPlanAndCampaignTest {
             else
                 DataBase.update(offerPop); 
             
-            
+           
             
           
             if (opportunity.id != null && (opportunity.offer_response_reason__c != 'Ask me again next time' && opportunity.offer_response_reason__c != 'Misdirected Call' && opportunity.offer_response_reason__c != 'Security Not Validated/Other Caller' && opportunity.offer_response_reason__c != 'Escalated Call' && opportunity.offer_response_reason__c != 'Does Not Meet Criteria' && opportunity.offer_response_reason__c != 'Send email' && opportunity.offer_response_reason__c != 'Send me materials')) {
@@ -899,7 +369,7 @@ public class CreateOpportunityWithPlanAndCampaignTest {
                 Database.insert(csaEx, false);
             }
             catch (Exception ex) {
-               
+             
             }
         }
         
@@ -908,11 +378,11 @@ public class CreateOpportunityWithPlanAndCampaignTest {
         List<Opportunity> oppList = [select Id, Track_Summary__c, Summary_Code__c,SSN_TIN__c ,Offer_Plan_Number__c,
                                      CreatedDate, Offer_Response_Reason__c, AccountId, Offer_Response__c, offer_code__c ,Account.SSN_TIN__c
                                      from Opportunity where Id = :opportunity.Id];
-      
+       
         
         Opportunity opp = oppList[0];
         
-     
+      
         
         String planIdText = (String)clientOffer.get('planid_' + campaign.offer_code__c + '__c');
         if(planIdText == null || planIdText == '')
@@ -930,7 +400,7 @@ public class CreateOpportunityWithPlanAndCampaignTest {
                     cos = cosList[0];
                 
                 
-               
+              
                 String history = null;
                 
                 if(cos == null){
@@ -969,7 +439,7 @@ public class CreateOpportunityWithPlanAndCampaignTest {
                     update(cos); 
                 }
                 
-                
+               
                 I_OfferController.updateDB2PhoneSection(account.SSN__c, planIdText, opp.offer_code__c, opp.Offer_Response__c, opp.CreatedDate);
                 
                 system.debug('=================================================== In insertCampaignOfferSummary() : After Insert/Update cos ' + cos);
@@ -986,3 +456,92 @@ public class CreateOpportunityWithPlanAndCampaignTest {
         
         return opportunity.name;
     } 
+
+
+
+
+
+
+static testMethod void testCreateOpportunityWithPlanAndCampaign() {
+         
+    
+boolean Manual=true;         
+     Campaign campaign = new Campaign(
+            Name = 'Test Campaign',
+            Offer_Code__c = 'testcode',
+            Offer_Priority__c = 1.777,
+            Offer_Opportunity_Record_Type_ID__c = '012xxxxxxxxxxxxxxx'
+        );
+        insert campaign;
+
+        
+        Plan__c plan = new Plan__c(
+            Name = 'Test Plan',
+            Native_Plan_ID__c = 'TestPlanID'
+        );
+        insert plan;
+
+       
+        Account account = new Account(
+            LastName = 'Doe',
+            FirstName = 'John',
+            SSN__c = '123456789',
+            PersonBirthdate = Date.today().addYears(-30),
+            PersonMailingStreet = '123 Test St',
+            PersonMailingCity = 'Test City',
+            PersonMailingState = 'TX',
+            PersonMailingPostalCode = '12345',
+            PersonEmail = 'john.doe@test.com',
+            PersonHomePhone = '555-555-5555',
+            Sex__c = 'M'
+        );
+        insert account;
+
+        
+        Client_Offer__c clientOffer = new Client_Offer__c(
+            Account_Last_Name__c = 'Doe',
+            Account_First_Name__c = 'John',
+            Account_Ext_Id__c = '123456789',
+            Account_Birthdate__c = Date.today().addYears(-30),
+            Account_Address1__c = '123 Test St',
+            Account_City__c = 'Test City',
+            Account_State__c = 'TX',
+            Account_Zip__c = '12345',
+            Account_Email__c = 'john.doe@test.com',
+            Account_Phone__c = '555-555-5555',
+            Account_Gender__c = 'M'
+            //PlanId_testcode__c = plan.Id
+        );
+        insert clientOffer;
+
+        
+        CTI_Console_Pop__c ctiPop = new CTI_Console_Pop__c(
+            Account__c = account.Id,
+            CTI_Params__c = 'param1;param2;param3:testDNIS',
+            ExternalID__c='123456789'
+        );
+        insert ctiPop;
+     
+          Campaign campaignName = [SELECT Id, Name FROM Campaign WHERE Name = 'Test Campaign' LIMIT 1];
+        Plan__c planName = [SELECT Id, Name FROM Plan__c WHERE Name = 'Test Plan' LIMIT 1];
+        Account accountName = [SELECT Id, LastName, FirstName FROM Account WHERE LastName = 'Doe' LIMIT 1];
+        Client_Offer__c clientOfferId = [SELECT Id FROM Client_Offer__c LIMIT 1];
+      // Opportunity OpportunityNamee=[SELECT ID,NAME FROM Opportunity Where NAME='Test Name' LIMIT 1];
+        
+        
+        Test.startTest();
+        String opportunityName = cTargetedMessage.createOpportunityWithPlanAndCampaign(
+            campaignName.Name, planName.Name, accountName.LastName, UserInfo.getUserId(), 'Response', 'Reason', 'Comment', accountName.Id,Manual
+        );
+        Test.stopTest();
+        
+        // Verify the results
+        Opportunity createdOpportunity = [SELECT Id, Name, AccountId, CampaignId, OwnerId, StageName FROM Opportunity WHERE Name = :opportunityName LIMIT 1];
+        System.assertEquals(planName.Id, createdOpportunity.AccountId);
+        System.assertEquals(campaignName.Id, createdOpportunity.CampaignId);
+        System.assertEquals('Needs Analysis', createdOpportunity.StageName);
+         
+         
+         
+
+     }
