@@ -1,4 +1,77 @@
 @isTest
+public class OpportunityOfferUpdaterTest {
+    
+    @isTest
+    static void testEdeliveryOffer() {
+        Opportunity opportunity = new Opportunity();
+        ClientOffer clientOffer = new ClientOffer();
+        clientOffer.Reg_online_access_Edelivery__c = true;
+        
+        OpportunityOfferUpdater.updateOpportunityWithOffer('edelivery', opportunity, clientOffer);
+        
+        System.assertEquals(true, opportunity.Offer_File_Registered_for_Online_Access__c);
+    }
+    
+    @isTest
+    static void testInccontOffer() {
+        Opportunity opportunity = new Opportunity();
+        ClientOffer clientOffer = new ClientOffer();
+        
+        clientOffer.Last_Contrib_Rate_Change_Date_Inccont__c = Date.today();
+        clientOffer.Last_Hardship_Withdrawal_Date_Inccont__c = Date.today().addDays(-1);
+        clientOffer.Max_Employer_Match_Pct_Inccont__c = 5;
+        clientOffer.Partic_Auto_Increase_Inccont__c = true;
+        clientOffer.Plan_Auto_Increase_Inccont__c = true;
+        clientOffer.Plan_Max_Deferral_Amt_Inccont__c = 10000;
+        clientOffer.Plan_Max_Deferral_Pct_Inccont__c = 15;
+        clientOffer.PostTax_Deferral_Amt_Inccont__c = 500;
+        clientOffer.PostTax_Deferral_Pct_Inccont__c = 5;
+        clientOffer.PreTax_Deferral_Amt_Inccont__c = 1000;
+        clientOffer.PreTax_Deferral_Pct_Inccont__c = 10;
+        clientOffer.Current_Roth_Deferral_Pct_Inccont__c = 8;
+        clientOffer.Current_Roth_Deferral_Amt_Inccont__c = 200;
+
+        OpportunityOfferUpdater.updateOpportunityWithOffer('inccont', opportunity, clientOffer);
+        
+        System.assertEquals(Date.today(), opportunity.Offer_File_Last_Contrib_Rate_Change_Date__c);
+        System.assertEquals(Date.today().addDays(-1), opportunity.Offer_File_Last_Hardship_Withdrawal_Date__c);
+        System.assertEquals(5, opportunity.Offer_File_Max_Employer_Match_Pct__c);
+        System.assertEquals(true, opportunity.Offer_File_Partic_Auto_Increase__c);
+        System.assertEquals(true, opportunity.Offer_File_Plan_Offers_Auto_Increase__c);
+        System.assertEquals(10000, opportunity.Offer_File_Plan_Max_Deferral_Amount__c);
+        System.assertEquals(15, opportunity.Offer_File_Plan_Max_Deferral_Pct__c);
+        System.assertEquals(500, opportunity.Offer_File_Current_Post_Tax_Deferral_Amt__c);
+        System.assertEquals(5, opportunity.Offer_File_Current_Post_Tax_Deferral_Pct__c);
+        System.assertEquals(1000, opportunity.Offer_File_Current_Pre_Tax_Deferral_Amt__c);
+        System.assertEquals(10, opportunity.Offer_File_Current_Pre_Tax_Deferral_Pct__c);
+        System.assertEquals(8, opportunity.Offer_File_Current_Roth_Deferral_Pct__c);
+        System.assertEquals(200, opportunity.Offer_File_Current_Roth_Deferral_Amount__c);
+    }
+    
+    @isTest
+    static void testCatchupOffer() {
+        Opportunity opportunity = new Opportunity();
+        ClientOffer clientOffer = new ClientOffer();
+        
+        clientOffer.Catch_Up_Amt_Catchup__c = 1000;
+        clientOffer.Catch_Up_Pct_Catchup__c = 10;
+        clientOffer.Last_Contrib_Rate_Change_Date_Catchup__c = Date.today().addDays(-10);
+        clientOffer.Partic_Auto_Increase_Catchup__c = false;
+        clientOffer.Plan_Auto_Increase_Catchup__c = false;
+        clientOffer.Plan_Max_Deferral_Amt_Catchup__c = 15000;
+        clientOffer.Plan_Max_Deferral_Pct_Catchup__c = 20;
+        clientOffer.PreTax_Deferral_Amt_Catchup__c
+
+
+
+
+
+
+
+
+
+
+@isTest
 public class ClientOfferResponseControllerTest {
     @testSetup
     static void setup() {
