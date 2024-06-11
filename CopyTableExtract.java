@@ -1,3 +1,96 @@
+@isTest
+public class OpportunityCreation_Test {
+
+    @isTest
+    static void testOpportunityCreation() {
+        // Create a test user with System Administrator profile
+        Profile p = [SELECT Id FROM Profile WHERE Name = 'System Administrator'];
+        User testUser = new User(
+            Alias = 'tUser',
+            Email = 'testuser@example.com',
+            EmailEncodingKey = 'UTF-8',
+            LastName = 'Testing',
+            LanguageLocaleKey = 'en_US',
+            LocaleSidKey = 'en_US',
+            ProfileId = p.Id,
+            TimeZoneSidKey = 'America/Los_Angeles',
+            UserName = 'testuser@example.com'
+        );
+        insert testUser;
+        
+        System.runAs(testUser) {
+            // Create test Account
+            Account testAccount = new Account(
+                Name = 'Test Account',
+                LastName = 'Test',
+                RecordTypeId = Schema.SObjectType.Account.getRecordTypeInfosByName().get('Client').getRecordTypeId()
+            );
+            insert testAccount;
+            
+            // Create test Plan
+            Plan__c testPlan = new Plan__c(Name = 'Test Plan', Producer_TIN_ist__c = '121231234');
+            insert testPlan;
+            
+            // Create a RecordType for Opportunity
+            RecordType oppRecordType = [SELECT Id FROM RecordType WHERE SObjectType = 'Opportunity' AND Name = 'Snapshot' LIMIT 1];
+            
+            // Mock selectedAccountValue
+            String selectedAccountValue = '10000.00';
+            
+            // Mock selectedPlanId
+            Id selectedPlanId = testPlan.Id;
+            
+            // Mock selectedRepTIN
+            String selectedRepTIN = '123456789';
+            
+            // Mock dnisNumber
+            String dnisNumber = '12345';
+            
+            // Create the Opportunity
+            Opportunity newOpp = new Opportunity();
+            newOpp.recordtypeid = oppRecordType.Id;
+            newOpp.AccountId = testAccount.Id;
+            newOpp.Name = testAccount.LastName + ' - Snapshot';
+            newOpp.CloseDate = Date.today().addMonths(1);
+            newOpp.StageName = 'Engage';
+            newOpp.Plan__c = selectedPlanId;
+            newOpp.OwnerId = UserInfo.getUserId();
+            
+            if (!String.isBlank(selectedAccountValue)) {
+                newOpp.at_Risk__c = Decimal.valueOf(selectedAccountValue);
+            }
+                    
+            newOpp.Offer_Plan_Number__c = selectedPlanId;
+            newOpp.LeadSource = 'Test Lead Source'; // Assuming doLeadSourceTranslation returns 'Test Lead Source'
+            newOpp.CampaignId = null; // Assuming getCampaignInfo returns null for simplicity
+            newOpp.AgentTIN__c = selectedRepTIN;
+            
+            // Insert the Opportunity
+            Test.startTest();
+            UltimatePopControllerHelper.doTransaction(newOpp, UltimatePopControllerHelper.TRANSACTION_INSERT);
+            Test.stopTest();
+            
+            // Assertions to verify the Opportunity was created correctly
+            Opportunity insertedOpp = [SELECT Id, Name, AccountId, CloseDate, StageName, Plan__c, at_Risk__c, Offer_Plan_Number__c, LeadSource, CampaignId, AgentTIN__c FROM Opportunity WHERE Id = :newOpp.Id];
+            System.assertEquals(testAccount.Id, insertedOpp.AccountId);
+            System.assertEquals(testAccount.LastName + ' - Snapshot', insertedOpp.Name);
+            System.assertEquals(Date.today().addMonths(1), insertedOpp.CloseDate);
+            System.assertEquals('Engage', insertedOpp.StageName);
+            System.assertEquals(selectedPlanId, insertedOpp.Plan__c);
+            System.assertEquals(Decimal.valueOf(selectedAccountValue), insertedOpp.at_Risk__c);
+            System.assertEquals(selectedPlanId, insertedOpp.Offer_Plan_Number__c);
+            System.assertEquals('Test Lead Source', insertedOpp.LeadSource);
+            System.assertEquals(null, insertedOpp.CampaignId);
+            System.assertEquals(selectedRepTIN, insertedOpp.AgentTIN__c);
+        }
+    }
+}
+
+
+
+
+
+
 Opportunity newOpp = new Opportunity();
             newOpp.recordtypeid = snapshotOppRecordType.Id;
             newOpp.AccountId = this.client.Id;
