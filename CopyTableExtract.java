@@ -1,4 +1,65 @@
-    public void globalSearchAndReplace(List<sObject> batchArticles){
+@isTest
+public class GlobalSearchAndReplace_Test {
+    @isTest
+    static void testGlobalSearchAndReplace() {
+        // Create test data
+        List<sObject> batchArticles = new List<sObject>();
+        
+        // Create a test article with fields to match the search pattern
+        Knowledge__kav testArticle1 = new Knowledge__kav();
+        testArticle1.ArticleNumber = 'A001';
+        testArticle1.Title = 'Test Article 1';
+        testArticle1.KnowledgeArticleId = 'KA001';
+        testArticle1.IsMasterLanguage = true;
+        testArticle1.SomeField__c = 'This is a test field containing the search string.';
+        batchArticles.add(testArticle1);
+        
+        // Create another test article without the search pattern
+        Knowledge__kav testArticle2 = new Knowledge__kav();
+        testArticle2.ArticleNumber = 'A002';
+        testArticle2.Title = 'Test Article 2';
+        testArticle2.KnowledgeArticleId = 'KA002';
+        testArticle2.IsMasterLanguage = false;
+        testArticle2.SomeField__c = 'This field does not contain the search string.';
+        batchArticles.add(testArticle2);
+        
+        // Initialize the class with the necessary context and parameters
+        MyClass myClassInstance = new MyClass();
+        myClassInstance.strSearchString = 'search string';
+        myClassInstance.listSearchFields = new List<String>{'SomeField__c'};
+        myClassInstance.bSearchOnly = false;
+        myClassInstance.strApexSearchJobId = 'TestJobId';
+        myClassInstance.strArticleType = 'Knowledge__kav';
+        myClassInstance.strPublishStatus = 'Draft';
+        myClassInstance.bPublishNewVersion = true;
+        myClassInstance.strLanguage = 'en_US';
+        myClassInstance.strReplacementString = 'replacement string';
+        myClassInstance.bMultiLingualKB = true;
+        
+        // Invoke the method
+        Test.startTest();
+        myClassInstance.globalSearchAndReplace(batchArticles);
+        Test.stopTest();
+        
+        // Verify the results
+        List<KB_Global_Search_And_Replace__c> gsRecords = [SELECT ArticleNumber__c, Field_Names__c, Search_String__c, Replacement_String__c FROM KB_Global_Search_And_Replace__c];
+        
+        // There should be one record created for testArticle1
+        System.assertEquals(1, gsRecords.size(), 'One KB_Global_Search_And_Replace__c record should be created.');
+        KB_Global_Search_And_Replace__c gsRecord = gsRecords[0];
+        System.assertEquals('A001', gsRecord.ArticleNumber__c, 'Article number should match the first article.');
+        System.assertEquals('SomeField__c', gsRecord.Field_Names__c, 'Field name should match the search field.');
+        System.assertEquals('search string', gsRecord.Search_String__c, 'Search string should match.');
+        System.assertEquals('replacement string', gsRecord.Replacement_String__c, 'Replacement string should match.');
+    }
+}
+
+
+
+
+
+
+public void globalSearchAndReplace(List<sObject> batchArticles){
     	// Compile the user-defined search expression
         String strRegEx = this.strSearchString;
         Pattern strSearchStringPattern = Pattern.compile(strRegEx);  
