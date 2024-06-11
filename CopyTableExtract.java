@@ -1,3 +1,93 @@
+    public void globalSearchAndReplace(List<sObject> batchArticles){
+    	// Compile the user-defined search expression
+        String strRegEx = this.strSearchString;
+        Pattern strSearchStringPattern = Pattern.compile(strRegEx);  
+        
+        // Initialize list of replacement tasks (work items) for this batch scope
+        List<KB_Global_Search_And_Replace__c> listGSR = new List<KB_Global_Search_And_Replace__c>();
+        
+        // Iterate across all articles queried in a single batch scope
+        for(sObject article : batchArticles) {
+            this.TotalCount++;
+            
+            // Determine if one (or more) selected field values contains the user-defined search expression.
+            // This logic is used to identify which field(s) in a specific article require replacement.
+            // The physical replacement is performed by a separate class (BatchKnowledgeGlobalReplace) to
+            // support the much smaller scope size (50) required due to governor constraints specific to
+            // knowledge article updates (which are not bulk-enabled) 
+            String strReplacementFields = '';              
+            if (listSearchFields.size() > 0) {
+                for (String strFieldName: listSearchFields) {
+                	// Apply pattern to next field value
+                    String strFieldValue = (String)article.get(strFieldName);
+                    if (strFieldValue == null) continue;
+                    Matcher matcher = strSearchStringPattern.matcher(strFieldValue);
+
+					// If this field value contains at least one occurrence of pattern, add to list
+                    if (matcher.find()) {
+                        if (strReplacementFields.length()>0) strReplacementFields += ',';
+                        strReplacementFields +=strFieldName;
+                    }
+                }
+            }
+            
+            // If at least one field has been identified, add article to replacement queue and audit log
+            if (strReplacementFields.length()>0) {
+                this.UpdateCount++;  
+
+				// Add selected article to audit log
+                this.listSelectedArticles.add('Article Number='+(String)article.get('ArticleNumber')+
+                    ' Title='+(String)article.get('Title')+' Language='+strLanguage+'\n');
+                
+                // If performing a physical replacement, add new record (replacement task) to work queue.  This record
+                // serves to identify those articles to be processed in the BatchKnowledgeGlobalReplace class.
+                // These records stand independently and identify which field(s) in a specific article require replacement.
+                if (!bSearchOnly) {         
+                    KB_Global_Search_And_Replace__c modifyArticle = new KB_Global_Search_And_Replace__c();
+                    
+                    // Copy metadata from batch article to work queue
+                    modifyArticle.Apex_BatchId__c = this.strApexSearchJobId;
+                    modifyArticle.ArticleId__c = article.Id;
+                    modifyArticle.Article_Type__c = this.strArticleType;
+                    modifyArticle.ArticleNumber__c = (String)article.get('ArticleNumber'); 
+                    modifyArticle.KnowledgeArticleId__c = (String)article.get('KnowledgeArticleId'); 
+                    modifyArticle.PublishStatus__c = this.strPublishStatus;
+                    modifyArticle.PublishNewVersion__c = String.valueOf(this.bPublishNewVersion);
+                    modifyArticle.Language__c = String.valueOf(this.strLanguage);
+                    modifyArticle.Field_Names__c = strReplacementFields;
+                    modifyArticle.Search_String__c = this.strSearchString;
+                    modifyArticle.Replacement_String__c = this.strReplacementString;
+					if (bMultiLingualKB) {
+						modifyArticle.IsMasterLanguage__c = String.valueOf((Boolean)article.get('IsMasterLanguage'));
+					} else {
+						modifyArticle.IsMasterLanguage__c = 'NA';
+					}                
+
+					// Add replacement task to list
+                  	listGSR.add(modifyArticle);
+                }                
+            }
+        }
+        
+        // If at least one replacement task has been identified, insert into physical work queue
+        if (!bSearchOnly && listGSR != null && listGSR.size() > 0) {
+        	this.bExecuteReplacement = true;
+            try {
+                Database.insert(listGSR);      
+            } catch (Exception ex){
+                String errMsg = ex.getMessage();
+                system.Debug(errMsg);
+            } 
+         }        
+
+    }
+
+
+
+
+
+
+
 @isTest
 public class OpportunityCreation_Test {
 
