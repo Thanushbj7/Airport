@@ -1,3 +1,30 @@
+Opportunity newOpp = new Opportunity();
+            newOpp.recordtypeid = snapshotOppRecordType.Id;
+            newOpp.AccountId = this.client.Id;
+            newOpp.Name = this.client.LastName + ' - Snapshot';
+            //newOpp.Opportunity_Status__c = 'New';
+            newOpp.CloseDate = Date.today().addMonths(1);
+            newOpp.StageName = 'Engage';
+            newOpp.Plan__c = sfdcPlanId;
+            newOpp.OwnerId = UserInfo.getUserId();
+            
+            if(!String.isBlank(this.selectedAccountValue))
+                    newOpp.at_Risk__c = Decimal.valueOf(this.selectedAccountValue);
+                    
+            newOpp.Offer_Plan_Number__c = selectedPlanId;
+            newOpp.LeadSource = doLeadSourceTranslation(dnisNumber);
+            newOpp.CampaignId = getCampaignInfo(dnisNumber, this.client);
+            newOpp.AgentTIN__c = selectedRepTIN;
+            
+            //Insert the Opportunity
+            UltimatePopControllerHelper.doTransaction(newOpp, UltimatePopControllerHelper.TRANSACTION_INSERT);
+            
+            ref = new Pagereference('/' + newOpp.Id);
+            ref.setRedirect(true);
+
+
+
+
 @isTest
 public class OpportunityOfferUpdaterTest {
     
