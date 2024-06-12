@@ -1,3 +1,83 @@
+@isTest
+public class UltimatePopControllerTest {
+    @isTest
+    static void testConstructorWithUrlParams() {
+        // Set up test data
+        Account testAccount = new Account(Name = 'Test Account');
+        insert testAccount;
+
+        // Create a standard controller with a dummy Opportunity
+        Opportunity testOpportunity = new Opportunity(
+            Name = 'Test Opportunity',
+            AccountId = testAccount.Id,
+            CloseDate = Date.today(),
+            StageName = 'Prospecting'
+        );
+        insert testOpportunity;
+        
+        Test.startTest();
+        
+        // Scenario 1: urlPostParams.size() == 3
+        PageReference pageRef1 = Page.SomePage;
+        pageRef1.getParameters().put('clientID', 'clientSSN1&DNIS=dnis1&Source=source1');
+        Test.setCurrentPage(pageRef1);
+        ApexPages.StandardController sc1 = new ApexPages.StandardController(testOpportunity);
+        UltimatePopController controller1 = new UltimatePopController(sc1);
+        System.assertEquals('clientSSN1', controller1.clientSSN);
+        System.assertEquals('dnis1', controller1.dnisNumber);
+        System.assertEquals('source1', controller1.source);
+        
+        // Scenario 2: urlPostParams.size() == 5
+        PageReference pageRef2 = Page.SomePage;
+        pageRef2.getParameters().put('clientID', 'clientSSN2&DNIS=dnis2&ctiVRUApp=app2&ctiEDU=edu2&Source=source2');
+        Test.setCurrentPage(pageRef2);
+        ApexPages.StandardController sc2 = new ApexPages.StandardController(testOpportunity);
+        UltimatePopController controller2 = new UltimatePopController(sc2);
+        System.assertEquals('clientSSN2', controller2.clientSSN);
+        System.assertEquals('dnis2', controller2.dnisNumber);
+        System.assertEquals('app2', controller2.ctiVRUApp);
+        System.assertEquals('edu2', controller2.ctiEDU);
+        System.assertEquals('source2', controller2.source);
+        
+        // Scenario 3: urlPostParams.size() == 6
+        PageReference pageRef3 = Page.SomePage;
+        pageRef3.getParameters().put('clientID', 'clientSSN3&DNIS=dnis3&ctiVRUApp=app3&ctiEDU=edu3&securityParameter=sec3&Source=source3');
+        Test.setCurrentPage(pageRef3);
+        ApexPages.StandardController sc3 = new ApexPages.StandardController(testOpportunity);
+        UltimatePopController controller3 = new UltimatePopController(sc3);
+        System.assertEquals('clientSSN3', controller3.clientSSN);
+        System.assertEquals('dnis3', controller3.dnisNumber);
+        System.assertEquals('app3', controller3.ctiVRUApp);
+        System.assertEquals('edu3', controller3.ctiEDU);
+        System.assertEquals('sec3', controller3.securityParameter);
+        System.assertEquals('source3', controller3.source);
+        
+        // Scenario 4: urlPostParams.size() == 7
+        PageReference pageRef4 = Page.SomePage;
+        pageRef4.getParameters().put('clientID', 'clientSSN4&DNIS=dnis4&ctiVRUApp=app4&ctiEDU=edu4&securityParameter=sec4&caseOrigin=origin4&Source=source4');
+        Test.setCurrentPage(pageRef4);
+        ApexPages.StandardController sc4 = new ApexPages.StandardController(testOpportunity);
+        UltimatePopController controller4 = new UltimatePopController(sc4);
+        System.assertEquals('clientSSN4', controller4.clientSSN);
+        System.assertEquals('dnis4', controller4.dnisNumber);
+        System.assertEquals('app4', controller4.ctiVRUApp);
+        System.assertEquals('edu4', controller4.ctiEDU);
+        System.assertEquals('sec4', controller4.securityParameter);
+        System.assertEquals('origin4', controller4.caseOrigin);
+        System.assertEquals('source4', controller4.source);
+        
+        Test.stopTest();
+    }
+}
+
+
+
+
+
+
+
+
+
 public UltimatePopController(ApexPages.StandardController stdController) {
         
          system.debug('====================== ApexPages.currentPage().getParameters().get(id) ' + ApexPages.currentPage().getParameters().get('id'));
