@@ -1,3 +1,119 @@
+public UltimatePopController(ApexPages.StandardController stdController) {
+        
+         system.debug('====================== ApexPages.currentPage().getParameters().get(id) ' + ApexPages.currentPage().getParameters().get('id'));
+        
+        showRRLink = false;
+        
+        isCreateOppInteraction = false;
+        
+        showPlanAuthorizationSection = false;
+        
+        String encPostParams = null;
+        
+        //Ex - ../apex/SearchPage?clientID=273143143%26DNIS%3D*%26Source%3Dcti&reason=NOT-AUTHENTICATED
+        //encPostParams = ApexPages.currentPage().getParameters().get('clientID');
+        
+        if(ApexPages.currentPage().getParameters().get('clientID') != null && ApexPages.currentPage().getParameters().get('clientID') != '') {
+            encPostParams = ApexPages.currentPage().getParameters().get('clientID');
+            
+        }else if(ApexPages.currentPage().getParameters().get('ssn') != null && ApexPages.currentPage().getParameters().get('ssn') != '') {
+            encPostParams = ApexPages.currentPage().getParameters().get('ssn');
+        }
+           
+        //Decoded Form ../apex/SearchPage?clientID=273143143&DNIS=*&Source=cti
+        
+        List<String> urlPostParams = null;
+        if(encPostParams != null && encPostParams != '') {
+            encPostParams = EncodingUtil.urlDecode(encPostParams, 'UTF-8');
+            urlPostParams = encPostParams.split('&');
+        }   
+        
+        if(urlPostParams != null && urlPostParams.size() == 3) {
+         clientSSN = urlPostParams[0];
+            dnisNumber = (urlPostParams[1].split('=').size() == 2 ? urlPostParams[1].split('=')[1] : '');
+            source = (urlPostParams[2].split('=').size() == 2 ? (String)urlPostParams[2].split('=')[1] : '');
+        }
+        else if(urlPostParams != null && urlPostParams.size() == 5) {
+         clientSSN = urlPostParams[0];
+            dnisNumber = (urlPostParams[1].split('=').size() == 2 ? urlPostParams[1].split('=')[1] : '');
+            this.ctiVRUApp = (urlPostParams[2].split('=').size() == 2 ? urlPostParams[2].split('=')[1] : '');
+            this.ctiEDU = (urlPostParams[3].split('=').size() == 2 ? urlPostParams[3].split('=')[1] : '');
+            source = (urlPostParams[4].split('=').size() == 2 ? (String)urlPostParams[4].split('=')[1] : '');
+        }
+        else if(urlPostParams != null && urlPostParams.size() == 6) {
+         clientSSN = urlPostParams[0];
+            dnisNumber = (urlPostParams[1].split('=').size() == 2 ? urlPostParams[1].split('=')[1] : '');
+            this.ctiVRUApp = (urlPostParams[2].split('=').size() == 2 ? urlPostParams[2].split('=')[1] : '');
+            this.ctiEDU = (urlPostParams[3].split('=').size() == 2 ? urlPostParams[3].split('=')[1] : '');
+            securityParameter = (urlPostParams[4].split('=').size() == 2 ? (String)urlPostParams[4].split('=')[1] : '');
+            this.source = (urlPostParams[5].split('=').size() == 2 ? (String)urlPostParams[5].split('=')[1] : '');
+            
+        } else if(urlPostParams != null && urlPostParams.size() == 7) {
+            this.clientSSN = urlPostParams[0];
+            this.dnisNumber = (urlPostParams[1].split('=').size() == 2 ? urlPostParams[1].split('=')[1] : '');
+            this.ctiVRUApp = (urlPostParams[2].split('=').size() == 2 ? urlPostParams[2].split('=')[1] : '');
+            this.ctiEDU = (urlPostParams[3].split('=').size() == 2 ? urlPostParams[3].split('=')[1] : '');
+            this.securityParameter = (urlPostParams[4].split('=').size() == 2 ? (String)urlPostParams[4].split('=')[1] : '');
+            this.caseOrigin = (urlPostParams[5].split('=').size() == 2 ? (String)urlPostParams[5].split('=')[1] : '');
+            this.source = (urlPostParams[6].split('=').size() == 2 ? (String)urlPostParams[6].split('=')[1] : '');
+            
+        }else {
+            
+            //clientSSN = ApexPages.currentPage().getParameters().get('clientID');
+            if(ApexPages.currentPage().getParameters().get('clientID') != null && ApexPages.currentPage().getParameters().get('clientID') != '') {
+                clientSSN = ApexPages.currentPage().getParameters().get('clientID');
+                
+            }else if(ApexPages.currentPage().getParameters().get('ssn') != null && ApexPages.currentPage().getParameters().get('ssn') != '') {
+                clientSSN = ApexPages.currentPage().getParameters().get('ssn');
+            }
+            dnisNumber = ApexPages.currentPage().getParameters().get('DNIS');
+            source = ApexPages.currentPage().getParameters().get('Source');
+            this.ctiVRUApp = ApexPages.currentPage().getParameters().get('vruApp');
+            this.ctiEDU = ApexPages.currentPage().getParameters().get('ctiEDU');
+            this.caseOrigin = ApexPages.currentPage().getParameters().get('type');
+            this.securityParameter = ApexPages.currentPage().getParameters().get('AuthenticatedFlag');
+        }
+        
+        //To Avoid Null Pointers
+        if(clientSSN != null)
+            clientSSN = clientSSN.replace('*','');
+        if(dnisNumber != null)
+            dnisNumber = dnisNumber.replace('*','');
+        if(source != null)
+            source = source.replace('*','');
+        
+        if(ApexPages.currentPage().getParameters().get('opID') != null && ApexPages.currentPage().getParameters().get('opID').length() > 0) {
+            List<Offer_Pop__c> offerList = [Select o.User__c, o.User_Role__c, o.User_Profile__c, o.Top_Offer__c, o.Source__c, o.Opportunity__c, o.Offers_Available__c, o.Name, o.Lead_Source__c, o.Client__c, o.Client_ID__c, o.CTI_DNIS_Number__c, o.Action__c From Offer_Pop__c o Where Id =: ApexPages.currentPage().getParameters().get('opID')];
+            if(offerList.size() > 0)
+                offerPop = offerList[0];
+        }
+        
+        //Initialize variables
+        dcSearchResults = new List<UltimatePopControllerHelper.SearchResult>();
+        opportunitySearchResults = new List<UltimatePopControllerHelper.oppWrapper>();
+        targetedMessageResults = new List<Client_Offer__c>();
+        
+        /////////////// SECURITY - Profile Checks //////////////////
+        initProfileVars();
+        /////////////////////////////////////////////////////////////
+        
+        if(recordTypeMap.containsKey('Retirement Readiness'+ '-' +'Opportunity')) {
+            RRRecordType = recordTypeMap.get('Retirement Readiness'+ '-' +'Opportunity');
+        }
+        
+        loggedInUser = [select eMoney_User_Type__c, eMoney_ID__c, UserRole.Name from User where id = :UserInfo.getUserId()];
+        
+    }
+
+
+
+
+
+
+
+
+
+
 @isTest
 public class GlobalSearchAndReplace_Test {
     @isTest
