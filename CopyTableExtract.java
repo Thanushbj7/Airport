@@ -1,3 +1,93 @@
+@isTest
+static void testUltimate() {
+    //Querying for Account record Type.
+    RecordType rt = [SELECT Id FROM RecordType WHERE SobjectType = 'Account' AND Name = 'Client' AND IsPersonType = true LIMIT 1];
+
+    // Creating and inserting test data
+    Plan__c p1 = new Plan__c(Name = 'TEST_PLAN1', Native_Plan_ID__c = 'TEST_PLAN1', Alias_Plan_ID__c = 'TEST_PLAN1', Plan_Name_ist__c = 'TEST_PLAN1', IPS_Access_Level__c = '1', RR_Plan__c = 'Yes', Non_Qualified_Plan__c = 'Yes');
+    insert p1;
+
+    Plan_Permissions__c pp1 = new Plan_Permissions__c(Service_Description__c = 'Rollover', Special_Rollover_Instructions__c = 'Test Instructions', Planid__c = p1.Id);
+    insert pp1;
+
+    Account acc = new Account(firstName='null', lastName = 'test', ssn__c = '123456781', RecordTypeId = rt.Id, 
+                              PersonMailingCity = 'test', PersonMailingState = 'test', Batch_Id__c  = '123', RR_Eligible__pc = true, Web_Registered__c = true, Online_Planning_Indicator__c = 'Yes', Plan__c = p1.Id, Plan_ID_Billing_Group__c = p1.Native_Plan_ID__c);
+    insert acc;
+
+    Offer_Pop__c testop = new Offer_Pop__c(Source__c = 'CTI', Client__c = acc.Id, OfferPop_Transaction_ID__c = 'test');
+    insert testop;
+
+    Client_Offer__c testClient = new Client_Offer__c(Account_Ext_ID__c = '123456781', Account_Last_Name__c = 'test', Status_Rollover__c = 'open', Score_Rollover__c = 1.32, PlanId_rollover__c = p1.Id);
+    insert testClient;
+
+    Campaign testCam = new Campaign(Name = 'Rolltest', Offer_Code__c = 'rollover', External_ID__c = '2311232131232');
+    insert testCam;
+
+    Rule__c testRule = new Rule__c(Value_ist__c = testCam.Id, Name = 'tDNIS', Rule_Group_ist__c = 'Campaign-Lead-Source-Translation');
+    insert testRule;
+
+    PAAG_Exceptions__c PAAGExp = new PAAG_Exceptions__c(Plan__c = p1.Id, Client_ID__c = 'Test');
+    insert PAAGExp;
+
+    Online_Planning__c Onlineplan = new Online_Planning__c(Client__c = acc.Id, Online_Plan_Id_RR__c = 'test', Last_Login_In_Date_RR__c = Date.today());
+    insert Onlineplan;
+
+    User testUser = TestUtilsSBR.createUser('System Administrator');
+
+    System.runAs(testUser) {
+        Test.startTest();
+        
+        // Test scenario with 3 parameters
+        Test.setCurrentPage(Page.UltimatePop);
+        ApexPages.currentPage().getParameters().put('ClientID', '123456781');
+        ApexPages.currentPage().getParameters().put('source', 'CTI');
+        ApexPages.currentPage().getParameters().put('DNIS', 'tDNIS');
+        UltimatePopController controller3 = new UltimatePopController(new ApexPages.StandardController(acc));
+        controller3.init();
+        System.assertEquals(controller3.clientSSN, '123456781');
+        
+        // Test scenario with 5 parameters
+        ApexPages.currentPage().getParameters().put('ClientID', '123456781');
+        ApexPages.currentPage().getParameters().put('source', 'CTI');
+        ApexPages.currentPage().getParameters().put('DNIS', 'tDNIS');
+        ApexPages.currentPage().getParameters().put('ctiVRUApp', 'myvoya');
+        ApexPages.currentPage().getParameters().put('ctiEDU', '12345678901');
+        UltimatePopController controller5 = new UltimatePopController(new ApexPages.StandardController(acc));
+        controller5.init();
+        System.assertEquals(controller5.clientSSN, '123456781');
+        
+        // Test scenario with 6 parameters
+        ApexPages.currentPage().getParameters().put('ClientID', '123456781');
+        ApexPages.currentPage().getParameters().put('source', 'CTI');
+        ApexPages.currentPage().getParameters().put('DNIS', 'tDNIS');
+        ApexPages.currentPage().getParameters().put('ctiVRUApp', 'myvoya');
+        ApexPages.currentPage().getParameters().put('ctiEDU', '12345678901');
+        ApexPages.currentPage().getParameters().put('securityParameter', 'testSec');
+        UltimatePopController controller6 = new UltimatePopController(new ApexPages.StandardController(acc));
+        controller6.init();
+        System.assertEquals(controller6.clientSSN, '123456781');
+        
+        // Test scenario with 7 parameters
+        ApexPages.currentPage().getParameters().put('ClientID', '123456781');
+        ApexPages.currentPage().getParameters().put('source', 'CTI');
+        ApexPages.currentPage().getParameters().put('DNIS', 'tDNIS');
+        ApexPages.currentPage().getParameters().put('ctiVRUApp', 'myvoya');
+        ApexPages.currentPage().getParameters().put('ctiEDU', '12345678901');
+        ApexPages.currentPage().getParameters().put('securityParameter', 'testSec');
+        ApexPages.currentPage().getParameters().put('caseOrigin', 'testCaseOrigin');
+        UltimatePopController controller7 = new UltimatePopController(new ApexPages.StandardController(acc));
+        controller7.init();
+        System.assertEquals(controller7.clientSSN, '123456781');
+        
+        Test.stopTest();
+    }
+}
+
+
+
+
+
+
 static testMethod void testUltimate() {
         
         //Querying for Account record Type.
