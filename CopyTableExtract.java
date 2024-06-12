@@ -1,3 +1,196 @@
+static testMethod void testUltimate() {
+        
+        //Querying for Account record Type.
+        RecordType[] rt =[Select Id, IsPersonType, Name, SobjectType from RecordType 
+                          where  SobjectType ='Account' 
+                          and Name ='Client' 
+                          and IsPersonType = true];
+        
+        Plan__c p1 = new Plan__c(Name = 'TEST_PLAN1', Native_Plan_ID__c = 'TEST_PLAN1', Alias_Plan_ID__c = 'TEST_PLAN1', Plan_Name_ist__c = 'TEST_PLAN1', IPS_Access_Level__c = '1', RR_Plan__c = 'Yes', Non_Qualified_Plan__c = 'Yes');
+        Plan__c p2 = new Plan__c(Name = 'Test plan', Native_Plan_ID__c = '1245', Alias_Plan_ID__c = '1245', Plan_Name_ist__c = '1245', IPS_Access_Level__c = null, RR_Plan__c = 'Yes', Non_Qualified_Plan__c = 'No');
+        Plan__c p3 = new Plan__c(Native_Plan_ID__c = 'TEST_PLAN3', Alias_Plan_ID__c = 'TEST_PLAN3', Plan_Name_ist__c = 'TEST_PLAN3', IPS_Access_Level__c = null, RR_Plan__c = 'Yes', Non_Qualified_Plan__c = 'No');
+        Plan__c p4 = new Plan__c(Native_Plan_ID__c = 'TEST_PLAN4', Alias_Plan_ID__c = 'TEST_PLAN4', Plan_Name_ist__c = 'TEST_PLAN4', IPS_Access_Level__c = null, RR_Plan__c = 'Yes', Non_Qualified_Plan__c = 'Yes');
+        insert(new List<Plan__c>{p1, p2, p3, p4});
+        
+        Plan_Permissions__c pp1 = new Plan_Permissions__c(Service_Description__c = 'Rollover', Special_Rollover_Instructions__c = 'Test Instructions', Planid__c = p1.Id);
+        Plan_Permissions__c pp2 = new Plan_Permissions__c(Service_Description__c = 'Rollover', Special_Rollover_Instructions__c = 'Test Instructions', Planid__c = p2.Id);
+        Plan_Permissions__c pp3 = new Plan_Permissions__c(Service_Description__c = 'Rollover', Special_Rollover_Instructions__c = 'Test Instructions', Planid__c = p3.Id);
+        Plan_Permissions__c pp4 = new Plan_Permissions__c(Service_Description__c = 'Rollover', Special_Rollover_Instructions__c = 'Test Instructions', Planid__c = p4.Id, Targeted_Messages__c = 'No');
+        insert(new List<Plan_Permissions__c>{pp1, pp2, pp3, pp4});
+        
+        //Test Data 1
+        //creating the test record
+        Account acc = new Account(firstName='null',lastName = 'test',ssn__c = '123456781', RecordTypeId = rt[0].Id, 
+                                  PersonMailingCity = 'test', PersonMailingState = 'test', Batch_Id__c  = '123', RR_Eligible__pc = true,Web_Registered__c=true,Online_Planning_Indicator__c='Yes');
+        acc.Plan__c = p1.Id;
+        acc.Plan_ID_Billing_Group__c = p1.Native_Plan_ID__c;
+        insert acc;
+        
+        //inserting Offer_Pop__c test record
+        Offer_Pop__c testop =new Offer_Pop__c(Source__c='CTI',Client__c=acc.id,OfferPop_Transaction_ID__c='test');
+        insert testop;
+        
+        //inserting Client_Offer__c test record
+        Client_Offer__c testClient =new Client_Offer__c(Account_Ext_ID__c='123456781', Account_Last_Name__c='test',Status_Rollover__c='open',Score_Rollover__c=1.32,PlanId_rollover__c=p1.id);
+        insert testClient;
+        
+        //inserting campaign test record
+        Campaign testCam = new Campaign (Name='Rolltest',Offer_Code__c='rollover',External_ID__c='2311232131232');
+        insert testCam;
+        
+        //inserting Rule__c test record.                
+        Rule__c testRule =new Rule__c(Value_ist__c=testCam.id, Name='tDNIS', Rule_Group_ist__c='Campaign-Lead-Source-Translation');
+        insert testRule;
+        
+        // inserting PAAG_EXCEPTION__C
+        PAAG_Exceptions__c PAAGExp = new PAAG_Exceptions__c();
+        PAAGExp.Plan__c = p1.Id;
+        PAAGExp.Client_ID__c = 'Test';
+        insert PAAGExp;
+        
+        //Insetting online planning
+        Online_Planning__c Onlineplan = new Online_Planning__c(Client__c = acc.id);
+        Onlineplan.Online_Plan_Id_RR__c = 'test';
+        Onlineplan.Last_Login_In_Date_RR__c = Date.today();
+        insert Onlineplan;
+        User testUser = TestUtilsSBR.createUser('System Administrator'); 
+          Profile p = [SELECT Id FROM Profile WHERE Name='System Administrator' limit 1];
+        p = [SELECT Id FROM Profile WHERE Name='Backoffice_IST' limit 1];
+            p = [SELECT Id FROM Profile WHERE Name='Bus Tech' limit 1];
+            p = [SELECT Id FROM Profile WHERE Name='CSA Management' limit 1];
+
+        System.runAs(testUser){    
+            //Test 1 :This is for the Client existing only in in OLTP/PDAB
+            
+            
+            //Setting the current page and its parameters in the url.
+            Test.startTest();
+            preventRecursive.testUser();
+            Test.setCurrentPage(Page.UltimatePop);
+            Apexpages.currentPage().getParameters().put('ClientID', '123456781');
+            Apexpages.currentPage().getParameters().put('opID',testop.id);
+            Apexpages.currentPage().getParameters().put('source', 'CTI');
+            Apexpages.currentPage().getParameters().put('DNIS', 'tDNIS');
+            
+           
+            ApexPages.StandardController controller = new ApexPages.StandardController(new Account());
+          
+            
+           
+            Apexpages.currentPage().getParameters().put('ClientID', '123456781');
+            Apexpages.currentPage().getParameters().put('opID', testop.id);
+            Apexpages.currentPage().getParameters().put('source', 'CTI');
+            
+            
+            String external = (UserInfo.getUserId() + ConstantUtils.UNIQUE_SEPERATOR + '123456781');
+            system.debug('external%%%'+external);
+            CTI_Console_Pop__c CTIRecord = new CTI_Console_Pop__c(Account__c=acc.id, CTI_Params__c='clientID:123456784;Source:CTI;DNIS:5811261;VRUAPP:myvoya;EDU:12345678901;type:test;UUID:1234',
+                                                                  DC_Serialized_Result__c= '[{"unformattedAccountValue":"321045","state":"Test State","ssn":null,"servicingRepName":"Test rep","servicingRepId":"12312456222","salesOutcome":null,"rrPlan":null,"rowNum":2,"roeInstructions":"ROE Passed","roe":"true","postalCode":"20136","planName":"CIRS 402(k) Savings Plan","planId":"321045","phone":null,"participantId":"545237777","outcomeDate":null,"oppStatus":null,"oppStage":null,"oppOwner":null,"oppName":null,"oppId":null,"oppAtRisk":null,"managedAccount":"N/A","lastName":"Esc last","isPAAGException":null,"ipsAccess":"-1","firstName":"Esc First","emplomentStatusCode":"Active_Eligible","emplomentStatus":"Active, Eligible","eeId":null,"duplicate":null,"dateOfBirth":"Test","createdDate":null,"clientId":"3245","city":"Test City","address3":"address3","address2":"address2","address1":"address1","address":"address1 address2 address3 Test City Test State 20136 ","accountValue":"$321,045","accountType":null,"accountOwner":null,"accountName":"Esc last, Esc First","accountId":null}]', externalID__c=external);
+            insert CTIRecord;
+           
+            UltimatePopControllerHelper.getPlanEmployeeStatusMapFromDC('123456781');
+            UltimatePopControllerHelper.initClientOffers('123456781',false,true);
+            UltimatePopControllerHelper.getWebActivities(acc,'MYVOYA');
+            UltimatePopControllerHelper.PlanClientObj wrapp = new UltimatePopControllerHelper.PlanClientObj();
+            UltimatePopControllerHelper.PAAGWrapper pagwrap = new UltimatePopControllerHelper.PAAGWrapper();
+            UltimatePopControllerHelper.callService(null, null, null, null);
+            pagwrap.paag = new PAAG__c();
+            pagwrap.planId = p1.Native_Plan_ID__c;
+            pagwrap.planName = p1.Name;
+            pagwrap.planSFDCId = p1.Id;
+            pagwrap.isException = false;
+            
+                       
+            UltimatePopControllerHelper.getPlanAccountValueMapFromDC('123455');
+            list<UltimatePopControllerHelper.PlanClientObj> wrapList = new list<UltimatePopControllerHelper.PlanClientObj>();
+            wrapp.clientId ='test';
+            wrapp.planId = p1.Native_Plan_ID__c;
+            wrapList.add(wrapp);
+            
+            list<UltimatePopControllerHelper.PlanClientObj> EmptywrapList = new list<UltimatePopControllerHelper.PlanClientObj>();
+            
+            
+            PAAG__c pa = new PAAG__c();
+            pa.Plan__c = p1.id;
+            pa.Active__c = 'true';
+            insert pa;
+            
+            UltimatePopControllerHelper.getPAAGPlanMap(wrapList);
+            UltimatePopControllerHelper.getPAAGPlanMap(EmptywrapList);
+            UltimatePopControllerHelper.ProfileInfo pwrapper = new UltimatePopControllerHelper.ProfileInfo();
+            UltimatePopControllerHelper.formatAmount('3445','$');
+            pwrapper.hasCSAnRelatedProfile = true;
+            pwrapper.hasAdminNRelatedProfile = true;
+            UltimatePopControllerHelper.getCurrentUserProfileInfo(p.id);
+            
+           
+            UltimatePopController testUltPopController1 = new UltimatePopController(controller);
+            
+            testUltPopController1.targetMessageType='Rollover'; 
+
+            
+            testUltPopController1.initializePOP();
+            testUltPopController1.client = acc;
+            testUltPopController1.client.PersonMailingState='testState';
+            testUltPopController1.saveClientChanges();
+            testUltPopController1.createTargetMessage();
+            testUltPopController1.recInteraction = 'No';
+            testUltPopController1.doRolloverOppCreationValidationForDC();       
+            system.assertEquals(testUltPopController1.client.PersonMailingState,'testState');
+            //testUltPopController1.createSnapshotOpportunity();
+            testUltPopController1.navigateToOfferDetails();
+            testUltPopController1.logEMoneyClick();
+            testUltPopController1.vfClientOfferList= null;
+            testUltPopController1.createTargetMessage();
+            testUltPopController1.existingOfferPopId = '123456';
+            testUltPopController1.createOpportunity();
+            testUltPopController1.setNewOfferDetails();
+            testUltPopController1.offerPop = testop;
+            
+            Apexpages.currentPage().getParameters().put('ClientID', '');
+            Apexpages.currentPage().getParameters().put('ssn', acc.SSN__c);
+            UltimatePopController testUltPopController2 = new UltimatePopController(controller);
+            
+         
+            
+            
+            
+            pwrapper = new UltimatePopControllerHelper.ProfileInfo();
+            UltimatePopControllerHelper.getCurrentUserProfileInfo(p.id);
+            
+            pwrapper = new UltimatePopControllerHelper.ProfileInfo();
+            UltimatePopControllerHelper.getCurrentUserProfileInfo(p.id);
+            pwrapper = new UltimatePopControllerHelper.ProfileInfo();
+            UltimatePopControllerHelper.getCurrentUserProfileInfo(p.id);            
+            Test.stopTest();
+            
+        }
+        String selectedRepTIN='Test selectedRepTIN';
+        RecordType producerRecType = new RecordType(
+            Name = 'Producer', 
+            sObjectType = 'Account', 
+            DeveloperName = 'Producer'
+        );
+       // insert producerRecType;
+
+        Opportunity newOpp = new Opportunity(
+            Name = 'Test Opportunity',
+            CloseDate = Date.today(),
+            StageName = 'Prospecting',
+            Agent_Name__c=acc.Id
+        );
+        insert newOpp;
+
+     
+        System.assertNotEquals(null,newOpp.Agent_Name__c,'cheking not null');
+        
+        
+    } 
+
+
+
+
+
 @isTest
 public class UltimatePopControllerTest {
     @isTest
