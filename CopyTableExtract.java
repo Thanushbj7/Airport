@@ -1,3 +1,160 @@
+@IsTest
+public class OpptSendForApprovalCntrlrTest {
+    
+    @testSetup 
+    static void setup() {
+        RecordType rTypeopportunity = TestUtils.getRecordType('Opportunity', 'BD Financial Agreement');
+        RecordType rTypeopportunitychild = TestUtils.getRecordType('Opportunity', 'BD Financial Agreement Amendment');    
+        RecordType rTypeAccount = TestUtils.getRecordType('Account', 'Other Firms');
+        
+        Account client = new Account(Name = 'Test Account', RecordTypeId = rTypeAccount.Id);
+        insert client;
+        
+        User testuser = [select Id from User Where Id =: UserInfo.getUserId()];  
+        Plan__c plan = TestUtils.createPlan('IPS', null, false);
+        plan.RR_Email_Permission_Level__c = 'Opt In';
+        
+        insert plan;
+
+        // Create Opportunities
+        List<Opportunity> opportunities = new List<Opportunity>{
+            new Opportunity(Name = 'Test OpportunityTest123', AccountId = client.Id, Plan__c = plan.Id, 
+                            OwnerId = testuser.Id, StageName = 'Agreement Signatures Pending', RecordTypeId = rTypeopportunity.Id, 
+                            Opportunity_Status__c = 'New', Term__c = 'One-Time', Fee_Schedule_Type__c = 'Hourly', One_Time_Total_Fee__c = 30.00, 
+                            Fee_Schedule__c = 'Split', payment_type__c = 'ACH', CloseDate = System.today()),                                             
+            new Opportunity(Name = 'Test OpportunityTest1234', AccountId = client.Id, Plan__c = plan.Id, 
+                            OwnerId = testuser.Id, StageName = 'Agreement Signatures Pending', RecordTypeId = rTypeopportunity.Id, 
+                            Opportunity_Status__c = 'New', I_agree_I_am_licensed__c = 'Yes', Term__c = 'Annual', Fee_Schedule__c = 'Monthly', 
+                            payment_type__c = 'ACH', CloseDate = System.today(), Intial_Flat_Fee__c = 20.00),
+            new Opportunity(Name = 'Test OpportunityTest12345', AccountId = client.Id, Plan__c = plan.Id, 
+                            OwnerId = testuser.Id, StageName = 'Agreement Signatures Pending', RecordTypeId = rTypeopportunity.Id, 
+                            Opportunity_Status__c = 'New', Term__c = 'One-Time', Fee_Schedule__c = 'Split', payment_type__c = 'ACH', CloseDate = System.today()), 
+            new Opportunity(Name = 'Test OpportunityTest12346', AccountId = client.Id, Plan__c = plan.Id, 
+                            OwnerId = testuser.Id, StageName = 'Plan Delivery Pending', RecordTypeId = rTypeopportunity.Id, 
+                            Opportunity_Status__c = 'New', I_agree_I_am_licensed__c = 'Yes', Term__c = 'Annual', Fee_Schedule__c = 'Monthly', 
+                            payment_type__c = 'ACH', CloseDate = System.today(), Intial_Flat_Fee__c = 20.00),
+            new Opportunity(Name = 'Test OpportunityTest12347', AccountId = client.Id, Plan__c = plan.Id, 
+                            OwnerId = testuser.Id, StageName = 'Closed Won', RecordTypeId = rTypeopportunity.Id, 
+                            Opportunity_Status__c = 'Closed', Term__c = 'One-Time', One_Time_Total_Fee__c = 40.00, Fee_Schedule__c = 'Split', payment_type__c = 'ACH', CloseDate = System.today())
+        };
+        insert opportunities;
+        
+        // Create Attachments
+        List<Attachment> attachments = new List<Attachment>{
+            new Attachment(Name = 'Agreement', Body = Blob.valueOf('Unit Test Attachment Body'), ParentId = opportunities[1].Id),
+            new Attachment(Name = 'Agreement', Body = Blob.valueOf('Unit Test Attachment Body'), ParentId = opportunities[3].Id)
+        };
+        insert attachments;
+        
+        // Create Content Document and Link
+        ContentVersion contentVersion = new ContentVersion(
+            Title = 'FinancialAgreement',
+            PathOnClient = 'Penguins.jpg',
+            VersionData = Blob.valueOf('Test Content'),
+            IsMajorVersion = true
+        );
+        insert contentVersion;
+        
+        List<ContentDocument> documents = [SELECT Id, Title, LatestPublishedVersionId FROM ContentDocument];
+        ContentDocumentLink cdl = new ContentDocumentLink(
+            LinkedEntityId = opportunities[0].Id,
+            ContentDocumentId = documents[0].Id,
+            ShareType = 'V'
+        );
+        insert cdl;
+
+        // Create Financial Plan
+        Financial_Plan__c testplan = new Financial_Plan__c(
+            BD_Financial_Agreement__c = opportunities[3].Id,
+            TRP_Plan_Approval_Status__c = 'Not Started'
+        );
+        insert testplan;
+    }
+
+    @isTest
+    public static void opportunity123() {
+        Test.startTest(); 
+        List<Opportunity> fecttempdata1 = [select Id from Opportunity where Name = 'Test OpportunityTest123'];
+        Map<String, String> resultMap = OpptSendForApprovalCntrlr.FetchOpportunity(fecttempdata1[0].Id, 'Theme4d');                   
+        Test.stopTest();
+        
+        System.assert(resultMap.containsKey('Success'), 'Opportunity should be successfully updated.');
+        System.assertEquals('Opportunity sent for TRP Approval and stage is changed to TRP Agreement Approval Pending.', resultMap.get('Success'));
+    }
+    
+    @isTest
+    public static void opportunity1234() {
+        Test.startTest(); 
+        List<Opportunity> fecttempdata2 = [select Id from Opportunity where Name = 'Test OpportunityTest1234']; 
+        Map<String, String> resultMap = OpptSendForApprovalCntrlr.FetchOpportunity(fecttempdata2[0].Id, '');                
+        Test.stopTest();
+        
+        System.assert(resultMap.containsKey('Success'), 'Opportunity should be successfully updated.');
+        System.assertEquals('Opportunity sent for TRP Approval and stage is changed to TRP Agreement Approval Pending.', resultMap.get('Success'));
+    }
+    
+    @isTest
+    public static void opportunity12345() {
+        Test.startTest(); 
+        List<Opportunity> fecttempdata3 = [select Id from Opportunity where Name = 'Test OpportunityTest12345']; 
+        Map<String, String> resultMap = OpptSendForApprovalCntrlr.FetchOpportunity(fecttempdata3[0].Id, '');                
+        Test.stopTest();
+        
+        System.assert(resultMap.containsKey('Attachment'), 'There should be an error for missing agreement attachment.');
+        System.assertEquals('There should be at least one Attachment having "Agreement" keyword in the name before Submitting for Approval.', resultMap.get('Attachment'));
+    }
+	
+    @isTest
+    public static void opportunity12346() {
+        Test.startTest(); 
+        List<Opportunity> fecttempdata4 = [select Id from Opportunity where Name = 'Test OpportunityTest12346']; 
+        Map<String, String> resultMap = OpptSendForApprovalCntrlr.FetchOpportunity(fecttempdata4[0].Id, '');           
+        Test.stopTest();
+        
+        System.assert(resultMap.containsKey('Success'), 'Financial Plan should be successfully sent for TRP Approval.');
+        System.assertEquals('Financial Plan is sent for TRP Approval', resultMap.get('Success'));
+    }
+    
+    @isTest
+    public static void opportunity12347() {
+        Test.startTest(); 
+        List<Opportunity> fecttempdata = [select Id from Opportunity where Name = 'Test OpportunityTest12347']; 
+        Map<String, String> resultMap = OpptSendForApprovalCntrlr.FetchOpportunity(fecttempdata[0].Id, '');           
+        Test.stopTest();
+        
+        System.assert(resultMap.containsKey('CanNotChange'), 'Opportunity should not be submitted for review at this stage.');
+        System.assertEquals('Cannot be submitted for review at this stage.', resultMap.get('CanNotChange'));
+    }
+    
+    @isTest
+    public static void opportunityError() {
+        Test.startTest(); 
+        Map<String, String> resultMap = OpptSendForApprovalCntrlr.FetchOpportunity(null, null);           
+        Test.stopTest();
+        
+        System.assert(resultMap.containsKey('Exception'), 'There should be an exception for null opportunity ID.');
+        System.assertNotEquals('', resultMap.get('Exception'), 'Exception message should not be empty.');
+    }
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @IsTest
 public class OpptSendForApprovalCntrlrTest {
