@@ -1,14 +1,4 @@
-/*
-###########################################################################
-# Name ............................: OpptSendForApprovalCntrlrTest
-# Story .....................: B-84362 Simplify agreement and Financial Accounts
-# Release ......................: March Release
-# Created by.................: Sulabh Manav
-# Created Date..............:  15/01/2019 
-# Description.................: Test class for 'OpptSendForApprovalCntrlr'.
-#############################################################################
-@Edited Yannis Lam 06/23/2020
-*/
+
 @IsTest
 public class OpptSendForApprovalCntrlrTest {
     
