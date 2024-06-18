@@ -1,3 +1,26 @@
+ Opportunity opptoupdate=new Opportunity();
+                for(Opportunity tempopp:oppList) { 
+                    
+                    if(tempopp.StageName=='Agreement Signatures Pending') {
+                        
+                        opptoupdate.Id=tempopp.Id;
+                        opptoupdate.StageName=tempopp.StageName;                
+                        opptoupdate.Client_Sign_Date__c=tempopp.Client_Sign_Date__c;
+                    }
+                    else if(tempopp.StageName=='Plan Delivery Pending') {
+                        
+                        opptoupdate.Id=tempopp.Id;
+                        opptoupdate.StageName=tempopp.StageName;  
+                    }
+                    else { 
+                        MaptoReturn.put('CanNotChange','Cannot be submitted for review at this stage.');
+                    }
+                }
+
+
+
+
+
 @IsTest
 public class OpptSendForApprovalCntrlrTest {
     
