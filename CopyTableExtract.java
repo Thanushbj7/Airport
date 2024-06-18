@@ -1,4 +1,63 @@
- Opportunity opptoupdate=new Opportunity();
+@isTest
+private class TestOpportunityUpdate {
+
+    @isTest
+    static void testUpdateOpportunityAgreementSignaturesPending() {
+        List<Opportunity> oppList = new List<Opportunity>();
+        // Create Opportunity records with StageName 'Agreement Signatures Pending'
+        // Insert Opportunity records into database
+        
+        // Call the method under test
+        Test.startTest();
+        // Execute your method here
+        Test.stopTest();
+        
+        // Assert the values of opptoupdate
+        // Assert other outcomes as needed
+    }
+    
+    @isTest
+    static void testUpdateOpportunityPlanDeliveryPending() {
+        List<Opportunity> oppList = new List<Opportunity>();
+        // Create Opportunity records with StageName 'Plan Delivery Pending'
+        // Insert Opportunity records into database
+        
+        // Call the method under test
+        Test.startTest();
+        // Execute your method here
+        Test.stopTest();
+        
+        // Assert the values of opptoupdate
+        // Assert other outcomes as needed
+    }
+    
+    @isTest
+    static void testOpportunityCannotBeSubmittedForReview() {
+        List<Opportunity> oppList = new List<Opportunity>();
+        // Create Opportunity records with StageName other than 'Agreement Signatures Pending' or 'Plan Delivery Pending'
+        // Insert Opportunity records into database
+        
+        // Call the method under test
+        Test.startTest();
+        // Execute your method here
+        Test.stopTest();
+        
+        // Assert the values of MaptoReturn
+        // Assert other outcomes as needed
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+Opportunity opptoupdate=new Opportunity();
                 for(Opportunity tempopp:oppList) { 
                     
                     if(tempopp.StageName=='Agreement Signatures Pending') {
