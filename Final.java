@@ -1,3 +1,39 @@
+navigateToDetailView(row) {
+        this.showProcessing = true;
+        goToDetailedView({
+            clientType: row.clientType.includes('Entity') ? 'Entity' : 'Client',
+            ssn: row.ssn,
+            dnis: this.dnis,
+            source: this.source,
+            ctiVRUApp: this.ctiVRUApp,
+            ctiEDU: this.ctiEDU,
+            securityParameter: this.securityParameter,
+            caseOrigin: this.caseOrigin,
+            caseId: this.caseId
+        })
+        .then(result => {
+            this[NavigationMixin.Navigate]({
+                type: 'standard__recordPage',
+                attributes: {
+                    recordId: result,
+                    objectApiName: 'Account',
+                    actionName: 'view'
+                }
+            });
+            this.showProcessing = false;
+        })
+        .catch(error => {
+            this.message = 'Error: ' + error.body.message;
+            this.showMessage = true;
+            this.showProcessing = false;
+        });
+}
+
+
+
+
+
+
 import { LightningElement, track, api } from 'lwc';
 import searchAccounts from '@salesforce/apex/YourApexClass.searchAccounts';
 import goToDetailedView from '@salesforce/apex/YourApexClass.goToDetailedView';
