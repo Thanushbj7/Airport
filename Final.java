@@ -9,6 +9,126 @@
 
 
 
+
+import { LightningElement, track } from 'lwc';
+
+export default class ClientSearch extends LightningElement {
+    @track ssn = '';
+    @track guestLast4SSN = '';
+    @track firstName = '';
+    @track lastName = '';
+    @track state = '';
+    @track showProcessing = false;
+    @track showMessage = false;
+    @track message = '';
+
+    get stateOptions() {
+        return [
+            { label: 'Select State', value: '' },
+            { label: 'Connecticut (CT)', value: 'CT' },
+            { label: 'New York (NY)', value: 'NY' },
+            // Add more states as needed
+        ];
+    }
+
+    handleInputChange(event) {
+        const field = event.target.dataset.id;
+        if (field === 'ssn') {
+            this.ssn = event.target.value;
+        } else if (field === 'guestLast4SSN') {
+            this.guestLast4SSN = event.target.value;
+        } else if (field === 'firstName') {
+            this.firstName = event.target.value;
+        } else if (field === 'lastName') {
+            this.lastName = event.target.value;
+        } else if (field === 'state') {
+            this.state = event.target.value;
+        }
+    }
+
+    handleSearch() {
+        this.showProcessing = true;
+        // Call Apex method to search accounts
+        // Example: searchAccounts({ ssn: this.ssn, guestLast4SSN: this.guestLast4SSN, firstName: this.firstName, lastName: this.lastName, state: this.state })
+        setTimeout(() => {
+            this.showProcessing = false;
+        }, 2000);
+    }
+
+    handleClear() {
+        this.ssn = '';
+        this.guestLast4SSN = '';
+        this.firstName = '';
+        this.lastName = '';
+        this.state = '';
+        this.showProcessing = true;
+        // Call Apex method to reset search
+        // Example: resetSearch()
+        setTimeout(() => {
+            this.showProcessing = false;
+        }, 2000);
+    }
+}
+
+
+
+
+
+<template>
+    <lightning-card title="Client" icon-name="custom:custom63">
+        <div slot="header">Client/Entity Search</div>
+        <div class="slds-m-around_medium">
+            <lightning-input label="SSN/TIN" value={ssn} onchange={handleInputChange} data-id="ssn" placeholder="i.e. 000000000 or 000-00-0000"></lightning-input>
+            <p class="slds-text-align_right"><b>OR</b></p>
+            <lightning-input label="Guest ID Last 4 SSN" value={guestLast4SSN} onchange={handleInputChange} data-id="guestLast4SSN" placeholder="i.e. 00000"></lightning-input>
+            <p class="slds-text-align_right"><b>OR</b></p>
+            <lightning-input label="First Name" value={firstName} onchange={handleInputChange} data-id="firstName" placeholder="Enter % sign for wildcard search"></lightning-input>
+            <lightning-input label="Last Name/Entity Name" value={lastName} onchange={handleInputChange} data-id="lastName" placeholder="Enter % sign for wildcard search"></lightning-input>
+            <lightning-combobox label="State" value={state} onchange={handleInputChange} data-id="state" options={stateOptions} placeholder="Select a state"></lightning-combobox>
+        </div>
+        <lightning-button variant="brand" label="Search" onclick={handleSearch}></lightning-button>
+        <lightning-button label="Clear All" onclick={handleClear}></lightning-button>
+        
+        <template if:true={showProcessing}>
+            <div class="slds-spinner_container">
+                <div role="status" class="slds-spinner slds-spinner_medium">
+                    <span class="slds-assistive-text">Loading</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+                <span>Processing...</span>
+            </div>
+        </template>
+        
+        <template if:true={showMessage}>
+            <div class="slds-text-color_error slds-m-around_medium">
+                <strong>{message}</strong>
+            </div>
+        </template>
+    </lightning-card>
+</template>
+
+
+
+
+
+
+
+
+
+
+
+.slds-spinner_container {
+    display: flex;
+    align-items: center;
+}
+
+.slds-spinner_container span {
+    margin-left: 10px;
+}
+
+
+
 import { LightningElement, track } from 'lwc';
 
 export default class ClientSearch extends LightningElement {
