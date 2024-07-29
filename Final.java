@@ -1,3 +1,125 @@
+import { LightningElement, track } from 'lwc';
+
+export default class ClientSearch extends LightningElement {
+    @track ssn = '';
+    @track guestLast4SSN = '';
+    @track firstName = '';
+    @track lastName = '';
+    @track state = '';
+    @track email = '';
+    @track kpdFlag = false;
+    @track showProcessing = false;
+    @track showMessage = false;
+    @track message = '';
+    @track pagiCount = 1;
+    @track totalPage = 5;  // Example total pages, replace with dynamic value
+    @track pagiList = ['1', '2', '3', '4', '5'];  // Example pagination list, replace with dynamic value
+
+    get stateOptions() {
+        return [
+            { label: 'Select State', value: '' },
+            { label: 'Connecticut (CT)', value: 'CT' },
+            { label: 'New York (NY)', value: 'NY' },
+            // Add more states as needed
+        ];
+    }
+
+    handleInputChange(event) {
+        const field = event.target.dataset.id;
+        if (field === 'ssn') {
+            this.ssn = event.target.value;
+        } else if (field === 'guestLast4SSN') {
+            this.guestLast4SSN = event.target.value;
+        } else if (field === 'firstName') {
+            this.firstName = event.target.value;
+        } else if (field === 'lastName') {
+            this.lastName = event.target.value;
+        } else if (field === 'state') {
+            this.state = event.target.value;
+        } else if (field === 'email') {
+            this.email = event.target.value;
+        } else if (field === 'kpdFlag') {
+            this.kpdFlag = event.target.checked;
+        }
+    }
+
+    handleSearch() {
+        this.showProcessing = true;
+        // Call Apex method to search accounts
+        // Example: searchAccounts({ ssn: this.ssn, guestLast4SSN: this.guestLast4SSN, firstName: this.firstName, lastName: this.lastName, state: this.state, email: this.email, kpdFlag: this.kpdFlag })
+        setTimeout(() => {
+            this.showProcessing = false;
+        }, 2000);
+    }
+
+    handleClear() {
+        this.ssn = '';
+        this.guestLast4SSN = '';
+        this.firstName = '';
+        this.lastName = '';
+        this.state = '';
+        this.email = '';
+        this.kpdFlag = false;
+        this.showProcessing = true;
+        // Call Apex method to reset search
+        // Example: resetSearch()
+        setTimeout(() => {
+            this.showProcessing = false;
+        }, 2000);
+    }
+
+    handlePrevious() {
+        if (this.pagiCount > 1) {
+            this.pagiCount--;
+            this.handlePaginationChange();
+        }
+    }
+
+    handleNext() {
+        if (this.pagiCount < this.totalPage) {
+            this.pagiCount++;
+            this.handlePaginationChange();
+        }
+    }
+
+    handlePageClick(event) {
+        this.pagiCount = parseInt(event.target.label, 10);
+        this.handlePaginationChange();
+    }
+
+    handlePaginationChange() {
+        this.showProcessing = true;
+        // Call Apex method to change pagination
+        // Example: changePagination({ pageIndex: this.pagiCount })
+        setTimeout(() => {
+            this.showProcessing = false;
+        }, 2000);
+    }
+}
+
+
+
+
+
+
+<template>
+    <!-- Existing code -->
+    <template if:true={totalPage > 1}>
+        <div class="slds-m-around_medium">
+            <lightning-button variant="neutral" label="Previous" onclick={handlePrevious} disabled={pagiCount === 1}></lightning-button>
+            <template for:each={pagiList} for:item="page">
+                <lightning-button key={page} label={page} onclick={handlePageClick} class={page === pagiCount ? 'slds-button slds-button_brand' : 'slds-button'}></lightning-button>
+            </template>
+            <lightning-button variant="neutral" label="Next" onclick={handleNext} disabled={pagiCount === totalPage}></lightning-button>
+        </div>
+    </template>
+    <!-- Existing code -->
+</template>
+
+
+
+
+
 .slds-spinner_container {
     display: flex;
     align-items: center;
