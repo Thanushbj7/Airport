@@ -1,3 +1,40 @@
+
+public with sharing class YourApexClass {
+    
+    public PageReference yourNonStaticMethod() {
+        // Your logic here
+        PageReference pageRef = new PageReference('/yourPage');
+        return pageRef;
+    }
+
+    @AuraEnabled
+    public static String callNonStaticMethod() {
+        YourApexClass instance = new YourApexClass();
+        PageReference pageRef = instance.yourNonStaticMethod();
+        return pageRef.getUrl();
+    }
+
+    // Example method using PermissionSetAssignment
+    public void assignPermissionSet(Id userId, String permissionSetName) {
+        PermissionSetAssignment psa = new PermissionSetAssignment(
+            AssigneeId = userId,
+            PermissionSetId = [SELECT Id FROM PermissionSet WHERE Name = :permissionSetName LIMIT 1].Id
+        );
+        insert psa;
+    }
+
+    @AuraEnabled
+    public static void callAssignPermissionSet(Id userId, String permissionSetName) {
+        YourApexClass instance = new YourApexClass();
+        instance.assignPermissionSet(userId, permissionSetName);
+    }
+}
+
+
+
+
+
+
 function goToDetailPage4Console(hasClientSummAccess, ssn, dnis, source, vruApp, ctiEDU, caseId, authenticatedFlag, type, clientType) {
     sforce.console.getEnclosingTabId(function(result) {
         var tabId = result.id;
