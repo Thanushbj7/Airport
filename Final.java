@@ -1,3 +1,204 @@
+public with sharing class YourApexClass {
+    @AuraEnabled(cacheable=true)
+    public static List<SearchResult> searchAccounts(String ssn, String guestLast4SSN, String firstName, String lastName, String state, String email, Boolean kpdFlag) {
+        List<SearchResult> results = new List<SearchResult>();
+        // Add logic to fetch search results based on input parameters
+        return results;
+    }
+
+    public class SearchResult {
+        @AuraEnabled public String accountId;
+        @AuraEnabled public String accountName;
+        @AuraEnabled public String ssn;
+        @AuraEnabled public String accountType;
+    }
+}
+
+
+
+
+
+
+import { LightningElement, track, api } from 'lwc';
+import searchAccounts from '@salesforce/apex/YourApexClass.searchAccounts';
+
+const COLUMNS = [
+    {
+        label: 'Last Four SSN',
+        fieldName: 'ssn',
+        type: 'text',
+        cellAttributes: {
+            alignment: 'left',
+        },
+        typeAttributes: {
+            label: {
+                fieldName: 'ssn',
+            },
+            target: '_blank',
+            tooltip: 'Last Four SSN',
+        },
+    },
+    {
+        label: 'Client Name',
+        fieldName: 'accountName',
+        type: 'text',
+        cellAttributes: {
+            alignment: 'left',
+        },
+        typeAttributes: {
+            label: {
+                fieldName: 'accountName',
+            },
+            target: '_blank',
+            tooltip: 'Client Name',
+        },
+    },
+];
+
+export default class ClientSearch extends LightningElement {
+    @track ssn = '';
+    @track guestLast4SSN = '';
+    @track firstName = '';
+    @track lastName = '';
+    @track state = '';
+    @track email = '';
+    @track kpdFlag = false;
+    @track showProcessing = false;
+    @track showMessage = false;
+    @track message = '';
+    @track pagiCount = 1;
+    @track totalPage = 5;  // Example total pages, replace with dynamic value
+    @track pagiList = ['1', '2', '3', '4', '5'];  // Example pagination list, replace with dynamic value
+    @track displaySrchResultsBlock = false;
+    @track searchList = [];
+    columns = COLUMNS;
+
+    get stateOptions() {
+        return [
+            { label: 'Select State', value: '' },
+            { label: 'Connecticut (CT)', value: 'CT' },
+            { label: 'New York (NY)', value: 'NY' },
+            // Add more states as needed
+        ];
+    }
+
+    handleInputChange(event) {
+        const field = event.target.dataset.id;
+        if (field === 'ssn') {
+            this.ssn = event.target.value;
+        } else if (field === 'guestLast4SSN') {
+            this.guestLast4SSN = event.target.value;
+        } else if (field === 'firstName') {
+            this.firstName = event.target.value;
+        } else if (field === 'lastName') {
+            this.lastName = event.target.value;
+        } else if (field === 'state') {
+            this.state = event.target.value;
+        } else if (field === 'email') {
+            this.email = event.target.value;
+        } else if (field === 'kpdFlag') {
+            this.kpdFlag = event.target.checked;
+        }
+    }
+
+    handleSearch() {
+        this.showProcessing = true;
+        searchAccounts({ 
+            ssn: this.ssn, 
+            guestLast4SSN: this.guestLast4SSN, 
+            firstName: this.firstName, 
+            lastName: this.lastName, 
+            state: this.state, 
+            email: this.email, 
+            kpdFlag: this.kpdFlag 
+        })
+        .then(result => {
+            this.searchList = result;
+            this.displaySrchResultsBlock = true;
+            this.showProcessing = false;
+        })
+        .catch(error => {
+            this.message = 'Error: ' + error.body.message;
+            this.showMessage = true;
+            this.showProcessing = false;
+        });
+    }
+
+    handleClear() {
+        this.ssn = '';
+        this.guestLast4SSN = '';
+        this.firstName = '';
+        this.lastName = '';
+        this.state = '';
+        this.email = '';
+        this.kpdFlag = false;
+        this.showProcessing = true;
+        // Call Apex method to reset search
+        // Example: resetSearch()
+        setTimeout(() => {
+            this.showProcessing = false;
+        }, 2000);
+    }
+
+    handlePrevious() {
+        if (this.pagiCount > 1) {
+            this.pagiCount--;
+            this.handlePaginationChange();
+        }
+    }
+
+    handleNext() {
+        if (this.pagiCount < this.totalPage) {
+            this.pagiCount++;
+            this.handlePaginationChange();
+        }
+    }
+
+    handlePageClick(event) {
+        this.pagiCount = parseInt(event.target.label, 10);
+        this.handlePaginationChange();
+    }
+
+    handlePaginationChange() {
+        this.showProcessing = true;
+        // Call Apex method to change pagination
+        // Example: changePagination({ pageIndex: this.pagiCount })
+        setTimeout(() => {
+            this.showProcessing = false;
+        }, 2000);
+    }
+	    }
+
+
+
+
+
+<template>
+    <!-- Existing code -->
+    <template if:true={displaySrchResultsBlock}>
+        <lightning-card title="Search Results" collapsible="true">
+            <lightning-datatable
+                key-field="id"
+                data={searchList}
+                columns={columns}
+                hide-checkbox-column
+            ></lightning-datatable>
+        </lightning-card>
+    </template>
+    <!-- Existing code -->
+</template>
+
+
+			
+
+
+
+
+
+
+
+
+
 import { LightningElement, track } from 'lwc';
 
 export default class ClientSearch extends LightningElement {
