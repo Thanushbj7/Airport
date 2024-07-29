@@ -1,3 +1,32 @@
+function goToDetailPage4Console(hasClientSummAccess, ssn, dnis, source, vruApp, ctiEDU, caseId, authenticatedFlag, type, clientType) {
+    sforce.console.getEnclosingTabId(function(result) {
+        var tabId = result.id;
+        var params = {
+            hasClientSummAccess: hasClientSummAccess,
+            ssn: ssn,
+            dnis: dnis,
+            source: source,
+            vruApp: vruApp,
+            ctiEDU: ctiEDU,
+            caseId: caseId,
+            authenticatedFlag: authenticatedFlag,
+            type: type,
+            clientType: clientType
+        };
+        
+        var url = '/apex/YourDetailedViewPageName?' + Object.keys(params).map(function(key) {
+            return key + '=' + encodeURIComponent(params[key]);
+        }).join('&');
+
+        sforce.console.openSubtab(tabId, url, true, 'Detailed View', null);
+    });
+}
+
+
+
+
+
+
 navigateToDetailView(row) {
         this.showProcessing = true;
         goToDetailedView({
