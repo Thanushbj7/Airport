@@ -1,3 +1,295 @@
+import { LightningElement, track, api } from 'lwc';
+import searchAccounts from '@salesforce/apex/YourApexClass.searchAccounts';
+import goToDetailedView from '@salesforce/apex/YourApexClass.goToDetailedView';
+
+const COLUMNS = [
+    {
+        label: 'Last Four SSN',
+        fieldName: 'ssn',
+        type: 'text',
+        cellAttributes: {
+            alignment: 'left',
+        },
+        typeAttributes: {
+            label: {
+                fieldName: 'ssn',
+            },
+            target: '_blank',
+            tooltip: 'Last Four SSN',
+        },
+    },
+    {
+        label: 'Client Name',
+        fieldName: 'accountName',
+        type: 'text',
+        cellAttributes: {
+            alignment: 'left',
+        },
+        typeAttributes: {
+            label: {
+                fieldName: 'accountName',
+            },
+            target: '_blank',
+            tooltip: 'Client Name',
+        },
+    },
+    {
+        label: 'Type',
+        fieldName: 'clientType',
+        type: 'text',
+    },
+    {
+        label: 'Address',
+        fieldName: 'address',
+        type: 'text',
+    },
+    {
+        label: 'Consent Status',
+        fieldName: 'iiaConsent',
+        type: 'text',
+    },
+    {
+        label: 'RR Access Level',
+        fieldName: 'rrAccessLevel',
+        type: 'text',
+    },
+    {
+        label: 'Online Planning Indicator',
+        fieldName: 'onlinePlanningInd',
+        type: 'text',
+    },
+    {
+        label: 'Source',
+        fieldName: 'accountType',
+        type: 'text',
+        cellAttributes: {
+            class: {
+                fieldName: 'hasAdminNRelatedProfileClass'
+            }
+        },
+    },
+    {
+        label: 'Action',
+        type: 'button',
+        typeAttributes: {
+            label: 'Go To Detailed View',
+            name: 'detailed_view',
+            variant: 'base'
+        },
+        cellAttributes: {
+            class: {
+                fieldName: 'isInConsoleClass'
+            }
+        },
+    },
+];
+
+export default class ClientSearch extends LightningElement {
+    @track ssn = '';
+    @track guestLast4SSN = '';
+    @track firstName = '';
+    @track lastName = '';
+    @track state = '';
+    @track email = '';
+    @track kpdFlag = false;
+    @track showProcessing = false;
+    @track showMessage = false;
+    @track message = '';
+    @track pagiCount = 1;
+    @track totalPage = 5;  // Example total pages, replace with dynamic value
+    @track pagiList = ['1', '2', '3', '4', '5'];  // Example pagination list, replace with dynamic value
+    @track displaySrchResultsBlock = false;
+    @track searchList = [];
+    columns = COLUMNS;
+
+    get stateOptions() {
+        return [
+            { label: 'Select State', value: '' },
+            { label: 'Connecticut (CT)', value: 'CT' },
+            { label: 'New York (NY)', value: 'NY' },
+            // Add more states as needed
+        ];
+    }
+
+    handleInputChange(event) {
+        const field = event.target.dataset.id;
+        if (field === 'ssn') {
+            this.ssn = event.target.value;
+        } else if (field === 'guestLast4SSN') {
+            this.guestLast4SSN = event.target.value;
+        } else if (field === 'firstName') {
+            this.firstName = event.target.value;
+        } else if (field === 'lastName') {
+            this.lastName = event.target.value;
+        } else if (field === 'state') {
+            this.state = event.target.value;
+        } else if (field === 'email') {
+            this.email = event.target.value;
+        } else if (field === 'kpdFlag') {
+            this.kpdFlag = event.target.checked;
+        }
+    }
+
+    handleSearch() {
+        this.showProcessing = true;
+        searchAccounts({ 
+            ssn: this.ssn, 
+            guestLast4SSN: this.guestLast4SSN, 
+            firstName: this.firstName, 
+            lastName: this.lastName, 
+            state: this.state, 
+            email: this.email, 
+            kpdFlag: this.kpdFlag 
+        })
+        .then(result => {
+            this.searchList = result.map(item => {
+                return {
+                    ...item,
+                    hasAdminNRelatedProfileClass: this.hasAdminNRelatedProfile ? '' : 'slds-hide',
+                    isInConsoleClass: this.isInConsole ? 'slds-hide' : '',
+                };
+            });
+            this.displaySrchResultsBlock = true;
+            this.showProcessing = false;
+        })
+        .catch(error => {
+            this.message = 'Error: ' + error.body.message;
+            this.showMessage = true;
+            this.showProcessing = false;
+        });
+    }
+
+    handleClear() {
+        this.ssn = '';
+        this.guestLast4SSN = '';
+        this.firstName = '';
+        this.lastName = '';
+        this.state = '';
+        this.email = '';
+        this.kpdFlag = false;
+        this.showProcessing = true;
+        // Call Apex method to reset search
+        // Example: resetSearch()
+        setTimeout(() => {
+            this.showProcessing = false;
+        }, 2000);
+    }
+
+    handlePrevious() {
+        if (this.pagiCount > 1) {
+            this.pagiCount--;
+            this.handlePaginationChange();
+        }
+    }
+
+    handleNext() {
+        if (this.pagiCount < this.totalPage) {
+            this.pagiCount++;
+            this.handlePaginationChange();
+        }
+    }
+
+    handlePageClick(event) {
+        this.pagiCount = parseInt(event.target.label, 10);
+        this.handlePaginationChange();
+    }
+
+    handlePaginationChange() {
+        this.showProcessing = true;
+        // Call Apex method to change pagination
+        // Example: changePagination({ pageIndex: this.pagiCount })
+        setTimeout(() => {
+            this.showProcessing = false;
+        }, 2000);
+    }
+
+    handleRowAction(event) {
+        const actionName = event.detail.action.name;
+        const row = event.detail.row;
+        if (actionName === 'detailed_view') {
+            this.navigateToDetailView(row);
+        }
+    }
+
+    navigateToDetailView(row) {
+        this.showProcessing = true;
+        goToDetailedView({
+            clientType: row.clientType.includes('Entity') ? 'Entity' : 'Client',
+            ssn: row.ssn,
+            dnis: this.dnis,
+            source: this.source,
+            ctiVRUApp: this.ctiVRUApp,
+            ctiEDU: this.ctiEDU,
+            securityParameter: this.securityParameter,
+            caseOrigin: this.caseOrigin,
+            caseId: this.caseId
+        })
+        .then(result => {
+            this.message = 'Navigating to detailed view...';
+            this.showMessage = true;
+            this.showProcessing = false;
+            // Logic to navigate to detailed view, e.g., navigating to a different URL
+        })
+        .catch(error => {
+            this.message = 'Error: '
+
+
+
+
+
+
+<template>
+    <lightning-card title="Client/Entity Search">
+        <!-- Search Criteria Form -->
+        <lightning-layout>
+            <!-- Existing code for form inputs -->
+        </lightning-layout>
+        
+        <lightning-button label="Search" onclick={handleSearch}></lightning-button>
+        <lightning-button label="Clear All" onclick={handleClear}></lightning-button>
+        
+        <!-- Pagination Controls -->
+        <template if:true={displaySrchResultsBlock}>
+            <div class="slds-m-around_medium">
+                <lightning-button label="Previous" onclick={handlePrevious} class="slds-m-right_small" disabled={isPreviousDisabled}></lightning-button>
+                <template for:each={pagiList} for:item="page">
+                    <lightning-button label={page} key={page} onclick={handlePageClick} class={page === pagiCount ? 'slds-button_neutral' : 'slds-button_outline-brand'}></lightning-button>
+                </template>
+                <lightning-button label="Next" onclick={handleNext} class="slds-m-left_small" disabled={isNextDisabled}></lightning-button>
+            </div>
+        </template>
+
+        <!-- Search Results Table -->
+        <template if:true={displaySrchResultsBlock}>
+            <lightning-datatable
+                key-field="id"
+                data={searchList}
+                columns={columns}
+                hide-checkbox-column="true">
+            </lightning-datatable>
+        </template>
+
+        <!-- Loading Spinner -->
+        <template if:true={showProcessing}>
+            <lightning-spinner alternative-text="Processing..." size="medium"></lightning-spinner>
+        </template>
+
+        <!-- Error Message -->
+        <template if:true={showMessage}>
+            <div class="slds-box slds-theme_error slds-m-around_medium">
+                {message}
+            </div>
+        </template>
+    </lightning-card>
+</template>
+
+
+
+
+
+
+
+
 public with sharing class YourApexClass {
     @AuraEnabled(cacheable=true)
     public static List<SearchResult> searchAccounts(String ssn, String guestLast4SSN, String firstName, String lastName, String state, String email, Boolean kpdFlag) {
