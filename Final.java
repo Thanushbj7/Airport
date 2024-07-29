@@ -1,3 +1,74 @@
+
+<template>
+    <lightning-card title="Client" icon-name="custom:custom63">
+        <div slot="header">Client/Entity Search</div>
+        <lightning-button variant="brand" label="Search" onclick={handleSearch}></lightning-button>
+        <lightning-button label="Clear All" onclick={handleClear}></lightning-button>
+        
+        <template if:true={showProcessing}>
+            <div class="slds-spinner_container">
+                <div role="status" class="slds-spinner slds-spinner_medium">
+                    <span class="slds-assistive-text">Loading</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+                <span>Processing...</span>
+            </div>
+        </template>
+        
+        <template if:true={showMessage}>
+            <div class="slds-text-color_error slds-m-around_medium">
+                <strong>{message}</strong>
+            </div>
+        </template>
+    </lightning-card>
+</template>
+
+
+
+	import { LightningElement, track } from 'lwc';
+
+export default class ClientSearch extends LightningElement {
+    @track showProcessing = false;
+    @track showMessage = false;
+    @track message = '';
+
+    handleSearch() {
+        this.showProcessing = true;
+        // Call Apex method to search accounts
+        // Example: searchAccounts()
+        setTimeout(() => {
+            this.showProcessing = false;
+        }, 2000);
+    }
+
+    handleClear() {
+        this.showProcessing = true;
+        // Call Apex method to reset search
+        // Example: resetSearch()
+        setTimeout(() => {
+            this.showProcessing = false;
+        }, 2000);
+    }
+}
+
+.slds-spinner_container {
+    display: flex;
+    align-items: center;
+}
+
+.slds-spinner_container span {
+    margin-left: 10px;
+}
+
+
+
+
+
+
+
+
+
 <apex:sectionHeader title="Client" subtitle="Client/Entity Search"/>
 <apex:form id="frm">
     <br/>
