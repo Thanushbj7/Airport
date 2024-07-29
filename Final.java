@@ -4,6 +4,165 @@
 }
 
 .slds-spinner_container span {
+    margin-left
+
+
+
+
+
+import { LightningElement, track } from 'lwc';
+
+export default class ClientSearch extends LightningElement {
+    @track ssn = '';
+    @track guestLast4SSN = '';
+    @track firstName = '';
+    @track lastName = '';
+    @track state = '';
+    @track email = '';
+    @track kpdFlag = false;
+    @track showProcessing = false;
+    @track showMessage = false;
+    @track message = '';
+    @track pagiCount = 1;
+    @track totalPage = 5;  // Example total pages, replace with dynamic value
+    @track pagiList = ['1', '2', '3', '4', '5'];  // Example pagination list, replace with dynamic value
+
+    get stateOptions() {
+        return [
+            { label: 'Select State', value: '' },
+            { label: 'Connecticut (CT)', value: 'CT' },
+            { label: 'New York (NY)', value: 'NY' },
+            // Add more states as needed
+        ];
+    }
+
+    handleInputChange(event) {
+        const field = event.target.dataset.id;
+        if (field === 'ssn') {
+            this.ssn = event.target.value;
+        } else if (field === 'guestLast4SSN') {
+            this.guestLast4SSN = event.target.value;
+        } else if (field === 'firstName') {
+            this.firstName = event.target.value;
+        } else if (field === 'lastName') {
+            this.lastName = event.target.value;
+        } else if (field === 'state') {
+            this.state = event.target.value;
+        } else if (field === 'email') {
+            this.email = event.target.value;
+        } else if (field === 'kpdFlag') {
+            this.kpdFlag = event.target.checked;
+        }
+    }
+
+    handleSearch() {
+        this.showProcessing = true;
+        // Call Apex method to search accounts
+        // Example: searchAccounts({ ssn: this.ssn, guestLast4SSN: this.guestLast4SSN, firstName: this.firstName, lastName: this.lastName, state: this.state, email: this.email, kpdFlag: this.kpdFlag })
+        setTimeout(() => {
+            this.showProcessing = false;
+        }, 2000);
+    }
+
+    handleClear() {
+        this.ssn = '';
+        this.guestLast4SSN = '';
+        this.firstName = '';
+        this.lastName = '';
+        this.state = '';
+        this.email = '';
+        this.kpdFlag = false;
+        this.showProcessing = true;
+        // Call Apex method to reset search
+        // Example: resetSearch()
+        setTimeout(() => {
+            this.showProcessing = false;
+        }, 2000);
+    }
+
+    handlePrevious() {
+        if (this.pagiCount > 1) {
+            this.pagiCount--;
+            this.handlePaginationChange();
+        }
+    }
+
+    handlePageClick(event) {
+        this.pagiCount = parseInt(event.target.label, 10);
+        this.handlePaginationChange();
+    }
+
+    handlePaginationChange() {
+        this.showProcessing = true;
+        // Call Apex method to change pagination
+        // Example: changePagination({ pageIndex: this.pagiCount })
+        setTimeout(() => {
+            this.showProcessing = false;
+        }, 2000);
+    }
+}
+
+
+
+
+
+<template>
+    <lightning-card title="Client" icon-name="custom:custom63">
+        <div slot="header">Client/Entity Search</div>
+        <div class="slds-m-around_medium">
+            <lightning-input label="SSN/TIN" value={ssn} onchange={handleInputChange} data-id="ssn" placeholder="i.e. 000000000 or 000-00-0000"></lightning-input>
+            <p class="slds-text-align_right"><b>OR</b></p>
+            <lightning-input label="Guest ID Last 4 SSN" value={guestLast4SSN} onchange={handleInputChange} data-id="guestLast4SSN" placeholder="i.e. 00000"></lightning-input>
+            <p class="slds-text-align_right"><b>OR</b></p>
+            <lightning-input label="First Name" value={firstName} onchange={handleInputChange} data-id="firstName" placeholder="Enter % sign for wildcard search"></lightning-input>
+            <lightning-input label="Last Name/Entity Name" value={lastName} onchange={handleInputChange} data-id="lastName" placeholder="Enter % sign for wildcard search"></lightning-input>
+            <lightning-combobox label="State" value={state} onchange={handleInputChange} data-id="state" options={stateOptions} placeholder="Select a state"></lightning-combobox>
+            <lightning-input label="Email" value={email} onchange={handleInputChange} data-id="email" placeholder="Enter full email address"></lightning-input>
+            <lightning-input type="checkbox" label="KPD" checked={kpdFlag} onchange={handleInputChange} data-id="kpdFlag"></lightning-input>
+        </div>
+        <lightning-button variant="brand" label="Search" onclick={handleSearch}></lightning-button>
+        <lightning-button label="Clear All" onclick={handleClear}></lightning-button>
+        
+        <template if:true={showProcessing}>
+            <div class="slds-spinner_container">
+                <div role="status" class="slds-spinner slds-spinner_medium">
+                    <span class="slds-assistive-text">Loading</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+                <span>Processing...</span>
+            </div>
+        </template>
+        
+        <template if:true={showMessage}>
+            <div class="slds-text-color_error slds-m-around_medium">
+                <strong>{message}</strong>
+            </div>
+        </template>
+
+        <template if:true={totalPage > 1}>
+            <div class="slds-m-around_medium">
+                <lightning-button variant="neutral" label="Previous" onclick={handlePrevious} disabled={pagiCount === 1}></lightning-button>
+                <template for:each={pagiList} for:item="page">
+                    <lightning-button key={page} label={page} onclick={handlePageClick} class={page === pagiCount ? 'slds-button slds-button_brand' : 'slds-button'}></lightning-button>
+                </template>
+            </div>
+        </template>
+    </lightning-card>
+</template>
+
+
+
+
+
+
+
+.slds-spinner_container {
+    display: flex;
+    align-items: center;
+}
+
+.slds-spinner_container span {
     margin-left: 10px;
 }
 
