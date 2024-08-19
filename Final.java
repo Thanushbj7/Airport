@@ -1,3 +1,16 @@
+•	Created and maintained database objects such as tables, indexes, views, triggers, stored procedures
+•	Designed databases to store application data using Oracle SQL 11/12c client.
+•	Evaluated and implemented the leading conversion tool for migrating VB6 applications to VB.NET, achieving a 70% conversion rate.
+•	Developed and maintained batch scripts to automate system tasks and improve operational efficiency, resulting in a 30% reduction in manual processing time
+•	Created comprehensive TSD documentation for all team-related activities using SharePoint for easy access and tracking when onboarding new services or new members and facilitate in their training
+•	Facilitating releases of software upgrades quarterly and also ad-hoc releases
+•	Created various simple, edited complex reports, mainly using business objects universes as data providers
+
+
+
+
+
+
 Salesforce Developer with 2.4 years of experience. Adept in Apex programming, SOQL, JavaScript, LWC, HTML, CSS, and Salesforce administration. Proficient in multitenant architecture, governor limits, data modeling, flows, process builder, record-sharing concepts, and data management tools. Known for delivering high-quality solutions, ensuring platform optimization, and fostering collaboration within teams. Combines technical expertise with strong communication and problem-solving skills to drive successful Salesforce implementations and support business objectives.
 
 
