@@ -1,3 +1,16 @@
+Salesforce Developer with 2.4 years of experience. Adept in Apex programming, SOQL, JavaScript, LWC, HTML, CSS, and Salesforce administration. Proficient in multitenant architecture, governor limits, data modeling, flows, process builder, record-sharing concepts, and data management tools. Known for delivering high-quality solutions, ensuring platform optimization, and fostering collaboration within teams. Combines technical expertise with strong communication and problem-solving skills to drive successful Salesforce implementations and support business objectives.
+
+
+
+
+
+
+
+
+
+
+
+
 
 public with sharing class YourApexClass {
     
