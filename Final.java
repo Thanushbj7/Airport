@@ -1,3 +1,11 @@
+- Worked on a Java project named "Copy Table Automation," automating the process of copying data from log files and generating Excel files through code.
+- Developed logic to map data into Excel based on specific conditions, ensuring accurate and efficient data representation.
+- Streamlined workflows to automate repetitive tasks, enhancing productivity and reducing manual effort.
+
+
+
+
+
 - Led the migration and retirement of a key application from Salesforce Classic to Lightning, utilized by call center personnel to enroll U.S. citizens in retirement plans.
 - Designed and implemented Lightning flows to streamline complex business processes and enhance user interaction.
 - Leveraged Data Loader for efficient data management and migration during the transition phase, ensuring data integrity and accuracy.
