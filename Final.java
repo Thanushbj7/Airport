@@ -1,3 +1,14 @@
+- Led the migration and retirement of a key application from Salesforce Classic to Lightning, utilized by call center personnel to enroll U.S. citizens in retirement plans.
+- Designed and implemented Lightning flows to streamline complex business processes and enhance user interaction.
+- Leveraged Data Loader for efficient data management and migration during the transition phase, ensuring data integrity and accuracy.
+- Collaborated closely with teams to ensure a smooth transition while providing support for troubleshooting and resolving issues during and after the migration process.
+
+
+
+
+
+
+
 •	Created and maintained database objects such as tables, indexes, views, triggers, stored procedures
 •	Designed databases to store application data using Oracle SQL 11/12c client.
 •	Evaluated and implemented the leading conversion tool for migrating VB6 applications to VB.NET, achieving a 70% conversion rate.
