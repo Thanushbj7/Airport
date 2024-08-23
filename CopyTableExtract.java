@@ -1,3 +1,18 @@
+3. Salesforce Admin Tools and FeaturesSetup Menu: The main hub for all administrative tasks, where you can configure settings, manage users, and customize the platform.Data Loader and Import Wizard: Tools for importing, exporting, and updating large volumes of data.Validation Rules: Ensure data integrity by enforcing business rules.Flow Builder and Process Builder: Tools for automating business processes without code.Sandbox Environments: Separate environments for development, testing, and training purposes to ensure changes do not impact the live environment.Sharing Settings and Roles: Configuring who can see what data across the organization.
+
+
+
+
+
+3. Salesforce Admin Tools and FeaturesSetup Menu: The main hub for all administrative tasks, where you can configure settings, manage users, and customize the platform.Data Loader and Import Wizard: Tools for importing, exporting, and updating large volumes of data.Validation Rules: Ensure data integrity by enforcing business rules.Flow Builder and Process Builder: Tools for automating business processes without code.Sandbox Environments: Separate environments for development, testing, and training purposes to ensure changes do not impact the live environment.Sharing Settings and Roles: Configuring who can see what data across the organization.
+
+
+
+
+
+
+
+
 @isTest
 private class TestOpportunityUpdate {
 
