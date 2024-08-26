@@ -1,3 +1,12 @@
+. Global ActionsDefinition: Global actions are not tied to any specific object and can be placed anywhere actions are supported, such as the global actions menu or utility bar.Usage: Common use cases include creating a new task, logging a call, sending an email, or creating a record (e.g., new contact or opportunity) from anywhere within Salesforce.Customization: Administrators can customize global actions by adding them to the Global Publisher Layouts or specific apps’ utility bars to make them more accessible.3. Object-Specific ActionsDefinition: Object-specific actions are tied to specific Salesforce objects, such as Accounts, Contacts, Leads, Opportunities, etc. They appear on the record detail pages for those objects.Usage: Useful for creating related records (e.g., creating a new Opportunity from an Account record), updating records, logging calls, or launching flows or Visualforce pages related to that object.Customization: Administrators can add object-specific actions to page layouts to tailor the user experience based on the needs of specific teams or business processes.
+
+
+
+
+
+
+
+
 Here are the key points from the **Lightning Experience Customization** topic in Salesforce Trailhead:
 
 ### **1. Overview of Lightning Experience Customization**
