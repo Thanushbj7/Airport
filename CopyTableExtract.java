@@ -1,3 +1,81 @@
+While prompts and walkthroughs are powerful tools for guiding users and enhancing their experience, they are not always the best solution for every situation. Using them inappropriately can lead to user frustration, reduced engagement, or even abandonment of the application. Here are some **unsuitable use cases** for prompts and walkthroughs:
+
+### **Unsuitable Use Cases for Prompts**
+
+1. **Complex, Multi-Step Processes:**
+   - **Scenario**: A user needs to perform a series of steps to complete a task, such as setting up a new feature or configuring a complex workflow.
+   - **Why Unsuitable**: Prompts provide limited guidance and are not effective for guiding users through a lengthy or intricate process. Users may become frustrated if they receive fragmented instructions without a clear, cohesive path.
+   - **Better Alternative**: A **walkthrough** or step-by-step guide would be more appropriate to ensure users understand each stage of the process.
+
+2. **Training or Onboarding New Users:**
+   - **Scenario**: A new user is trying to learn the application for the first time.
+   - **Why Unsuitable**: Prompts alone may not provide enough context or detailed information for a new user to understand how to use the application effectively. This can lead to confusion and a poor onboarding experience.
+   - **Better Alternative**: A comprehensive **walkthrough** that introduces key features and provides detailed instructions is more effective for onboarding.
+
+3. **Frequent or Excessive Use:**
+   - **Scenario**: Using prompts for every small action or recommendation throughout the application.
+   - **Why Unsuitable**: Overusing prompts can become intrusive and annoying, causing users to ignore them or become frustrated. This is often referred to as "prompt fatigue."
+   - **Better Alternative**: Use prompts sparingly for key actions or provide an option for users to disable them if they find them overwhelming.
+
+4. **Critical Errors or Warnings:**
+   - **Scenario**: A serious error occurs, or there is an important system alert (e.g., data loss risk, security warning).
+   - **Why Unsuitable**: A simple prompt may not convey the urgency or importance of the situation. Users might dismiss the prompt without taking appropriate action.
+   - **Better Alternative**: Use a more prominent notification method, such as a **modal dialog box** or a dedicated alert banner, to ensure users notice and act on critical messages.
+
+5. **Deep Learning or Educational Content:**
+   - **Scenario**: Users need to learn best practices or understand a complex concept, like advanced analytics.
+   - **Why Unsuitable**: Prompts are not designed for in-depth education or to convey complex information effectively.
+   - **Better Alternative**: **Walkthroughs**, dedicated training modules, or interactive tutorials are better suited for deep learning.
+
+6. **Non-Interactive or Static Content:**
+   - **Scenario**: Providing information that does not require user interaction, such as a detailed policy or extensive documentation.
+   - **Why Unsuitable**: Prompts are designed for quick, actionable guidance and not for displaying large amounts of text or non-interactive content.
+   - **Better Alternative**: Use **links to documentation** or **knowledge base articles** for more in-depth, static content.
+
+### **Unsuitable Use Cases for Walkthroughs**
+
+1. **Simple, Single-Step Actions:**
+   - **Scenario**: Users need to perform a straightforward action, such as clicking a button to save their changes.
+   - **Why Unsuitable**: A walkthrough for a simple action is overkill and could waste users’ time. It may frustrate users by making them go through unnecessary steps.
+   - **Better Alternative**: A simple **prompt** or tooltip is sufficient for guiding users through basic, single-step actions.
+
+2. **Frequently Repeated Tasks:**
+   - **Scenario**: A task that users perform regularly, like logging in or updating their status.
+   - **Why Unsuitable**: Walkthroughs are unnecessary for tasks that users are already familiar with and perform frequently. It can lead to annoyance and disrupt the flow.
+   - **Better Alternative**: No guidance is needed, or use minimal **prompts** if necessary for less experienced users.
+
+3. **Non-Critical Feature Introduction:**
+   - **Scenario**: Introducing a minor feature that is not essential to the user's experience.
+   - **Why Unsuitable**: A walkthrough might feel excessive for introducing a minor feature, especially if it interrupts the user's current workflow.
+   - **Better Alternative**: A **prompt** or a small banner announcement might be sufficient to draw attention to a new minor feature.
+
+4. **Time-Sensitive Tasks:**
+   - **Scenario**: Users are in the middle of a time-sensitive task, such as responding to customer inquiries or processing orders.
+   - **Why Unsuitable**: A walkthrough can be disruptive and time-consuming, causing users to miss critical deadlines or delay their tasks.
+   - **Better Alternative**: Use **minimal prompts** or provide an option to "skip" guidance to avoid disrupting the user’s workflow.
+
+5. **High-Frequency Updates or Changes:**
+   - **Scenario**: The application is frequently updated, and users are already familiar with how to navigate these changes.
+   - **Why Unsuitable**: Frequent walkthroughs can become tedious and lead to user disengagement. Users might skip or ignore them due to familiarity with the platform.
+   - **Better Alternative**: Use **release notes** or a **“What’s New” section** that users can access at their convenience.
+
+6. **Users Who Are Already Experienced:**
+   - **Scenario**: Seasoned users who are familiar with the system and its features.
+   - **Why Unsuitable**: Experienced users might find walkthroughs redundant and time-consuming, especially if they already know how to use the features being explained.
+   - **Better Alternative**: Provide an option to **opt-out** of walkthroughs or skip directly to the end.
+
+### **Conclusion**
+
+- **Prompts** are unsuitable for complex processes, training, deep learning, or frequent use scenarios where they might overwhelm users.
+- **Walkthroughs** are unsuitable for simple tasks, frequently repeated actions, non-critical feature introductions, time-sensitive tasks, and experienced users.
+
+Understanding when and how to use these tools effectively helps maintain a smooth user experience and avoids frustrating users with unnecessary or inappropriate guidance.
+
+
+
+
+
+
 Prompts and walkthroughs are two tools that can significantly enhance user engagement and experience in applications, especially in platforms like Salesforce. Choosing the right tool depends on the context, the complexity of the task, and the user’s familiarity with the system. Here are some suitable use cases for each:
 
 ### **Use Cases for Prompts**
