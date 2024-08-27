@@ -1,3 +1,86 @@
+Prompts and walkthroughs are two tools that can significantly enhance user engagement and experience in applications, especially in platforms like Salesforce. Choosing the right tool depends on the context, the complexity of the task, and the user’s familiarity with the system. Here are some suitable use cases for each:
+
+### **Use Cases for Prompts**
+
+1. **Highlighting New Features or Updates:**
+   - **Scenario**: You’ve released a minor update with a new button or small feature.
+   - **Use Case**: A prompt appears next to the new button with a brief explanation of its functionality, encouraging users to try it out.
+   - **Benefit**: Quickly informs users about new features without interrupting their workflow.
+
+2. **Providing Contextual Help:**
+   - **Scenario**: Users are filling out a form with some complex fields or unfamiliar terminology.
+   - **Use Case**: A tooltip prompt appears when users hover over a field, explaining what is required or offering an example.
+   - **Benefit**: Reduces user confusion and errors by providing just-in-time information.
+
+3. **Encouraging Specific Actions:**
+   - **Scenario**: You want users to complete their profiles or update outdated information.
+   - **Use Case**: A prompt appears at the top of the dashboard, nudging users to complete their profiles or make updates.
+   - **Benefit**: Drives user action towards specific goals or areas that need attention.
+
+4. **Alerting Users to Errors or Required Fields:**
+   - **Scenario**: A user submits a form without completing all required fields.
+   - **Use Case**: A prompt or error message appears next to the missing fields, explaining what is needed.
+   - **Benefit**: Provides immediate feedback, reducing frustration and improving form submission accuracy.
+
+5. **Offering Quick Tips or Best Practices:**
+   - **Scenario**: A user is interacting with a complex feature or tool for the first time.
+   - **Use Case**: A small prompt offers a quick tip or best practice to help the user use the feature more effectively.
+   - **Benefit**: Enhances the user experience by providing helpful guidance without needing a full walkthrough.
+
+6. **Notifying Users of System Changes or Maintenance:**
+   - **Scenario**: Scheduled maintenance or an important update is planned.
+   - **Use Case**: A prompt notifies users about the upcoming downtime or changes directly within the application.
+   - **Benefit**: Keeps users informed about critical updates or changes, minimizing confusion and disruptions.
+
+### **Use Cases for Walkthroughs**
+
+1. **Onboarding New Users:**
+   - **Scenario**: New users sign up and need to learn how to navigate the application.
+   - **Use Case**: A walkthrough guides them through key features, highlighting essential tools and functionalities.
+   - **Benefit**: Helps new users get up to speed quickly, reducing the learning curve and improving initial user engagement.
+
+2. **Introducing a Major New Feature or Redesign:**
+   - **Scenario**: A significant new feature has been launched, or the UI has been redesigned.
+   - **Use Case**: A walkthrough takes users through the changes step-by-step, explaining new functionalities and where old features have moved.
+   - **Benefit**: Reduces user confusion and helps them adapt to new features or layouts.
+
+3. **Guiding Users Through Complex Processes:**
+   - **Scenario**: A user needs to complete a multi-step process, like setting up a workflow or configuring a complex report.
+   - **Use Case**: A walkthrough guides users through each step of the process, ensuring they complete all necessary actions.
+   - **Benefit**: Reduces errors and ensures users successfully complete complex tasks.
+
+4. **Training on Advanced Features:**
+   - **Scenario**: Users need to learn how to use advanced or less intuitive features.
+   - **Use Case**: A walkthrough provides an in-depth guide on how to use these features effectively, perhaps even including interactive elements where users try the features themselves.
+   - **Benefit**: Improves user competence and confidence in using advanced features, increasing overall satisfaction and usage.
+
+5. **Facilitating Role-Specific Training:**
+   - **Scenario**: Different user roles require different sets of skills and knowledge to use the application effectively.
+   - **Use Case**: Role-specific walkthroughs train users based on their job requirements, ensuring they learn the features most relevant to their role.
+   - **Benefit**: Tailored training enhances efficiency and ensures that users get the most out of the platform based on their specific needs.
+
+6. **Providing Guidance During System Migrations or Upgrades:**
+   - **Scenario**: The organization is transitioning from an old system to a new one or upgrading to a major new version.
+   - **Use Case**: Walkthroughs help users navigate the new system or changes, highlighting differences and guiding them through the transition smoothly.
+   - **Benefit**: Eases the transition and reduces resistance to change by providing clear, step-by-step guidance.
+
+7. **Driving User Engagement for Underutilized Features:**
+   - **Scenario**: Certain features are underutilized, and you want to drive more engagement with them.
+   - **Use Case**: A targeted walkthrough introduces these features to users, explaining their benefits and how to use them.
+   - **Benefit**: Increases the adoption and usage of valuable but underutilized features.
+
+### **Conclusion**
+- **Prompts** are best for quick, context-specific guidance or when you want to nudge users towards a particular action without interrupting their flow.
+- **Walkthroughs** are ideal for onboarding, training, complex tasks, and guiding users through significant changes or new features.
+
+Using these tools appropriately based on the use case can significantly enhance the user experience, ensuring users feel supported and empowered as they interact with your platform.
+
+
+
+
+
+
+
 When deciding between using **prompts** or **walkthroughs** to engage users, it's essential to understand the strengths and ideal use cases for each tool. Both serve to guide users and improve their experience with an application, but they do so in different ways.
 
 ### **Prompts**
