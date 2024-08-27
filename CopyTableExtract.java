@@ -1,3 +1,70 @@
+**Floating, targeted, and docked prompts** are three different styles of prompts used to engage users and provide them with information or guidance within an application. Each type of prompt has unique characteristics, and understanding when to use each can help enhance the user experience effectively. Here's a breakdown of each type:
+
+### **1. Floating Prompts**
+
+- **Description**: Floating prompts are free-floating elements that appear on top of the content and are not anchored to any specific UI element. They often look like a small pop-up window or bubble and can be moved around the screen.
+- **Characteristics**:
+  - **Flexible Positioning**: These prompts are not tied to a specific location on the screen, which allows them to appear anywhere. This flexibility makes them ideal for guiding users through multiple areas of an interface.
+  - **Visibility**: They remain visible until the user interacts with them or dismisses them, making them suitable for drawing attention without being overly intrusive.
+  - **Overlay Effect**: Since they hover over the content, they can partially obscure underlying elements, which might be distracting if not used carefully.
+- **Use Cases**:
+  - **Onboarding and Tutorials**: Ideal for guiding new users through an initial onboarding process, providing step-by-step instructions.
+  - **Notifications and Alerts**: Suitable for non-critical alerts or informational messages that do not require immediate user action.
+  - **Feature Introductions**: Used to highlight new features or changes in the application, explaining how to use them.
+- **Advantages**:
+  - Can provide contextual help without requiring specific placement.
+  - Less likely to disrupt the user flow compared to more static prompts.
+- **Disadvantages**:
+  - Can be distracting if overused or if they cover important parts of the screen.
+  - Users might accidentally close them or ignore them if they are too frequent.
+
+### **2. Targeted Prompts**
+
+- **Description**: Targeted prompts are directly anchored to a specific UI element, such as a button, icon, or form field. They provide contextual guidance or information about the element they are pointing to.
+- **Characteristics**:
+  - **Precise Location**: These prompts appear adjacent to or near the specific element they are explaining or highlighting, making them highly context-sensitive.
+  - **Contextual Guidance**: They are particularly useful for providing instructions or information directly related to the element they are targeting.
+  - **Attention-Focused**: By appearing next to the targeted element, these prompts draw the user’s focus exactly where needed.
+- **Use Cases**:
+  - **Field-Level Guidance**: Providing tips or explanations for form fields, dropdowns, or input areas (e.g., "Enter your email address here").
+  - **Feature Tutorials**: Highlighting specific features or buttons that users need to interact with, such as a "Save" or "Submit" button.
+  - **Error Correction**: Indicating errors or required actions on specific elements, like showing a prompt next to a field where input is invalid.
+- **Advantages**:
+  - Directly associated with the element they are explaining, which improves user comprehension.
+  - Highly effective for teaching users about specific features or actions.
+- **Disadvantages**:
+  - Limited to the space around the targeted element; could overlap or interfere with other UI elements if not positioned carefully.
+  - Can clutter the interface if too many targeted prompts are used simultaneously.
+
+### **3. Docked Prompts**
+
+- **Description**: Docked prompts are fixed to a specific location on the screen, usually at the edges or corners, and remain visible as the user navigates through the application. They are often used to display persistent information or ongoing instructions.
+- **Characteristics**:
+  - **Fixed Position**: These prompts stay in a constant position, regardless of user scrolling or navigation. Common docked positions include the top or bottom of the screen or side panels.
+  - **Persistent Visibility**: They remain visible throughout the user’s interaction until manually closed or dismissed, providing ongoing guidance or information.
+  - **Non-Intrusive**: Because they are docked to the side, they don’t typically interfere with the main content, offering a subtle yet effective way to provide continuous support.
+- **Use Cases**:
+  - **Step-by-Step Instructions**: For multi-step processes where users need consistent guidance throughout (e.g., setup wizards, tutorials).
+  - **Task Progress Indicators**: Showing task progress or status updates in a fixed location to keep users informed without disrupting their workflow.
+  - **Support and Assistance**: Providing links to help documents, FAQs, or support resources in a fixed panel for easy access.
+- **Advantages**:
+  - Offer continuous visibility without disrupting user activities.
+  - Ideal for providing support or information that users might need to reference repeatedly.
+- **Disadvantages**:
+  - Can take up valuable screen space, particularly on smaller devices.
+  - If not designed well, they might be ignored by users who are focused on the main content area.
+
+### **Conclusion**
+
+- **Floating prompts** are versatile and flexible, ideal for onboarding and general guidance but can be distracting if overused.
+- **Targeted prompts** provide precise, context-sensitive guidance, perfect for explaining specific UI elements or actions, but may clutter the interface if used excessively.
+- **Docked prompts** offer persistent, unobtrusive support, great for continuous instructions or task monitoring but can occupy screen space.
+
+By choosing the appropriate type of prompt based on the user’s needs and the context of the application, you can significantly enhance user engagement and ensure a smooth, intuitive experience.
+
+
+
+
 **Prompts** and **walkthroughs** are both effective tools for user engagement and guidance, but they serve different purposes and are suitable for different scenarios. Here’s a comparison to help distinguish when to use each:
 
 ### **Definition**
