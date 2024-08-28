@@ -1,3 +1,117 @@
+To create a flow that runs from a custom button in Salesforce, you need to:
+
+1. **Create an Auto-Launched Flow**: This type of flow doesn't have screens, so it can run in the background.
+2. **Create a Custom Button or Link**: This button will be placed on the object record page and, when clicked, will run the auto-launched flow.
+
+### Step-by-Step Guide to Creating an Auto-Launched Flow and Custom Button
+
+#### **1. Create an Auto-Launched Flow**
+
+An auto-launched flow is designed to be triggered without user interaction directly from a button, a process, or an API call.
+
+**Step-by-Step Instructions:**
+
+1. **Go to Flow Builder**:
+   - Navigate to **Salesforce Setup**.
+   - In the Quick Find box, type **"Flows"**.
+   - Click **"Flows"** under the **Process Automation** section.
+   - Click **"New Flow"**.
+
+2. **Select Flow Type**:
+   - Choose **"Auto-Launched Flow (No Trigger)"**.
+   - Click **"Create"**.
+
+3. **Design Your Flow**:
+   - Add flow elements to perform the desired actions, such as:
+     - **Get Records**: Retrieve records from Salesforce.
+     - **Create Records**: Create new records in Salesforce.
+     - **Update Records**: Update existing records.
+     - **Delete Records**: Delete records.
+     - **Send Email**: Send emails based on the flow logic.
+   - Connect the flow elements as needed using the **connector lines**.
+
+4. **Set Input Variables (If Needed)**:
+   - Click on **"New Resource"**.
+   - Select **"Variable"**.
+   - Define variables that will accept input from the button click (e.g., record ID).
+   - Ensure the variables are set to **"Available for Input"** if they will be used as inputs from the button.
+
+5. **Save and Activate the Flow**:
+   - Click the **"Save"** button.
+   - Provide a flow name (e.g., **"My Custom Auto-Launched Flow"**).
+   - Click **"Activate"** to make the flow ready for use.
+
+#### **2. Create a Custom Button or Link**
+
+Now, create a custom button that triggers the auto-launched flow.
+
+**Step-by-Step Instructions:**
+
+1. **Navigate to Object Manager**:
+   - Go to **Salesforce Setup**.
+   - In the Quick Find box, type **"Object Manager"**.
+   - Click **"Object Manager"**.
+   - Select the object you want to add the custom button to (e.g., **Opportunity**, **Account**).
+
+2. **Create a New Button or Link**:
+   - Click on **"Buttons, Links, and Actions"** in the sidebar.
+   - Click the **"New Button or Link"** button.
+
+3. **Configure the Button**:
+   - **Label**: Enter a label for the button (e.g., **"Run Flow"**).
+   - **Name**: Enter a unique name for the button (e.g., **"Run_Flow"**).
+   - **Display Type**: Choose **"Detail Page Button"**.
+   - **Behavior**: Choose **"Display in new window"** or **"Execute JavaScript"**.
+   - **Content Source**: Choose **"URL"**.
+   
+4. **Set the Button URL to Run the Flow**:
+   - In the **Button or Link URL** box, enter the following URL format to launch the flow:
+
+   ```plaintext
+   /flow/Flow_API_Name?recordId={!Object_API_Name.Id}
+   ```
+
+   Replace **`Flow_API_Name`** with the **API Name** of your auto-launched flow, and **`Object_API_Name`** with the API name of the object the button is associated with (e.g., **`Opportunity`** or **`Account`**).
+
+   **Example URL for an Opportunity**:
+   ```plaintext
+   /flow/My_Custom_Auto_Launched_Flow?recordId={!Opportunity.Id}
+   ```
+
+5. **Save the Button**:
+   - Click **"Save"** to create the button.
+
+6. **Add the Button to the Page Layout**:
+   - Go to **Page Layouts** for the selected object.
+   - Select the desired page layout.
+   - Drag the new button from the **Buttons** section onto the **Custom Buttons** area of the page layout.
+   - Click **"Save"** to update the page layout.
+
+#### **3. Test the Custom Button**
+
+1. **Navigate to a Record**:
+   - Go to the object for which you added the custom button (e.g., open an **Opportunity** record).
+
+2. **Click the Custom Button**:
+   - Click the new **"Run Flow"** button you created.
+   - The button will trigger the auto-launched flow, passing the record ID as input if configured correctly.
+
+3. **Verify Flow Execution**:
+   - Check that the flow ran successfully by verifying that the expected actions were performed (e.g., records created or updated).
+
+### **Summary**
+
+- **Auto-Launched Flow**: A flow that runs without user interaction and is ideal for processes that can be triggered by buttons, processes, or API calls.
+- **Custom Button**: A button added to a Salesforce object that, when clicked, runs the auto-launched flow.
+- **URL Format**: `/flow/Flow_API_Name?recordId={!Object_API_Name.Id}` — used in the button configuration to run the flow with the correct record context.
+
+By following these steps, you can effectively create a Salesforce automation that runs via a custom button, enhancing your organization's workflow efficiency and user experience.
+
+
+
+
+
+
 ### How to Trigger a Flow on a Schedule in Salesforce
 
 In Salesforce, you can trigger a flow on a schedule by using **Scheduled Flows** or by adding a **Scheduled Path** within a **Record-Triggered Flow**. Scheduled flows are useful for automating tasks that need to occur at regular intervals or at a specific time after a record is created or updated. 
