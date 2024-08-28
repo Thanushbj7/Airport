@@ -1,3 +1,92 @@
+To enhance your Salesforce Flow with additional capabilities, you can create a **Decision** element that checks a custom permission, connect flow elements with non-linear connections, and use cut and paste to modify the flow on the canvas. These features make your flows more dynamic, maintainable, and tailored to business requirements.
+
+### **1. Create a Decision Element that Checks a Custom Permission**
+
+A **Decision** element allows you to add conditional logic to your flow. You can use it to check if a user has a specific custom permission and branch the flow accordingly.
+
+**Step-by-Step Instructions:**
+
+1. **Go to Flow Builder:**
+   - Navigate to **Salesforce Setup**.
+   - Search for **"Flows"** in the Quick Find box.
+   - Click **"Flows"** under the **Process Automation** section.
+   - Click the **"New Flow"** button.
+
+2. **Select Flow Type:**
+   - Choose **"Screen Flow"** or **"Autolaunched Flow"** based on your needs.
+   - Click **"Create"**.
+
+3. **Add a Decision Element:**
+   - Click the **"+"** button to add a new element.
+   - Select **"Decision"**.
+   - Give it a label (e.g., **"Check Custom Permission"**).
+
+4. **Configure the Decision Element to Check Custom Permission:**
+   - Under **Outcomes**, create a new outcome (e.g., **"Has Permission"**).
+   - In the **Resource** dropdown, select **"Global Variables"**.
+   - Choose **`$Permission`**, then select the custom permission (e.g., **`$Permission.CustomPermissionName`**).
+   - Set the **Operator** to **"Equals"**.
+   - Set the **Value** to **`True`**.
+   - Create another outcome for when the permission is not available (e.g., **"Does Not Have Permission"**).
+   - Click **"Done"** to save the decision element.
+
+5. **Connect the Decision Element to Other Flow Elements:**
+   - Connect the **Decision** element to different flow elements based on the outcome paths you configured (e.g., one path for users with permission and another for those without).
+
+### **2. Connect Flow Elements with a Non-Linear Connection**
+
+Non-linear connections allow you to connect flow elements in a way that is not strictly top-to-bottom or left-to-right. This flexibility can help create more sophisticated logic paths.
+
+**Step-by-Step Instructions:**
+
+1. **Add Flow Elements:**
+   - Ensure you have multiple elements on the flow canvas (e.g., **Screen**, **Create Records**, **Decision**).
+
+2. **Create Non-Linear Connections:**
+   - Click on the **connector line** from one element to another.
+   - Drag the connector from the **outcome** of the **Decision** element to any other element on the canvas, regardless of its position.
+   - This allows for non-linear paths (e.g., looping back to an earlier step or jumping to a different part of the flow).
+
+3. **Adjust Connections for Clarity:**
+   - Adjust the placement of elements and connectors to make the flow easier to read.
+   - Use **labels** on the connectors to indicate the conditions or logic paths.
+
+### **3. Cut and Paste Elements on the Flow Canvas**
+
+To rearrange elements for better readability or logical organization, you can cut and paste elements directly on the flow canvas.
+
+**Step-by-Step Instructions:**
+
+1. **Select the Element to Cut:**
+   - Click on the element you want to cut (e.g., **Screen** or **Create Records**).
+
+2. **Cut the Element:**
+   - Right-click on the element and select **"Cut"** from the context menu.
+   - Alternatively, use the **keyboard shortcut** `Ctrl + X` (Windows) or `Cmd + X` (Mac).
+
+3. **Paste the Element in a New Location:**
+   - Click on the new location on the canvas where you want to paste the element.
+   - Right-click and select **"Paste"** from the context menu.
+   - Alternatively, use the **keyboard shortcut** `Ctrl + V` (Windows) or `Cmd + V` (Mac).
+
+4. **Reconnect the Pasted Element:**
+   - After pasting, you might need to **reconnect** the element to maintain the correct flow logic.
+   - Use the **connector lines** to connect the element to its preceding and succeeding elements.
+
+### **Summary**
+
+- **Decision Element Checking Custom Permission**: Allows flows to branch based on whether a user has a specific custom permission, making the flow more dynamic and user-specific.
+- **Non-Linear Connections**: Provides flexibility in designing flows, enabling loops, jumps, and more complex decision-making paths.
+- **Cut and Paste Elements**: Helps in rearranging flow elements for better organization and readability.
+
+By utilizing these features, you can create more sophisticated and user-tailored automation in Salesforce, enhancing your process automation capabilities.
+
+
+
+
+
+
+
 To create a flow that runs within another flow in Salesforce, you can use a feature called **Subflow**. A **Subflow** allows you to call another flow from within a flow, enabling you to break down complex processes into smaller, reusable components. This approach is beneficial for managing large automation processes, reusing common logic, and making flows easier to maintain.
 
 ### **Scenario: Creating a Flow with a Subflow**
