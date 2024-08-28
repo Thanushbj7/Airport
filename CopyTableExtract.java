@@ -1,3 +1,119 @@
+To send data from a custom button to a flow in Salesforce, you will need to create an auto-launched flow that accepts input variables and then create a custom button or link that passes data to these variables when the button is clicked. Finally, you can add the custom button to a Lightning record page using Dynamic Actions to control its visibility based on specific criteria.
+
+### 1. **Send Data from a Custom Button to a Flow**
+
+To achieve this, follow these steps:
+
+#### **Step-by-Step Instructions:**
+
+**Step 1: Create an Auto-Launched Flow**
+
+1. **Navigate to Flow Builder**:
+   - Go to **Salesforce Setup**.
+   - In the Quick Find box, type **"Flows"**.
+   - Click **"Flows"** under the **Process Automation** section.
+   - Click **"New Flow"**.
+
+2. **Select Flow Type**:
+   - Choose **"Auto-Launched Flow (No Trigger)"**.
+   - Click **"Create"**.
+
+3. **Define Input Variables**:
+   - Click on **"New Resource"**.
+   - Select **"Variable"**.
+   - Create a variable to accept input from the button:
+     - **API Name**: `recordId` (or any appropriate name)
+     - **Data Type**: `Text`
+     - **Availability Outside the Flow**: Check the **"Available for Input"** box.
+
+4. **Add Flow Elements**:
+   - Add elements such as **Get Records**, **Create Records**, **Update Records**, etc., to define what should happen when the flow is executed.
+   - Use the input variables as needed to perform actions based on the record context.
+
+5. **Save and Activate the Flow**:
+   - Click **"Save"**.
+   - Provide a flow name (e.g., **"Process Opportunity Data Flow"**).
+   - Click **"Activate"**.
+
+**Step 2: Create a Custom Button to Run the Flow**
+
+1. **Navigate to Object Manager**:
+   - Go to **Salesforce Setup**.
+   - In the Quick Find box, type **"Object Manager"**.
+   - Select the object you want to add the custom button to (e.g., **Opportunity**).
+
+2. **Create a New Button or Link**:
+   - Click **"Buttons, Links, and Actions"** in the sidebar.
+   - Click **"New Button or Link"**.
+
+3. **Configure the Button**:
+   - **Label**: Enter a label for the button (e.g., **"Run Flow"**).
+   - **Name**: Enter a unique name for the button (e.g., **"Run_Flow"**).
+   - **Display Type**: Choose **"Detail Page Button"**.
+   - **Behavior**: Choose **"Display in new window"**.
+   - **Content Source**: Choose **"URL"**.
+
+4. **Set the Button URL to Run the Flow with Data**:
+   - In the **Button or Link URL** box, enter the following URL format to launch the flow and pass the record ID:
+
+   ```plaintext
+   /flow/Flow_API_Name?recordId={!Object_API_Name.Id}
+   ```
+
+   Replace **`Flow_API_Name`** with the **API Name** of your auto-launched flow, and **`Object_API_Name`** with the API name of the object the button is associated with (e.g., **`Opportunity`**).
+
+   **Example URL for an Opportunity**:
+   ```plaintext
+   /flow/Process_Opportunity_Data_Flow?recordId={!Opportunity.Id}
+   ```
+
+5. **Save the Button**:
+   - Click **"Save"** to create the button.
+
+### 2. **Add a Custom Button to a Lightning Record Page Using Dynamic Actions**
+
+With **Dynamic Actions**, you can control which actions (like buttons) are visible on a Lightning Record Page based on record field values, user profiles, and other criteria.
+
+#### **Step-by-Step Instructions to Add the Button with Dynamic Actions:**
+
+1. **Open the Lightning App Builder**:
+   - Navigate to **Salesforce Setup**.
+   - In the Quick Find box, type **"App Builder"**.
+   - Click **"Lightning App Builder"**.
+   - Find and select the Lightning Record Page you want to modify (e.g., **Opportunity Record Page**).
+   - Click **"Edit"**.
+
+2. **Enable Dynamic Actions**:
+   - Click on the **Highlights Panel** component on the Lightning Record Page.
+   - In the component's properties pane on the right, enable **"Enable Dynamic Actions (Beta)"** if it isn't already enabled.
+
+3. **Add the Custom Button**:
+   - Click **"Add Action"**.
+   - From the list of available actions, find the custom button you created (e.g., **"Run Flow"**).
+   - Click **"Add Filter"** to specify any criteria that must be met for the button to be visible. For example, you can show the button only when the **Opportunity Stage** is **"Closed Won"** or based on the user's profile.
+
+4. **Save and Activate the Page**:
+   - Click **"Save"** to save the changes to the Lightning Record Page.
+   - Click **"Activate"** to make the modified page layout available to users.
+
+5. **Test the Custom Button**:
+   - Go to a record for the object you modified (e.g., an **Opportunity** record).
+   - Confirm the custom button appears on the page.
+   - Click the button to ensure it runs the flow and correctly passes the record ID or other data.
+
+### **Summary**
+
+- **Auto-Launched Flow**: Create a flow that can be run without user interaction.
+- **Custom Button or Link**: Use a custom button to trigger the flow and pass record data.
+- **Dynamic Actions**: Control the visibility of the button based on specific criteria in the Lightning App Builder.
+
+By using these steps, you can efficiently send data from a custom button to a flow and manage the visibility of your custom button on a Lightning Record Page, enhancing user engagement and experience within Salesforce.
+
+
+
+
+
+
 To create a flow that runs from a custom button in Salesforce, you need to:
 
 1. **Create an Auto-Launched Flow**: This type of flow doesn't have screens, so it can run in the background.
