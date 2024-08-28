@@ -1,3 +1,114 @@
+To create a flow in Salesforce that runs at a predetermined time and performs actions on records that match certain conditions, you need to use a **Scheduled-Triggered Flow**. This type of flow allows you to run automated processes on a set schedule and apply them to records that meet specific criteria.
+
+### 1. **Create a Scheduled-Triggered Flow**
+
+A **Scheduled-Triggered Flow** runs on a specific schedule (e.g., daily, weekly) and performs actions on records that match the criteria set in the flow.
+
+#### **Step-by-Step Instructions:**
+
+**Step 1: Go to Flow Builder**
+
+1. **Navigate to Flow Builder**:
+   - Go to **Salesforce Setup**.
+   - In the Quick Find box, type **"Flows"**.
+   - Click **"Flows"** under the **Process Automation** section.
+   - Click **"New Flow"**.
+
+2. **Select Flow Type**:
+   - Choose **"Scheduled-Triggered Flow"**.
+   - Click **"Create"**.
+
+**Step 2: Set the Schedule for the Flow**
+
+1. **Configure Start Schedule**:
+   - In the **Start** element that appears, click **"Set Schedule"**.
+   - **Frequency**: Choose how often you want the flow to run (e.g., **Daily**, **Weekly**).
+   - **Start Date and Time**: Set the date and time when the flow should first run.
+   - **Preferred Start Time**: Choose the time of day when the flow should run.
+
+2. **Set Object and Filter Criteria**:
+   - **Object**: Select the Salesforce object you want the flow to run on (e.g., **Opportunity**, **Account**).
+   - **Conditions**: Set the filter conditions to determine which records the flow should act on. For example, if you want to run the flow for all Opportunities that are **"Closed Won"** but not yet followed up, set the criteria as:
+     - **Field**: `StageName`
+     - **Operator**: `Equals`
+     - **Value**: `Closed Won`
+   - Add any additional filters as needed to match specific conditions.
+
+3. **Save Schedule Settings**:
+   - Click **"Done"** to save the schedule settings.
+
+**Step 3: Define the Flow Logic**
+
+1. **Add Flow Elements**:
+   - After setting the schedule and object criteria, you can add elements to define the actions the flow should take on the records that match the criteria.
+   - **Get Records**: This element is not needed since the scheduled flow already identifies records based on the set criteria.
+   - **Update Records**: Update fields on the records that match the criteria.
+   - **Create Records**: Create new records based on the matching records.
+   - **Delete Records**: Delete records that meet the conditions.
+   - **Send Email**: Send emails as part of the flow logic.
+   - **Call Subflow**: Invoke another flow as part of the logic.
+   - **Decision**: Add branching logic to perform different actions based on specific field values.
+
+2. **Connect the Flow Elements**:
+   - Connect each flow element in the order of execution by dragging connectors between the elements.
+
+3. **Test the Flow**:
+   - Before activating the flow, test it by setting a test start date and time and using test records to ensure it performs the actions correctly.
+
+4. **Save and Activate the Flow**:
+   - Click **"Save"**.
+   - Provide a flow name (e.g., **"Weekly Opportunity Follow-Up Flow"**).
+   - Click **"Activate"** to enable the flow to run according to the defined schedule.
+
+### 2. **Run a Schedule-Triggered Flow for Every Record That Matches Certain Conditions**
+
+Once your scheduled flow is activated, it will run at the predetermined time and perform the specified actions for every record that meets the defined conditions. Here’s a detailed overview:
+
+#### **Use Case Example**
+
+**Objective**: You want to run a flow every Monday at 9 AM to update the status of all **Opportunities** that were **"Closed Won"** but still have a blank **Follow-Up Date** field.
+
+1. **Schedule**:
+   - Runs **Weekly** on **Monday** at **9:00 AM**.
+
+2. **Object and Criteria**:
+   - **Object**: Opportunity
+   - **Criteria**: 
+     - **StageName** = `Closed Won`
+     - **Follow-Up Date** = `Blank`
+
+3. **Flow Actions**:
+   - **Update Records**: Set the **Follow-Up Date** to the current date.
+   - **Send Email**: Notify the account owner that a follow-up is needed.
+
+### **Steps to Configure This Use Case:**
+
+1. **In the Flow Builder**:
+   - Set the **Frequency** to **Weekly** and the **Start Date** to the next Monday at **9:00 AM**.
+   - Select **Opportunity** as the object.
+   - Set filter conditions:
+     - **StageName** equals **Closed Won**.
+     - **Follow-Up Date** is **null** (blank).
+
+2. **Add Flow Actions**:
+   - Add an **Update Records** element to set the **Follow-Up Date** to today’s date.
+   - Add a **Send Email** action to notify the opportunity owner.
+
+3. **Activate and Monitor the Flow**:
+   - **Activate** the flow.
+   - Use **Flow Logs** or **Debug Logs** to monitor the flow execution and ensure it runs as expected on the scheduled time.
+
+### **Summary**
+
+- **Scheduled-Triggered Flows** in Salesforce provide powerful automation capabilities, allowing you to run processes at specific times and target records that meet precise conditions.
+- By configuring the schedule, object, and filter criteria correctly, you can ensure your automation processes run efficiently and target the right data.
+
+By following the steps outlined above, you can create a scheduled flow that automatically runs at the specified time and updates records based on your business requirements.
+
+
+
+
+
 To send data from a custom button to a flow in Salesforce, you will need to create an auto-launched flow that accepts input variables and then create a custom button or link that passes data to these variables when the button is clicked. Finally, you can add the custom button to a Lightning record page using Dynamic Actions to control its visibility based on specific criteria.
 
 ### 1. **Send Data from a Custom Button to a Flow**
