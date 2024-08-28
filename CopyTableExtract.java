@@ -1,3 +1,82 @@
+### How to Trigger a Flow on a Schedule in Salesforce
+
+In Salesforce, you can trigger a flow on a schedule by using **Scheduled Flows** or by adding a **Scheduled Path** within a **Record-Triggered Flow**. Scheduled flows are useful for automating tasks that need to occur at regular intervals or at a specific time after a record is created or updated. 
+
+**1. Scheduled Flows:**
+   - **Scheduled flows** are a type of **Autolaunched Flow** that runs at a specific time or at regular intervals (daily, weekly, or monthly).
+   - You can define the start date, start time, and the frequency of the flow.
+   - Scheduled flows are typically used for batch processing tasks, such as sending daily reminder emails or performing regular data maintenance.
+
+**2. Scheduled Paths in Record-Triggered Flows:**
+   - A **Scheduled Path** allows you to delay certain actions in a **Record-Triggered Flow** until a specified time after the record is created or updated.
+   - This is useful when you want to perform actions based on a record change but need to delay those actions to a future time, such as following up with a customer a day after an opportunity is closed.
+
+### Creating a Scheduled Path to Run a Record-Triggered Flow at a Specified Time
+
+A **Scheduled Path** within a **Record-Triggered Flow** allows you to schedule actions to occur at a specific time relative to the record-trigger event. For example, you could set up a flow to send a follow-up email three days after a case is closed.
+
+#### **Step-by-Step Instructions to Create a Scheduled Path in a Record-Triggered Flow:**
+
+1. **Go to Flow Builder:**
+   - Navigate to **Salesforce Setup**.
+   - Search for **"Flows"** in the Quick Find box.
+   - Click **"Flows"** under the **Process Automation** section.
+   - Click the **"New Flow"** button.
+
+2. **Select Flow Type:**
+   - Choose **"Record-Triggered Flow"**.
+   - Click **"Create"**.
+
+3. **Configure Trigger:**
+   - **Object**: Select the object that will trigger the flow (e.g., **Opportunity**).
+   - **Trigger** the flow **when a record is created or updated**.
+   - Set **Condition Requirements** to specify when the flow should run (e.g., when an Opportunity's **Stage** equals "Closed Won").
+
+4. **Add a Scheduled Path:**
+   - Click the **"Scheduled Paths"** option in the **Start** element.
+   - Click **"Add Scheduled Paths"** to create a new scheduled path.
+   - Provide a **Label** (e.g., **"Follow-Up Email 3 Days Later"**).
+   - **Time Source**: Choose a time source for scheduling. This can be based on the time the record is created or updated.
+   - **Offset Number**: Enter the number of days, hours, or minutes to delay the action. For example, enter **3** to delay for three days.
+   - **Offset Options**: Select the time unit (e.g., **Days**, **Hours**, **Minutes**).
+   - Click **"Done"** to create the scheduled path.
+
+5. **Add Flow Elements to the Scheduled Path:**
+   - Click the **"+"** button on the scheduled path to add new elements (e.g., **Send Email**, **Create Task**, **Update Records**).
+   - Select an action or record operation that you want to execute at the scheduled time.
+   - Configure the element as required, such as setting up an email template for sending a follow-up email.
+
+6. **Add Immediate Path Elements (Optional):**
+   - You can also add elements to the immediate path if you need actions to happen right away when the flow is triggered. For example, you might want to immediately update a field when the Opportunity is closed.
+
+7. **Save and Activate the Flow:**
+   - Click the **"Save"** button to save your flow.
+   - Provide a flow name (e.g., **"Opportunity Follow-Up Flow"**).
+   - Click **"Activate"** to make the flow live and start running according to the schedule you've set.
+
+### **Example Use Case: Scheduled Follow-Up Email**
+
+Let's say you want to create a scheduled path to send a follow-up email to a customer three days after an Opportunity is closed as "Closed Won."
+
+1. **Trigger**: Opportunity record is updated to **"Closed Won"**.
+2. **Immediate Action**: Update a field or log an event.
+3. **Scheduled Path**:
+   - Delay by **3 Days**.
+   - **Action**: Send an email to the customer thanking them for their business and offering additional services.
+
+### **Benefits of Using Scheduled Paths in Record-Triggered Flows**
+
+- **Flexibility**: Allows you to delay actions and run them based on specific business timings.
+- **Efficiency**: Automates follow-ups and other tasks without requiring manual intervention.
+- **Customization**: Helps tailor customer engagement processes, ensuring timely interactions based on changes in Salesforce records.
+
+By using scheduled paths, you can enhance your automation strategies, ensuring that tasks and communications happen at the optimal time for your business processes.
+
+
+
+
+
+
 ### Key Components for Creating a Record-Triggered Flow
 
 A **Record-Triggered Flow** in Salesforce is a powerful automation tool that runs automatically when a record is created, updated, or deleted. It allows you to perform actions such as updating fields, creating records, or sending notifications based on changes in your Salesforce data. Here are the key components used to create a record-triggered process:
