@@ -1,3 +1,127 @@
+To build a simple screen flow in Salesforce using **Flow Builder**, follow these steps. A **Screen Flow** is a flow that requires user interaction—like filling out forms or providing input on a screen.
+
+### **Use Case Example: Collect Contact Information**
+
+Let's create a simple screen flow that collects a user's contact information (First Name, Last Name, and Email) and creates a new **Contact** record in Salesforce.
+
+### **Step-by-Step Instructions:**
+
+#### **Step 1: Navigate to Flow Builder**
+
+1. **Go to Setup**:
+   - Log in to your Salesforce account.
+   - Click on the **Gear Icon** (Setup) in the top right corner.
+   - Select **Setup**.
+
+2. **Find Flow Builder**:
+   - In the Quick Find box, type **"Flows"**.
+   - Click **"Flows"** under the **Process Automation** section.
+   - Click **"New Flow"** to create a new flow.
+
+#### **Step 2: Create a Screen Flow**
+
+1. **Select Flow Type**:
+   - Choose **"Screen Flow"**.
+   - Click **"Create"**.
+
+2. **Add a Screen Element**:
+   - Click on the **"+"** icon in the flow canvas to add an element.
+   - Select **"Screen"** to add a screen element where users will input their data.
+
+3. **Configure the Screen Element**:
+   - **Label**: Enter a label for the screen (e.g., **"Enter Contact Information"**).
+   - **API Name**: It will auto-populate based on the label but can be customized.
+
+4. **Add Fields to the Screen**:
+   - Click **"Add a Field"** in the screen configuration pane.
+   - Drag and drop **Text** components onto the screen for the **First Name**, **Last Name**, and **Email** fields.
+   - For each field, provide the following settings:
+     - **Field Label**: Set as **First Name**, **Last Name**, and **Email**, respectively.
+     - **API Name**: This will auto-fill based on the label.
+     - **Required**: Check the **Required** checkbox if you want to make these fields mandatory.
+
+5. **Configure Field Validations (Optional)**:
+   - For the **Email** field, add a validation rule to ensure proper email formatting.
+   - In the field properties, find the **Email** component.
+   - Check the **"Email"** box under **"Input Type"** to enforce email format.
+
+6. **Finish Configuring the Screen**:
+   - Click **"Done"** to save the screen element.
+
+#### **Step 3: Add Create Records Element**
+
+1. **Add a Create Records Element**:
+   - Click on the **"+"** icon after the Screen element to add a new element.
+   - Select **"Create Records"**.
+
+2. **Configure Create Records Element**:
+   - **Label**: Enter a label (e.g., **"Create Contact Record"**).
+   - **API Name**: It will auto-populate based on the label but can be customized.
+   - **Create a Record**: Choose **"One"** record.
+   - **How to Set Record Fields**: Choose **"Use separate resources, and literal values"**.
+   - **Object**: Select **"Contact"**.
+
+3. **Map the Input Fields to Contact Fields**:
+   - **Field**: Select **First Name** and map it to **First Name** from the screen input.
+   - **Field**: Select **Last Name** and map it to **Last Name** from the screen input.
+   - **Field**: Select **Email** and map it to **Email** from the screen input.
+
+4. **Save the Configuration**:
+   - Click **"Done"** to save the element.
+
+#### **Step 4: Configure the Flow Finish Screen**
+
+1. **Add Another Screen Element**:
+   - Click on the **"+"** icon after the Create Records element to add a new element.
+   - Select **"Screen"** to add a screen element that will display a confirmation message.
+
+2. **Configure the Finish Screen Element**:
+   - **Label**: Enter a label for the finish screen (e.g., **"Confirmation"**).
+   - **API Name**: It will auto-populate based on the label but can be customized.
+   - **Add Display Text**: Drag the **Display Text** component onto the screen.
+   - **Content**: Enter the message to be displayed to the user, such as "Thank you! The contact has been created successfully."
+
+3. **Finish Configuring the Screen**:
+   - Click **"Done"** to save the screen element.
+
+#### **Step 5: Connect Flow Elements**
+
+- **Connect the Elements**:
+  - Drag connectors from **Start** to **Enter Contact Information** (Screen).
+  - From **Enter Contact Information** (Screen) to **Create Contact Record** (Create Records).
+  - From **Create Contact Record** (Create Records) to **Confirmation** (Screen).
+
+#### **Step 6: Save and Activate the Flow**
+
+1. **Save the Flow**:
+   - Click **"Save"**.
+   - Provide a flow name (e.g., **"Simple Contact Creation Flow"**) and a description if desired.
+   - Click **"Save"**.
+
+2. **Activate the Flow**:
+   - Click **"Activate"** to make the flow available for use.
+
+#### **Step 7: Test the Flow**
+
+1. **Run the Flow**:
+   - Click **"Run"** in the Flow Builder to test the flow.
+   - Enter sample data into the input fields.
+   - Click **"Next"** to proceed through the flow.
+
+2. **Check the Result**:
+   - Verify that the flow completes successfully and that a new contact record is created with the input data.
+   - Confirm that the finish screen displays the confirmation message.
+
+### **Summary**
+
+- **Screen Flow**: Collects user input and performs actions based on that input.
+- **Key Components**:
+  - **Screen Element**: To gather user input.
+ 
+
+
+
+
 To create a flow in Salesforce that runs at a predetermined time and performs actions on records that match certain conditions, you need to use a **Scheduled-Triggered Flow**. This type of flow allows you to run automated processes on a set schedule and apply them to records that meet specific criteria.
 
 ### 1. **Create a Scheduled-Triggered Flow**
