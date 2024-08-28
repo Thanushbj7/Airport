@@ -1,3 +1,129 @@
+### Key Components for Creating a Record-Triggered Flow
+
+A **Record-Triggered Flow** in Salesforce is a powerful automation tool that runs automatically when a record is created, updated, or deleted. It allows you to perform actions such as updating fields, creating records, or sending notifications based on changes in your Salesforce data. Here are the key components used to create a record-triggered process:
+
+1. **Trigger Context**:
+   - Defines the conditions under which the flow is triggered. You can configure the flow to run **when a record is created, updated, or deleted**.
+   - You can also specify whether the flow should run **before** or **after** the record is saved.
+
+2. **Entry Conditions**:
+   - These are conditions that determine when the flow should run. You can set entry conditions based on specific criteria such as field values or formula expressions.
+   - For example, you can trigger the flow only if an **Opportunity's Stage** is set to "Closed Won."
+
+3. **Elements**:
+   - **Assignment**: Assigns values to variables or updates records.
+   - **Decision**: Creates branching logic based on defined conditions.
+   - **Get Records**: Retrieves records from the database to use in the flow.
+   - **Create Records**: Creates new records in Salesforce.
+   - **Update Records**: Updates existing records.
+   - **Delete Records**: Deletes records.
+   - **Actions**: Invokes other processes or services, such as sending emails or posting to Chatter.
+   - **Subflow**: Invokes another flow from within the current flow.
+
+4. **Variables**:
+   - Variables are containers for storing data that can be used throughout the flow. Variables can hold values like record IDs, text, numbers, or dates.
+
+5. **Resources**:
+   - **Variables**: Stores data that can be used later in the flow.
+   - **Formula**: Calculates a value dynamically.
+   - **Collection Variables**: Holds multiple records of the same object type.
+   - **Constants**: Fixed values used throughout the flow.
+
+6. **Actions and Connectors**:
+   - Define the path the flow takes by connecting the different elements together.
+
+### When to Use Fast Field Updates
+
+**Fast Field Updates** are used when you need to **update fields** on the record that triggered the flow, and you want to do it **before the record is saved to the database**. This is ideal for simple, high-performance updates that do not require accessing related records or performing complex logic.
+
+- **Use Cases for Fast Field Updates**:
+  - Updating a field on the same record that triggers the flow based on simple conditions.
+  - Enforcing data consistency by setting or updating fields automatically.
+  - Calculating and storing values directly on the record before it is committed to the database, like auto-calculating a discount percentage when an Opportunity is created or updated.
+
+### When to Use Actions and Related Records
+
+**Actions and Related Records** are used when you need to perform actions or update records **related** to the record that triggered the flow. This type of flow runs **after the record is saved** to the database, making it suitable for more complex operations that require database commits.
+
+- **Use Cases for Actions and Related Records**:
+  - Updating fields on related records, such as updating all child records when a parent record is modified.
+  - Sending notifications or emails after a record is created or updated.
+  - Creating or updating related records based on certain conditions.
+  - Executing complex business logic that involves multiple objects, such as updating all related Opportunities when an Account status changes.
+
+### Options for When to Run a Flow When a Record is Updated
+
+When configuring a record-triggered flow, you can specify the conditions under which the flow should run when a record is updated:
+
+1. **Run the Flow Only When a Record Is Updated to Meet the Condition Requirements**:
+   - The flow only runs when a record is updated from a state where it did not meet the entry conditions to a state where it does.
+   - This is useful for flows that should only run once when a specific condition becomes true.
+
+2. **Run the Flow Every Time a Record Is Updated and Meets the Condition Requirements**:
+   - The flow runs every time a record meets the entry conditions, regardless of its previous state.
+   - This is useful for flows that should continuously enforce rules or conditions, such as recalculating a field value every time the record is updated.
+
+### Building a Flow to Create a Draft Contract Based on a Change in the Opportunity
+
+Let's build a flow that creates a draft contract when an Opportunity's stage changes to "Closed Won."
+
+#### Step-by-Step Instructions:
+
+1. **Go to Flow Builder**:
+   - Navigate to **Salesforce Setup**.
+   - Search for **"Flows"** in the Quick Find box.
+   - Click **"Flows"** under the **Process Automation** section.
+   - Click the **"New Flow"** button.
+
+2. **Select Flow Type**:
+   - Choose **"Record-Triggered Flow"**.
+   - Click **"Create"**.
+
+3. **Configure Trigger**:
+   - **Object**: Select **Opportunity**.
+   - **Trigger** the flow **when a record is updated**.
+   - Set **Condition Requirements** to **"All Conditions Are Met (AND)"**.
+   - **Field**: Select **StageName**.
+   - **Operator**: Equals.
+   - **Value**: Closed Won.
+
+4. **Define Flow to Run**:
+   - Choose **"After the record is saved"** since we are creating a related record (Contract).
+
+5. **Add a Decision Element (Optional)**:
+   - Click the **"+"** button and select **"Decision"**.
+   - Name the decision (e.g., **"Check if Contract Already Exists"**).
+   - Add criteria to check if a draft contract already exists for the Opportunity.
+
+6. **Add a Get Records Element (Optional)**:
+   - Use **"Get Records"** to check if any Contracts are already related to the Opportunity to avoid duplicates.
+
+7. **Add a Create Records Element**:
+   - Click the **"+"** button and select **"Create Records"**.
+   - Name it (e.g., **"Create Draft Contract"**).
+   - **Record**: Select **Contract**.
+   - Set field values:
+     - **Opportunity ID**: Reference the Opportunity ID from the triggering record.
+     - **Status**: Set to "Draft".
+   - **Record Triggered Flow Optimization**: Select **"Optimize the Flow for Actions and Related Records"** to ensure it runs efficiently after saving the Opportunity.
+
+8. **Connect Elements**:
+   - Connect the **Decision** element to the **Create Records** element based on the outcome (if no draft contract exists).
+
+9. **Save and Activate the Flow**:
+   - Click the **"Save"** button, provide a flow name (e.g., **"Opportunity to Draft Contract"**).
+   - Click **"Activate"** to make the flow available for use.
+
+### Summary
+
+- **Record-Triggered Flow**: Automatically runs based on record changes.
+- **Fast Field Updates**: Used for simple updates to the triggering record before save.
+- **Actions and Related Records**: Used for complex updates and actions after the record is saved.
+- **Running a Flow When a Record is Updated**: Options include running only when conditions are met or every time the record is updated and conditions are met.
+- **Example Flow**: Builds automation to create a draft contract based on an Opportunity stage change to "Closed Won".
+
+
+
 To enhance your Salesforce Flow with additional capabilities, you can create a **Decision** element that checks a custom permission, connect flow elements with non-linear connections, and use cut and paste to modify the flow on the canvas. These features make your flows more dynamic, maintainable, and tailored to business requirements.
 
 ### **1. Create a Decision Element that Checks a Custom Permission**
