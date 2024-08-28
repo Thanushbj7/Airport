@@ -1,3 +1,108 @@
+To create a flow that runs within another flow in Salesforce, you can use a feature called **Subflow**. A **Subflow** allows you to call another flow from within a flow, enabling you to break down complex processes into smaller, reusable components. This approach is beneficial for managing large automation processes, reusing common logic, and making flows easier to maintain.
+
+### **Scenario: Creating a Flow with a Subflow**
+
+Let's consider a scenario where you have two flows:
+
+1. **Main Flow**: This flow handles the overall process, such as creating or updating a record.
+2. **Subflow**: A secondary flow that performs a specific task, such as sending a notification email.
+
+We'll create both flows and then call the Subflow from within the Main Flow.
+
+### **Step-by-Step Instructions to Create a Flow with a Subflow**
+
+#### **1. Create the Subflow**
+
+First, we’ll create the Subflow that performs a specific action. In this example, the Subflow will send a notification email.
+
+**Step-by-Step Instructions:**
+
+1. **Go to Flow Builder:**
+   - Navigate to **Salesforce Setup**.
+   - Search for **"Flows"** in the Quick Find box.
+   - Click **"Flows"** under the **Process Automation** section.
+   - Click the **"New Flow"** button.
+
+2. **Select Flow Type:**
+   - Choose **"Autolaunched Flow"** (No Trigger) since this flow will be called by another flow.
+   - Click **"Create"**.
+
+3. **Add Action to Send an Email:**
+   - Click the **"+"** button to add a new element.
+   - Select **"Action"**.
+   - In the search bar, type **"Send Email"**.
+   - Select **"Send Email"** action.
+   - Give it a label (e.g., **"Send Notification Email"**).
+   - Set up the email details:
+     - **Recipient Address**: Enter an email address or a variable.
+     - **Subject**: Enter the subject line (e.g., **"Record Updated Notification"**).
+     - **Body**: Enter the email body content.
+   - Click **"Done"** to save the action.
+
+4. **Save and Activate the Subflow:**
+   - Click the **"Save"** button, provide a flow name (e.g., **"SendNotificationEmail"**).
+   - Click **"Activate"** to make the Subflow available for use.
+
+#### **2. Create the Main Flow**
+
+Now, we’ll create the Main Flow that includes a Subflow element to call the Subflow we just created.
+
+**Step-by-Step Instructions:**
+
+1. **Go to Flow Builder:**
+   - Navigate back to **Salesforce Setup**.
+   - Click **"Flows"** under the **Process Automation** section.
+   - Click the **"New Flow"** button.
+
+2. **Select Flow Type:**
+   - Choose **"Autolaunched Flow"** (No Trigger) or **"Screen Flow"** based on your requirement.
+   - Click **"Create"**.
+
+3. **Add an Element to Perform a Main Task:**
+   - For example, you might want to **"Create a Record"**:
+   - Click the **"+"** button to add a new element.
+   - Select **"Create Records"**.
+   - Give it a label (e.g., **"Create New Contact Record"**).
+   - Choose **"Use separate resources and literal values"** to set field values.
+   - Select the **Object** (e.g., **Contact**).
+   - Set the fields required to create the record (e.g., **First Name**, **Last Name**).
+   - Click **"Done"** to save the element.
+
+4. **Add a Subflow Element:**
+   - Click the **"+"** button after the **Create Records** element.
+   - Select **"Subflow"**.
+   - Give it a label (e.g., **"Run Send Notification Email"**).
+   - In the **Flow** dropdown, select the Subflow you created earlier (**SendNotificationEmail**).
+   - If the Subflow requires input variables, provide the necessary values.
+   - Click **"Done"** to save the Subflow element.
+
+5. **Connect the Elements:**
+   - Connect the **Create Records** element to the **Subflow** element.
+   - This ensures that the Subflow is executed after the record is created.
+
+6. **Save and Activate the Main Flow:**
+   - Click the **"Save"** button, provide a flow name (e.g., **"ContactCreationWithNotification"**).
+   - Click **"Activate"** to make the Main Flow available for use.
+
+7. **Test the Flow:**
+   - Test the Main Flow to ensure it performs the expected actions (e.g., creates a contact and then sends an email notification).
+
+### **Summary**
+
+- **Subflow**: Allows you to call another flow from within a flow, providing modularity and reusability.
+- **Main Flow**: Performs the primary business logic and calls the Subflow to perform additional tasks.
+- **Benefits**:
+  - **Modularity**: Breaks down complex processes into smaller, manageable components.
+  - **Reusability**: Common tasks can be reused in multiple flows.
+  - **Maintenance**: Easier to maintain and update smaller flows independently.
+
+By using Subflows, you can build more efficient and manageable automations in Salesforce, improving both functionality and performance.
+
+
+
+
+
+
 To work with numerical and date values in a Salesforce flow, you can use formulas and assignment elements to perform operations such as addition, subtraction, and dynamic calculations. Let's go through how to add and subtract numerical and date values, and how to create a formula to calculate dynamic values within Flow Builder.
 
 ### **1. Add and Subtract Numerical and Date Values in a Flow**
