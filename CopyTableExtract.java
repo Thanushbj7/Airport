@@ -1,3 +1,71 @@
+To retrieve a value from a single Salesforce record using Flow Builder, you use the **"Get Records"** element. This element allows you to query Salesforce records based on specified criteria and store the result in a variable. Once the record is retrieved, you can use its fields in subsequent elements within the flow.
+
+### **Steps to Retrieve Value from a Single Record Using Flow Builder**
+
+Let’s go through the process of retrieving a specific value from a single record, such as retrieving the **Account Name** from an **Account** record based on its **Account ID**.
+
+**Step-by-Step Instructions:**
+
+1. **Go to Flow Builder:**
+   - Navigate to Salesforce Setup.
+   - Search for **"Flows"** in the Quick Find box.
+   - Click **"Flows"** under the **Process Automation** section.
+   - Click the **"New Flow"** button.
+
+2. **Select Flow Type:**
+   - Choose **"Screen Flow"** if you want user interaction (e.g., to input the Account ID).
+   - Choose **"Autolaunched Flow"** if the flow will run in the background or be triggered by another process.
+   - For this example, let’s select **"Screen Flow"** to allow user input.
+
+3. **Add a Screen Element for Input (Optional):**
+   - Drag the **"Screen"** element onto the canvas.
+   - Give it a label (e.g., **"Enter Account ID"**).
+   - Add a text input field to capture the **Account ID** (e.g., Text field labeled "Account ID").
+   - Click **"Done"** to save the screen element.
+
+4. **Add a Get Records Element:**
+   - Drag the **"Get Records"** element onto the canvas.
+   - Give it a label (e.g., **"Get Account Record"**).
+   - Select the **Object** type as **"Account"**.
+   - Set the **Filter Conditions** to define which record to retrieve. For example:
+     - **Field**: **Account ID**
+     - **Operator**: **Equals**
+     - **Value**: The input from the Screen element (e.g., `{!AccountID}`).
+   - Choose **"Get Only the First Record"** (since we want a single record).
+   - Select **"Automatically Store All Fields"** to store all the fields of the retrieved record.
+   - Click **"Done"** to save the Get Records element.
+
+5. **Use the Retrieved Record’s Value:**
+   - Now that you have retrieved the record, you can use its fields in subsequent elements.
+   - For example, add another **"Screen"** element to display the retrieved **Account Name**:
+     - Drag a new **"Screen"** element onto the canvas.
+     - Give it a label (e.g., **"Display Account Name"**).
+     - Add a **Display Text** component.
+     - In the **Display Text** field, use the retrieved value syntax (e.g., **"The Account Name is: {!Get_Account_Record.AccountName}"**).
+   - Click **"Done"** to save the screen element.
+
+6. **Connect the Elements:**
+   - Connect the **Screen** element (for input) to the **Get Records** element.
+   - Connect the **Get Records** element to the new **Screen** element (for displaying the value).
+
+7. **Save and Activate the Flow:**
+   - Click the **"Save"** button, provide a flow name (e.g., **"Retrieve Account Name Flow"**).
+   - Click **"Activate"** to make the flow available for use.
+
+8. **Test the Flow:**
+   - Click **"Run"** to test the flow.
+   - Enter a valid **Account ID** in the input screen.
+   - Click **"Next"** to retrieve the Account record.
+   - The flow will display the Account Name from the retrieved record.
+
+### **Summary**
+
+By using the **"Get Records"** element in Flow Builder, you can easily retrieve a value from a single Salesforce record based on specified criteria. The retrieved record's fields can then be used in other elements within the flow, enabling you to build powerful and dynamic business processes in Salesforce.
+
+
+
+
+
 Salesforce Flows are powerful automation tools that can interact directly with Salesforce records. Flows can create, update, delete, or retrieve records based on the business requirements. Let’s explore how flows interact with Salesforce records and provide step-by-step instructions to build flows that create and update records.
 
 ### **How Flows Interact with Salesforce Records**
