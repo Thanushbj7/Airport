@@ -1,4 +1,60 @@
- @isTest
+
+
+
+
+
+
+
+@isTest
+static void ProtfolioTestOne(){
+    Test.startTest();
+
+    // Query the Account record
+    List<Account> RAcct = [SELECT Id, Name, SSN__c, is_Entity__c, FirstName, LastName, Middle_Name__pc FROM Account LIMIT 1];
+
+    if (RAcct.isEmpty()) {
+        // Handle the case where no Account records were found
+        System.assert(false, 'No Account records found.');
+    } else {
+        // Query the OFAC_Log__c record
+        OFAC_Log__c prRecord1 = [SELECT Id, Name, WorkItem_Id__c, SSN__c, Format_Type__c, CIP_Status__c,
+                                 First_Name__c, Last_Name__c, Full_Name__c, Middle_Name__c, Channel__c, Process__c,
+                                 Override_Reason_Notes__c, Document_ID__c FROM OFAC_Log__c WHERE Type__c='CIP' LIMIT 1];
+
+        if (prRecord1 == null) {
+            // Handle the case where no OFAC_Log__c records were found
+            System.assert(false, 'No OFAC_Log__c records found.');
+        } else {
+            prRecord1.Format_Type__c = 'I';
+            update prRecord1;
+        }
+
+        // Query the LexisNexisWorkitemID__c record
+        LexisNexisWorkitemID__c prRecord = [SELECT Id, Name, Workitem_ID__c, Document_ID__c FROM LexisNexisWorkitemID__c LIMIT 1];
+
+        if (prRecord == null) {
+            // Handle the case where no LexisNexisWorkitemID__c records were found
+            System.assert(false, 'No LexisNexisWorkitemID__c records found.');
+        } else {
+            prRecord.WorkItem_Id__c = '';
+            update prRecord;
+        }
+
+        // Call future method
+        LexisNexisCIPReporttoDocupace.futureCallUpload();
+        LexisNexisCIPReporttoDocupace pr = new LexisNexisCIPReporttoDocupace();
+
+        // Call method only if RAcct contains records
+        String workitemXML = pr.processWorkItemRequest(RAcct[0]).xmlResponse;
+
+        String jsonResponse = EBlotterDocupaceDataServiceHelper.createDocumentRecord('PR_DOC_REC', '', '', UserInfo.getSessionId(), '');
+        String jsonResponse1 = EBlotterDocupaceDataServiceHelper.createWorkitemRecord('PR_DP_DOCS_WI', '', workitemXML, '', '999988812', UserInfo.getSessionId(), '');
+
+        pr.uploadDoucmentstoDocupace(prRecord, null);
+    }
+
+    Test.stopTest();
+}@isTest
     static void ProtfolioTestOne(){
         Test.startTest();
         
