@@ -1,3 +1,98 @@
+@isTest(SeeAllData=false)
+private class testClassRegistrationAccessRemoval {
+
+    private static testMethod void testRegistrationAccessRemoval_lastNdays() {
+        // create test data
+        // Get Sys Admin profile record
+        Profile userProfileSysAdmin = TestUtils.getProfile('System Administrator');
+
+        // Get BD IFA Rep profile record
+        Profile userProfileBDIFA = TestUtils.getProfile('BD Ret Rep');
+
+        // Get User Role
+        UserRole userRole = TestUtils.getUserRole('Sales Director - IST');
+
+        // Create test user record
+        // Create a test BD IFA field rep user 
+        User bdIfaRep = TestUtils.createUser('100200300', 'testuser2@sw.com', 'testUser2@voya.com', userProfileBDIFA.Id, userRole.Id, false, false);
+        bdIfaRep.CommunityNickname = 'test22';
+
+        // Create a sys admin test user record
+        User sysAdmin = TestUtils.createUser('020202023', 'testuser1@sw.com', 'testUser1@voya.com', userProfileSysAdmin.Id, userRole.Id, false, false);
+        sysAdmin.CommunityNickname = 'test2';
+
+        List<User> users = new List<User>{bdIfaRep, sysAdmin};
+        insert users;
+
+        // Get Client record type id
+        RecordType clientRecordType = TestUtils.getAccountRecordType('Client', true);
+
+        Test.startTest();
+
+        System.runAs(sysAdmin) {
+            // Create rep number and rep number user records
+            // Create Rep Number
+            Rep_Number__c repNumber = TestUtilsSBR.createRepNum('testRepN1', '123');
+
+            // Create Rep Number User records
+            Rep_Number_User__c repNumberUser = TestUtilsSBR.createRepNumUser(repNumber.Id, bdIfaRep.Id, bdIfaRep.Rep_ID__c);
+
+            // Create a Client record
+            Account client = TestUtils.createPersonAccount(clientRecordType.Id, true);
+
+            // Add sys admin user in Account team
+            AccountTeamMember atm1 = new AccountTeamMember(AccountId = client.Id, UserId = sysAdmin.Id, TeamMemberRole = 'Sales Rep');
+            insert atm1;
+
+            // Create Financial Account records for this client and create Financial Account share records
+            // Create Financial Account test data
+            Financial_Account__c fAccount = new Financial_Account__c(Name = 'test FA', Status__c = 'Active', Client__c = client.Id,
+                                                                      Batch_Id__c = '123', Hybrid_RIA__c = true);
+            insert fAccount;
+
+            // Create Financial Account team members
+            Financial_Account_Team__c fat = new Financial_Account_Team__c(Name = 'testFAT2', Financial_Account__c = fAccount.Id,
+                                                                          FATeam_External_Id__c = '124', Batch_Id__c = '124',
+                                                                          User__c = bdIfaRep.Id, Role__c = 'Primary');
+            insert fat;
+
+            // Insert financial account share records                                                                                                                                
+            Financial_Account__Share fShare1 = new Financial_Account__Share(
+                ParentId = fAccount.Id, UserOrGroupId = bdIfaRep.Id, AccessLevel = 'Edit',
+                RowCause = Schema.Financial_Account__Share.RowCause.Data_Load__c);
+            insert fShare1;
+
+            // Create registration record
+            Registration__c registration = TestUtilsSBR.createRegistration(repNumber.Id, client, 'Traditional IRA');
+            insert registration;
+
+            // Create registration client members record
+            Registration_Client_Members__c rcm = TestUtilsSBR.createRegClientMember(
+                registration.Id, client, 1, 'Primary Account Holder', false);
+            insert rcm;
+
+            // Call the scheduler for RegistrationAccessRemoval batch job
+            Datetime futureDate = System.now().addMinutes(2); // Schedule to run 2 minutes from now
+            String cronExp = futureDate.format('s m H d M \'?\' yyyy'); // Format the datetime to a valid cron expression
+
+            String jobId = System.schedule('testRegistrationAccessRemoval', cronExp, new RegistrationAccessRemoval(false, 0));
+
+            // Test access removal batch job
+            RegistrationAccessRemoval regAccessRemoval = new RegistrationAccessRemoval(true, 1);
+            ID regAccessRemovalBatchID = Database.executeBatch(regAccessRemoval, RegistrationAccessRemoval.BATCH_SIZE_DEFAULT);
+            RegistrationAccessRemoval reg1 = new RegistrationAccessRemoval();
+
+        }
+        Test.stopTest();
+    }
+}
+
+
+
+
+
+
+
 /**
  * This class provides test code coverage for RegistrationAccessRemoval batch process
  *
