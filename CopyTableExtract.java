@@ -1,4 +1,62 @@
- public static testMethod void validateFinancialPlanStatusUpdateBatch1()
+public static testMethod void validateFinancialPlanStatusUpdateBatch1() {
+    RecordType[] rtList1 = [SELECT Id, IsPersonType, Name, SobjectType FROM RecordType WHERE SobjectType = 'Financial_Plan__c' AND Name = 'Moneyguide'];
+    RecordType[] rtList2 = [SELECT Id, IsPersonType, Name, SobjectType FROM RecordType WHERE SobjectType = 'Financial_Plan__c' AND Name = 'Manual Upload'];
+    RecordType[] rtAccList = [SELECT Id, IsPersonType, Name, SobjectType FROM RecordType WHERE SobjectType = 'Account' AND Name = 'client' AND IsPersonType = true];
+
+    Account accObj = new Account();
+    accObj.ssn__c = '123456789';
+    accObj.FirstName = 'TestFN';
+    accObj.LastName = 'TestLn';
+    accObj.recordtypeid = rtAccList[0].id;
+    insert accObj;
+
+    Plan__c planObj = new Plan__c(Name = 'abccc', Market_ist__c = 'External');
+    insert planObj;
+
+    Opportunity oppObj = new Opportunity(Name = 'abc', Plan__c = planObj.id, CloseDate = System.TODAY(), at_Risk__c = 2500.0, StageName = 'Retained', LeadSource = 'PFD', accountid = accObj.id);
+    insert oppObj;
+
+    Financial_Plan__c fpObj1 = new Financial_Plan__c();
+    fpObj1.Status__c = 'Active';
+    fpObj1.MGP_Plan_Updated__c = System.today().addMonths(-37);
+    fpObj1.RecordTypeId = rtList1[0].id;
+    fpObj1.BD_Financial_Agreement__c = oppObj.id;
+
+    Financial_Plan__c fpObj2 = new Financial_Plan__c();
+    fpObj2.Status__c = 'Active';
+    fpObj2.MGP_Plan_Updated__c = System.today().addMonths(-37);
+    fpObj2.RecordTypeId = rtList2[0].id;
+    fpObj2.BD_Financial_Agreement__c = oppObj.id;
+
+    insert new List<Financial_Plan__c>{fpObj1, fpObj2};
+
+    FinancialPlanStatusUpdateBatch batchable = new FinancialPlanStatusUpdateBatch('');
+    Database.executeBatch(batchable, 200);
+
+    // Set up a schedule in the future
+    FinancialPlanStatusUpdateBatch batchable1 = new FinancialPlanStatusUpdateBatch('');
+    Datetime futureDate = System.now().addMinutes(2); // Schedule to run 2 minutes from now
+
+    String sch = futureDate.format('s m H d M \'?\' yyyy'); // Format the datetime to a valid cron expression
+
+    String jobID = System.schedule('FinancialPlanStatusUpdateBatchJob', sch, batchable1);
+    
+    // Validate that the scheduled job was created
+    Test.stopTest();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+public static testMethod void validateFinancialPlanStatusUpdateBatch1()
     {
         RecordType[] rtList1 =[Select Id, IsPersonType, Name, SobjectType from RecordType where SobjectType ='Financial_Plan__c' and Name ='Moneyguide'];
         RecordType[] rtList2 =[Select Id, IsPersonType, Name, SobjectType from RecordType where SobjectType ='Financial_Plan__c' and Name ='Manual Upload'];
