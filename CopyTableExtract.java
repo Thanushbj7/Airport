@@ -1,4 +1,67 @@
+@isTest
+static void ProtfolioTestOne(){
+    Test.startTest();
+    
+    // Query for Account record
+    List<Account> RAcct = [SELECT Id, Name, SSN__c, is_Entity__c, FirstName, LastName, Middle_Name__pc FROM Account LIMIT 1];
 
+    // Check if the Account list is empty
+    if (RAcct.isEmpty()) {
+        System.assert(false, 'No Account records found.'); // Stop the test if no accounts found
+    } else {
+        System.debug('Account retrieved: ' + RAcct[0]); // Debug statement to confirm account retrieval
+    }
+
+    // Query for OFAC_Log__c record
+    OFAC_Log__c prRecord1 = [SELECT Id, Name, WorkItem_Id__c, SSN__c, Format_Type__c, CIP_Status__c,
+                             First_Name__c, Last_Name__c, Full_Name__c, Middle_Name__c, Channel__c, Process__c, 
+                             Override_Reason_Notes__c, Document_ID__c FROM OFAC_Log__c WHERE Type__c = 'CIP' LIMIT 1];
+
+    // Check if OFAC_Log__c record is null
+    if (prRecord1 == null) {
+        System.assert(false, 'No OFAC_Log__c records found.'); // Stop the test if no OFAC_Log__c record found
+    } else {
+        System.debug('OFAC_Log__c retrieved: ' + prRecord1); // Debug statement to confirm OFAC_Log__c retrieval
+        prRecord1.Format_Type__c = 'I';
+        update prRecord1; // Update record if not null
+    }
+
+    // Query for LexisNexisWorkitemID__c record
+    LexisNexisWorkitemID__c prRecord = [SELECT Id, Name, Workitem_ID__c, Document_ID__c FROM LexisNexisWorkitemID__c LIMIT 1];
+
+    // Check if LexisNexisWorkitemID__c record is null
+    if (prRecord == null) {
+        System.assert(false, 'No LexisNexisWorkitemID__c records found.'); // Stop the test if no LexisNexisWorkitemID__c record found
+    } else {
+        System.debug('LexisNexisWorkitemID__c retrieved: ' + prRecord); // Debug statement to confirm LexisNexisWorkitemID__c retrieval
+        prRecord.WorkItem_Id__c = '';
+        update prRecord; // Update record if not null
+    }
+
+    // Call future method to simulate future call
+    LexisNexisCIPReporttoDocupace.futureCallUpload();
+
+    // Instantiate LexisNexisCIPReporttoDocupace class
+    LexisNexisCIPReporttoDocupace pr = new LexisNexisCIPReporttoDocupace();
+
+    // Check if the Account record is null before processing
+    if (!RAcct.isEmpty()) {
+        String workitemXML = pr.processWorkItemRequest(RAcct[0]).xmlResponse; // Process work item if account exists
+        System.debug('workitemXML response: ' + workitemXML); // Debug statement to confirm XML response
+
+        String jsonResponse = EBlotterDocupaceDataServiceHelper.createDocumentRecord('PR_DOC_REC', '', '', UserInfo.getSessionId(), '');
+        System.debug('JSON response for Document Record: ' + jsonResponse); // Debug statement to confirm JSON response
+
+        String jsonResponse1 = EBlotterDocupaceDataServiceHelper.createWorkitemRecord('PR_DP_DOCS_WI', '', workitemXML, '', '999988812', UserInfo.getSessionId(), '');
+        System.debug('JSON response for Workitem Record: ' + jsonResponse1); // Debug statement to confirm JSON response
+
+        pr.uploadDoucmentstoDocupace(prRecord, null); // Upload documents if records exist
+    } else {
+        System.assert(false, 'No valid Account records to process.'); // Stop the test if no valid accounts
+    }
+
+    Test.stopTest();
+}
 
 
 
