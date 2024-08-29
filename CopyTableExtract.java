@@ -1,3 +1,49 @@
+ public static testMethod void validateFinancialPlanStatusUpdateBatch1()
+    {
+        RecordType[] rtList1 =[Select Id, IsPersonType, Name, SobjectType from RecordType where SobjectType ='Financial_Plan__c' and Name ='Moneyguide'];
+        RecordType[] rtList2 =[Select Id, IsPersonType, Name, SobjectType from RecordType where SobjectType ='Financial_Plan__c' and Name ='Manual Upload'];
+        RecordType[] rtAccList =[Select Id, IsPersonType, Name, SobjectType from RecordType where  SobjectType ='Account' and Name ='client' and IsPersonType = true];
+        
+        Account accObj = new Account();
+		accObj.ssn__c='123456789';
+		accObj.FirstName= 'TestFN';
+		accObj.LastName='TestLn';
+		accObj.recordtypeid=rtAccList[0].id;
+		insert accObj;
+        
+        Plan__c planObj = new Plan__c(Name='abccc',Market_ist__c='External');
+        insert planObj;
+        
+        Opportunity oppObj = new Opportunity(Name='abc' , Plan__c=planObj.id ,CloseDate=System.TODAY(), at_Risk__c=2500.0 ,StageName='Retained' , LeadSource='PFD', accountid=accObj.id );
+        insert oppObj;
+        
+        Financial_Plan__c fpObj1 = new Financial_Plan__c();
+        fpObj1.Status__c = 'Active';
+        fpObj1.MGP_Plan_Updated__c = System.today().addMonths(-37);
+        fpObj1.RecordTypeId=rtList1[0].id;
+        fpObj1.BD_Financial_Agreement__c = oppObj.id;
+        
+        Financial_Plan__c fpObj2 = new Financial_Plan__c();
+        fpObj2.Status__c = 'Active';
+        fpObj2.MGP_Plan_Updated__c = System.today().addMonths(-37);
+        fpObj2.RecordTypeId=rtList2[0].id;
+        fpObj2.BD_Financial_Agreement__c = oppObj.id;
+        
+        insert new List<Financial_Plan__c>{fpObj1, fpObj2};
+        
+        FinancialPlanStatusUpdateBatch batchable = new FinancialPlanStatusUpdateBatch('');
+        Database.executeBatch(batchable, 200);
+        
+        FinancialPlanStatusUpdateBatch batchable1 = new FinancialPlanStatusUpdateBatch('');
+        String sch = '0 0 0 3 9 ? 2022';
+        
+		String jobID = system.schedule('FinancialPlanStatusUpdateBatchJob', sch, batchable1);
+        
+        
+    }
+
+System.AsyncException: Based on configured schedule, the given trigger 'SCHEDULED_APEX_JOB_TYPE.000000000000000' will never fire.
+
 System.LimitException: Too many SOQL queries: 101
   static testMethod void RRRecordInteractionControllerTest3() {
         
