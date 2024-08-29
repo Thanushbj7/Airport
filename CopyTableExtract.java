@@ -1,3 +1,42 @@
+ @isTest
+    static void ProtfolioTestOne(){
+        Test.startTest();
+        
+        
+         list<Account> RAcct = [SELECT Id, Name, SSN__c, is_Entity__c,FirstName, LastName, Middle_Name__pc FROM Account limit 1];
+       
+
+        OFAC_Log__c prRecord1 =[SELECT Id, Name, WorkItem_Id__c, SSN__c, Format_Type__c,CIP_Status__c,
+                                First_Name__c, Last_Name__c, Full_Name__c, Middle_Name__c,Channel__c,Process__c,Override_Reason_Notes__c,
+                                Document_ID__c FROM OFAC_Log__c where Type__c='CIP' limit 1];
+        prRecord1.Format_Type__c='I';
+        update prRecord1;
+        
+        LexisNexisWorkitemID__c prRecord =[select id, name,Workitem_ID__c,Document_ID__c from LexisNexisWorkitemID__c Limit 1 ];
+        List<LexisNexisWorkitemID__c> portList = LexisNexisWorkitemID__c.getAll().Values();
+         prRecord.WorkItem_Id__c = '';
+        update prRecord;
+        
+        
+       
+	 LexisNexisCIPReporttoDocupace.futureCallUpload();
+        LexisNexisCIPReporttoDocupace pr = new LexisNexisCIPReporttoDocupace();
+        
+        String workitemXML = pr.processWorkItemRequest(RAcct[0]).xmlResponse;
+        
+         String jsonResponse = EBlotterDocupaceDataServiceHelper.createDocumentRecord('PR_DOC_REC', '', '', UserInfo.getSessionId(), '');
+        String jsonResponse1 = EBlotterDocupaceDataServiceHelper.createWorkitemRecord('PR_DP_DOCS_WI','',workitemXML,'','999988812',UserInfo.getSessionId(),'');
+                
+        pr.uploadDoucmentstoDocupace(prRecord,null);
+        
+        
+        Test.stopTest();
+    }
+System.NullPointerException: Attempt to de-reference a null object
+
+
+
+
 @isTest(SeeAllData=false)
 private class testClassRegistrationAccessRemoval {
 
