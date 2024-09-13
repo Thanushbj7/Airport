@@ -1,3 +1,27 @@
+trigger PreventPlanIdChange on Case_Action__c (before update) {
+    // Get the Profile ID for System Administrator
+    Id sysAdminProfileId = [SELECT Id FROM Profile WHERE Name = 'System Administrator' LIMIT 1].Id;
+
+    // Iterate through the Case Action records being updated
+    for (Case_Action__c caseAction : Trigger.new) {
+        // Get the old version of the record to compare field values
+        Case_Action__c oldCaseAction = Trigger.oldMap.get(caseAction.Id);
+
+        // Check if the Plan Id is being changed and if the user's profile is not System Administrator
+        if (caseAction.Plan_Id__c != oldCaseAction.Plan_Id__c && 
+            UserInfo.getProfileId() != sysAdminProfileId) {
+            // Prevent the update and show an error message
+            caseAction.addError('You do not have permission to change the Plan Id.');
+        }
+    }
+}
+
+
+
+
+
+
+
 @isTest
 static void ProtfolioTestOne(){
     Test.startTest();
