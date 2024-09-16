@@ -1,3 +1,31 @@
+trigger PreventCaseDeletion on Case (before delete) {
+
+    // List to store case IDs from the trigger context
+    Set<Id> caseIds = new Set<Id>();
+
+    // Gather all Case IDs from the records being deleted
+    for (Case caseRecord : Trigger.old) {
+        caseIds.add(caseRecord.Id);
+    }
+
+    // Query for any Case Action records that are related to the cases being deleted
+    List<Case_Action__c> relatedCaseActions = [
+        SELECT Id FROM Case_Action__c WHERE Case__c IN :caseIds
+    ];
+
+    // If there are any related Case Action records, prevent deletion
+    if (relatedCaseActions.size() > 0) {
+        for (Case caseRecord : Trigger.old) {
+            caseRecord.addError('You cannot delete this Case because it has related Case Action records.');
+        }
+    }
+}
+
+
+
+
+
+
 trigger PreventPlanIdChange on Case_Action__c (before update) {
     // Get the Profile ID for System Administrator
     Id sysAdminProfileId = [SELECT Id FROM Profile WHERE Name = 'System Administrator' LIMIT 1].Id;
