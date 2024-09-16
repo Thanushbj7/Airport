@@ -1,3 +1,24 @@
+trigger PopulateActNotesOnOpportunityCreation on Opportunity (before insert) {
+
+    // Get the record type Id for the 'Rollover' record type
+    RecordType rolloverRecordType = [SELECT Id FROM RecordType WHERE SObjectType = 'Opportunity' AND Name = 'Rollover' LIMIT 1];
+    
+    // Iterate through the list of new Opportunities being created
+    for (Opportunity opp : Trigger.new) {
+        
+        // Check if the record type is 'Rollover'
+        if (opp.RecordTypeId == rolloverRecordType.Id) {
+            
+            // Populate the 'ACT Notes' field with the specified text
+            opp.ACT_Notes__c = 'Test Notes By Thanush';
+        }
+    }
+}
+
+
+
+
+
 trigger PreventCaseDeletion on Case (before delete) {
 
     // List to store case IDs from the trigger context
