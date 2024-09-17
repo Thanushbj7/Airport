@@ -1,3 +1,45 @@
+trigger PopulateOwnerOnCaseAction on Case (after insert, after update) {
+
+    // Create a Set to store Case IDs from the Case records in Trigger.new
+    Set<Id> caseIds = new Set<Id>();
+
+    // Collect all Case IDs from the trigger
+    for (Case caseRecord : Trigger.new) {
+        caseIds.add(caseRecord.Id);
+    }
+
+    // Query the Owner (User or Queue) for these Case records
+    Map<Id, String> caseOwnerMap = new Map<Id, String>();
+
+    // Query the Case owners from User or Queue (Group)
+    List<Case> casesWithOwners = [SELECT Id, OwnerId, Owner.Name FROM Case WHERE Id IN :caseIds];
+    for (Case caseRecord : casesWithOwners) {
+        caseOwnerMap.put(caseRecord.Id, caseRecord.Owner.Name);
+    }
+
+    // Query related CaseAction records to the Cases
+    List<CaseAction__c> caseActionList = [SELECT Id, Case__c FROM CaseAction__c WHERE Case__c IN :caseIds];
+
+    // Update CaseAction records with the Owner name from the related Case
+    for (CaseAction__c caseAction : caseActionList) {
+        if (caseOwnerMap.containsKey(caseAction.Case__c)) {
+            caseAction.Owner__c = caseOwnerMap.get(caseAction.Case__c);
+        }
+    }
+
+    // Perform DML operation to update CaseAction records
+    if (!caseActionList.isEmpty()) {
+        update caseActionList;
+    }
+}
+
+
+
+
+
+
+
+
 trigger PopulateActNotesOnOpportunityCreation on Opportunity (before insert) {
 
     // Get the record type Id for the 'Rollover' record type
