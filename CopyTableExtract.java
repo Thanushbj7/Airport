@@ -1,3 +1,58 @@
+trigger UpdateCaseActionCount on CaseAction__c (after insert, after update, after delete, after undelete) {
+
+    // Set to hold all Case IDs related to CaseActions
+    Set<Id> caseIds = new Set<Id>();
+
+    // Collect all Case IDs from the CaseAction records in Trigger.new/old (depending on context)
+    if (Trigger.isInsert || Trigger.isUpdate || Trigger.isUndelete) {
+        for (CaseAction__c caseAction : Trigger.new) {
+            caseIds.add(caseAction.Case__c);
+        }
+    }
+
+    if (Trigger.isDelete) {
+        for (CaseAction__c caseAction : Trigger.old) {
+            caseIds.add(caseAction.Case__c);
+        }
+    }
+
+    // Query Case records to update the 'Count Using Trigger' field
+    List<Case> casesToUpdate = new List<Case>();
+
+    // Query the number of related CaseAction records for each Case
+    Map<Id, Integer> caseActionCountMap = new Map<Id, Integer>();
+    List<AggregateResult> caseActionCounts = [
+        SELECT Case__c, COUNT(Id) count
+        FROM CaseAction__c
+        WHERE Case__c IN :caseIds
+        GROUP BY Case__c
+    ];
+
+    // Store the Case Id and related CaseAction count in a map
+    for (AggregateResult ar : caseActionCounts) {
+        caseActionCountMap.put((Id) ar.get('Case__c'), (Integer) ar.get('count'));
+    }
+
+    // For each Case, update the 'Count Using Trigger' field
+    for (Id caseId : caseIds) {
+        Case caseRecord = new Case(
+            Id = caseId,
+            Count_Using_Trigger__c = caseActionCountMap.containsKey(caseId) ? caseActionCountMap.get(caseId) : 0
+        );
+        casesToUpdate.add(caseRecord);
+    }
+
+    // Update all the Case records with the new count
+    if (!casesToUpdate.isEmpty()) {
+        update casesToUpdate;
+    }
+}
+
+
+
+
+
+
 trigger PopulateOwnerOnCaseAction on Case (after insert, after update) {
 
     // Create a Set to store Case IDs from the Case records in Trigger.new
