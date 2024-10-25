@@ -1,3 +1,10 @@
+User newUser = Trigger.new[0];
+List<User> existingUsers = [SELECT Id FROM User WHERE Email = :newUser.Email LIMIT 1];
+
+
+
+
+
 
 else {
     Contact newContact = new Contact(
