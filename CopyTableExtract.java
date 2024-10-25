@@ -1,3 +1,106 @@
+
+else {
+    Contact newContact = new Contact(
+        FirstName = newUser.FirstName,
+        LastName = newUser.LastName,
+        Email = newUser.Email,
+        Street = newUser.Street,
+        City = newUser.City,
+        ZipCode = newUser.ZipCode
+    );
+    insert newContact;
+}
+
+
+
+
+if (existingContacts.size() > 0) {
+    Contact existingContact = existingContacts[0];
+    existingContact.Street = newUser.Street;
+    existingContact.City = newUser.City;
+    existingContact.ZipCode = newUser.ZipCode;
+    update existingContact;
+}
+
+
+
+
+List<Contact> existingContacts = [SELECT Id, Street, City, ZipCode FROM Contact WHERE Email = :newUser.Email LIMIT 1];
+
+
+
+else {
+    Contact newContact = new Contact(
+        FirstName = newUser.FirstName,
+        LastName = newUser.LastName,
+        Email = newUser.Email,
+        Street = newUser.Street,
+        City = newUser.City,
+        ZipCode = newUser.ZipCode
+    );
+    insert newContact;
+}
+
+
+
+
+
+if (existingContacts.size() > 0) {
+    Contact existingContact = existingContacts[0];
+    existingContact.Street = newUser.Street;
+    existingContact.City = newUser.City;
+    existingContact.ZipCode = newUser.ZipCode;
+    update existingContact;
+}
+
+
+
+
+List<Contact> existingContacts = [SELECT Id, Street, City, ZipCode FROM Contact WHERE Email = :newUser.Email LIMIT 1];
+
+
+
+
+
+else {
+    User newUser = new User(
+        Email = newUser.Email,
+        Street = newUser.Street,
+        City = newUser.City,
+        ZipCode = newUser.ZipCode
+        // Add other fields
+    );
+    insert newUser;
+}
+
+
+
+
+
+if (existingUsers.size() > 0) {
+    User existingUser = existingUsers[0];
+    existingUser.Street = newUser.Street;
+    existingUser.City = newUser.City;
+    existingUser.ZipCode = newUser.ZipCode;
+    // Update additional fields
+    update existingUser;
+}
+
+
+
+List<User> existingUsers = [SELECT Id FROM User WHERE Email = :newUser.Email LIMIT 1];
+
+
+
+
+
+
+
+
+
+
+
+
 import {​​​​​​​ LightningElement, api, track, wire }​​​​​​​ from 'lwc';
 
 import createCaseActions from '@salesforce/apex/lightningPopController.createCaseActions';
