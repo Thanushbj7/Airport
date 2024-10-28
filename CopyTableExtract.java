@@ -1,3 +1,49 @@
+if (!contactsToUpdate.isEmpty()) {
+    for (User newUser : Trigger.new) {
+        Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+        email.setToAddresses(new String[] { newUser.Email });
+        email.setSubject('Your Address Has Been Updated');
+        email.setPlainTextBody('Your address has been updated successfully.');
+        Messaging.sendEmail(new Messaging.SingleEmailMessage[] { email });
+        System.debug('Email sent to User: ' + newUser.Email);
+    }
+}
+
+
+
+
+
+
+trigger UserAddressChangeTrigger on User (before update) {
+    List<Contact> contactsToUpdate = new List<Contact>();
+    for (User newUser : Trigger.new) {
+        User oldUser = Trigger.oldMap.get(newUser.Id);
+
+        if (newUser.Email != null) {
+            // Query the related Contact by email
+            Contact existingContact = [SELECT Id, Street, City, ZipCode FROM Contact WHERE Email = :newUser.Email LIMIT 1];
+
+            // Check if the address fields have changed
+            if (oldUser.Street != newUser.Street || oldUser.City != newUser.City || oldUser.ZipCode != newUser.ZipCode) {
+                // Address has changed, prepare the Contact for update
+                existingContact.Street = newUser.Street;
+                existingContact.City = newUser.City;
+                existingContact.ZipCode = newUser.ZipCode;
+                contactsToUpdate.add(existingContact);
+            }
+        }
+    }
+
+    // Update Contact records
+    if (!contactsToUpdate.isEmpty()) {
+        update contactsToUpdate;
+        System.debug('Contacts updated with new addresses');
+    }
+}
+
+
+
+
 User newUser = Trigger.new[0];
 List<User> existingUsers = [SELECT Id FROM User WHERE Email = :newUser.Email LIMIT 1];
 
