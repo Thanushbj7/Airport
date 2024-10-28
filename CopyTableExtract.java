@@ -1,3 +1,84 @@
+trigger UserUpdateTrigger on User (before insert, before update) {
+
+    Map<String, Contact> emailToContactMap = new Map<String, Contact>();
+    List<Contact> contactsToUpdate = new List<Contact>();
+    List<Contact> contactsToInsert = new List<Contact>();
+    List<Messaging.SingleEmailMessage> emailsToSend = new List<Messaging.SingleEmailMessage>();
+
+    // Step 1: Prepare email addresses for checking contact existence
+    Set<String> emailAddresses = new Set<String>();
+    for (User user : Trigger.new) {
+        if (user.Email != null) {
+            emailAddresses.add(user.Email);
+        }
+    }
+
+    // Step 2: Fetch contacts by email address
+    if (!emailAddresses.isEmpty()) {
+        for (Contact contact : [SELECT Id, Email, MailingStreet, MailingCity, MailingPostalCode FROM Contact WHERE Email IN :emailAddresses]) {
+            emailToContactMap.put(contact.Email, contact);
+        }
+    }
+
+    // Step 3: Process each user record
+    for (User user : Trigger.new) {
+
+        // Check if the contact with the user's email already exists
+        Contact existingContact = emailToContactMap.get(user.Email);
+
+        if (existingContact != null) {
+            // Populate contact address from user address if the contact exists and addresses differ
+            if (user.Street != existingContact.MailingStreet ||
+                user.City != existingContact.MailingCity ||
+                user.PostalCode != existingContact.MailingPostalCode) {
+
+                existingContact.MailingStreet = user.Street;
+                existingContact.MailingCity = user.City;
+                existingContact.MailingPostalCode = user.PostalCode;
+                contactsToUpdate.add(existingContact);
+
+                // Prepare email notification for address change
+                Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+                email.setToAddresses(new String[]{user.Email});
+                email.setSubject('Address Updated Successfully');
+                email.setPlainTextBody('Your address has been updated successfully.');
+                emailsToSend.add(email);
+            }
+        } else {
+            // Create a new contact if no existing contact with the same email
+            Contact newContact = new Contact();
+            newContact.FirstName = user.FirstName;
+            newContact.LastName = user.LastName;
+            newContact.Email = user.Email;
+            newContact.MailingStreet = user.Street;
+            newContact.MailingCity = user.City;
+            newContact.MailingPostalCode = user.PostalCode;
+            contactsToInsert.add(newContact);
+        }
+    }
+
+    // Step 4: Insert or update contact records
+    if (!contactsToInsert.isEmpty()) {
+        insert contactsToInsert;
+    }
+    if (!contactsToUpdate.isEmpty()) {
+        update contactsToUpdate;
+    }
+
+    // Step 5: Send email notifications for address updates
+    if (!emailsToSend.isEmpty()) {
+        Messaging.sendEmail(emailsToSend);
+    }
+}
+
+
+
+
+
+
+
+
+
 if (!contactsToUpdate.isEmpty()) {
     for (User newUser : Trigger.new) {
         Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
