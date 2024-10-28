@@ -1,3 +1,7 @@
+Error: Invalid Data.
+Review all error messages below to correct your data.
+Apex trigger UserUpdateTrigger caused an unexpected exception, contact your administrator: UserUpdateTrigger: execution of BeforeInsert caused by: System.DmlException: Insert failed. First exception on row 0; first error: FIELD_CUSTOM_VALIDATION_EXCEPTION, Account must be a Consulting Firm.: [of_Dependents__c]: Trigger.UserUpdateTrigger: line 144, column 1
+
 trigger UserUpdateTrigger on User (before insert, before update) {
 
     Map<String, Contact> emailToContactMap = new Map<String, Contact>();
