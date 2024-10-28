@@ -1,3 +1,24 @@
+for (User user : Trigger.new) {
+    if (user.Email != null && user.LastName != null) {  // Ensure LastName is populated
+        Contact newContact = new Contact();
+        newContact.FirstName = user.FirstName != null ? user.FirstName : 'DefaultFirstName';
+        newContact.LastName = user.LastName;
+        newContact.Email = user.Email;
+        newContact.MailingStreet = user.Street;
+        newContact.MailingCity = user.City;
+        newContact.MailingPostalCode = user.PostalCode;
+        contactsToInsert.add(newContact);
+    } else {
+        // Log or handle missing LastName scenario if needed
+        System.debug('User record is missing LastName. Cannot create Contact.');
+    }
+}
+
+
+
+
+
+
 check user idThis error occurred when the flow tried to create records: CANNOT_INSERT_UPDATE_ACTIVATE_ENTITY: UserUpdateTrigger: execution of BeforeInsert caused by: System.DmlException: Insert failed. First exception on row 0; first error: REQUIRED_FIELD_MISSING, Required fields are missing: [LastName]: [LastName] Trigger.UserUpdateTrigger: line 144, column 1. You can look up ExceptionCode values in the SOAP API Developer Guide. Error ID: 1871530740-1367895 (-888500429) up ExceptionCode values in the SOAP API Developer Guide. Error ID: 1871530740-1367895 (-888500429)
 
 
