@@ -1,3 +1,6 @@
+check user idThis error occurred when the flow tried to create records: CANNOT_INSERT_UPDATE_ACTIVATE_ENTITY: UserUpdateTrigger: execution of BeforeInsert caused by: System.DmlException: Insert failed. First exception on row 0; first error: REQUIRED_FIELD_MISSING, Required fields are missing: [LastName]: [LastName] Trigger.UserUpdateTrigger: line 144, column 1. You can look up ExceptionCode values in the SOAP API Developer Guide. Error ID: 1871530740-1367895 (-888500429) up ExceptionCode values in the SOAP API Developer Guide. Error ID: 1871530740-1367895 (-888500429)
+
+
 Error: Invalid Data.
 Review all error messages below to correct your data.
 Apex trigger UserUpdateTrigger caused an unexpected exception, contact your administrator: UserUpdateTrigger: execution of BeforeInsert caused by: System.DmlException: Insert failed. First exception on row 0; first error: FIELD_CUSTOM_VALIDATION_EXCEPTION, Account must be a Consulting Firm.: [of_Dependents__c]: Trigger.UserUpdateTrigger: line 144, column 1
