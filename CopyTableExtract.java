@@ -1,3 +1,6 @@
+check user idThis error occurred when the flow tried to create records: REQUIRED_FIELD_MISSING: Required fields are missing: [Username, LastName, Email, Alias, TimeZoneSidKey, LocaleSidKey, EmailEncodingKey, ProfileId, LanguageLocaleKey]. You can look up ExceptionCode values in the SOAP API Developer Guide. Error ID: 842791651-172 (-888500429) look up ExceptionCode values in the SOAP API Developer Guide. Error ID: 842791651-172 (-888500429)
+
+
 for (User user : Trigger.new) {
     if (user.Email != null && user.LastName != null) {  // Ensure LastName is populated
         Contact newContact = new Contact();
