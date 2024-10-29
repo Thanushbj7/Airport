@@ -1,3 +1,97 @@
+trigger UserAddressTrigger on User (after insert, after update) {
+    // Step 1: Define variables and maps to store information
+    Set<String> userEmails = new Set<String>();
+    Map<String, User> emailToUserMap = new Map<String, User>();
+    
+    // Collect user emails and map users by email
+    for (User u : Trigger.new) {
+        userEmails.add(u.Email);
+        emailToUserMap.put(u.Email, u);
+    }
+
+    // Step 2: Find existing Contacts with matching emails
+    Map<String, Contact> emailToContactMap = new Map<String, Contact>();
+    if (!userEmails.isEmpty()) {
+        for (Contact c : [SELECT Id, Email, MailingStreet, MailingCity, MailingPostalCode FROM Contact WHERE Email IN :userEmails]) {
+            emailToContactMap.put(c.Email, c);
+        }
+    }
+
+    // Step 3: Prepare lists for new contacts, updated contacts, and notifications
+    List<Contact> contactsToInsert = new List<Contact>();
+    List<Contact> contactsToUpdate = new List<Contact>();
+    List<Messaging.SingleEmailMessage> emailsToSend = new List<Messaging.SingleEmailMessage>();
+
+    // Step 4: Process each user record
+    for (User u : Trigger.new) {
+        if (u.Email != null) {
+            // Check if a contact with the user's email exists
+            Contact existingContact = emailToContactMap.get(u.Email);
+
+            if (existingContact != null) {
+                // Compare address fields to detect changes
+                Boolean addressChanged = 
+                    (existingContact.MailingStreet != u.Street) || 
+                    (existingContact.MailingCity != u.City) || 
+                    (existingContact.MailingPostalCode != u.PostalCode);
+
+                if (addressChanged) {
+                    // Update contact address from the user's address
+                    existingContact.MailingStreet = u.Street;
+                    existingContact.MailingCity = u.City;
+                    existingContact.MailingPostalCode = u.PostalCode;
+                    contactsToUpdate.add(existingContact);
+
+                    // Prepare and queue the email notification
+                    Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+                    email.setToAddresses(new String[] { u.Email });
+                    email.setSubject('Address Update Notification');
+                    email.setPlainTextBody('Your address has been updated successfully.');
+                    emailsToSend.add(email);
+                }
+            } else {
+                // Create a new contact if none exists
+                Contact newContact = new Contact(
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Email = u.Email,
+                    MailingStreet = u.Street,
+                    MailingCity = u.City,
+                    MailingPostalCode = u.PostalCode
+                );
+                contactsToInsert.add(newContact);
+            }
+        }
+    }
+
+    // Step 5: Execute database operations and send email notifications
+    if (!contactsToInsert.isEmpty()) {
+        insert contactsToInsert;
+    }
+    if (!contactsToUpdate.isEmpty()) {
+        update contactsToUpdate;
+    }
+    if (!emailsToSend.isEmpty()) {
+        Messaging.sendEmail(emailsToSend);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 check user idThis error occurred when the flow tried to create records: REQUIRED_FIELD_MISSING: Required fields are missing: [Username, LastName, Email, Alias, TimeZoneSidKey, LocaleSidKey, EmailEncodingKey, ProfileId, LanguageLocaleKey]. You can look up ExceptionCode values in the SOAP API Developer Guide. Error ID: 842791651-172 (-888500429) look up ExceptionCode values in the SOAP API Developer Guide. Error ID: 842791651-172 (-888500429)
 
 
