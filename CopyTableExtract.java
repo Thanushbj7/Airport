@@ -1,3 +1,90 @@
+trigger UserContactSync on User (before insert, before update) {
+    // Maps to hold user and contact data
+    Map<String, Contact> contactsByEmail = new Map<String, Contact>();
+    Map<String, User> usersByEmail = new Map<String, User>();
+
+    // Step 1: Populate the maps with existing Contacts and Users by email
+    if (Trigger.isInsert || Trigger.isUpdate) {
+        Set<String> userEmails = new Set<String>();
+        
+        for (User user : Trigger.new) {
+            if (user.Email != null) {
+                userEmails.add(user.Email);
+            }
+        }
+
+        // Query existing contacts with the same emails
+        for (Contact contact : [SELECT Id, Email, MailingStreet, MailingCity, MailingPostalCode FROM Contact WHERE Email IN :userEmails]) {
+            contactsByEmail.put(contact.Email, contact);
+        }
+        
+        // Query existing users with the same emails
+        for (User existingUser : [SELECT Id, Email, Street, City, PostalCode FROM User WHERE Email IN :userEmails]) {
+            usersByEmail.put(existingUser.Email, existingUser);
+        }
+    }
+
+    // Step 2: Create or Update User, and synchronize with Contact
+    for (User user : Trigger.new) {
+        if (Trigger.isInsert || (Trigger.isUpdate && user.Email != null)) {
+            if (usersByEmail.containsKey(user.Email)) {
+                // User exists, update the address fields
+                User existingUser = usersByEmail.get(user.Email);
+                existingUser.Street = user.Street;
+                existingUser.City = user.City;
+                existingUser.PostalCode = user.PostalCode;
+            } else {
+                // New User, set necessary fields (already handled in 'before insert')
+            }
+
+            // Step 3: Check for Contact by Email and sync address if needed
+            if (contactsByEmail.containsKey(user.Email)) {
+                Contact existingContact = contactsByEmail.get(user.Email);
+                
+                // Detect address changes and update Contact if necessary
+                Boolean addressChanged = false;
+                if (existingContact.MailingStreet != user.Street || existingContact.MailingCity != user.City || existingContact.MailingPostalCode != user.PostalCode) {
+                    existingContact.MailingStreet = user.Street;
+                    existingContact.MailingCity = user.City;
+                    existingContact.MailingPostalCode = user.PostalCode;
+                    addressChanged = true;
+                }
+
+                if (addressChanged) {
+                    // Add the contact to the update list for further processing in flow
+                    contactsByEmail.put(existingContact.Email, existingContact);
+                }
+            } else {
+                // No Contact exists, create a new Contact with User details
+                Contact newContact = new Contact(
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    MailingStreet = user.Street,
+                    MailingCity = user.City,
+                    MailingPostalCode = user.PostalCode
+                );
+                insert newContact;
+            }
+        }
+    }
+
+    // Update contacts with changes in address fields
+    if (!contactsByEmail.isEmpty()) {
+        update contactsByEmail.values();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
 @isTest
 public class UserAddressTriggerTest {
     // Utility method to create a User with necessary fields
