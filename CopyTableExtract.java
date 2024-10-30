@@ -1,3 +1,119 @@
+@isTest
+public class UserAddressTriggerTest {
+    // Utility method to create a User with necessary fields
+    private static User createUser(String email, String firstName, String lastName, String street, String city, String zip) {
+        Profile userProfile = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
+        return new User(
+            Username = email,
+            LastName = lastName,
+            FirstName = firstName,
+            Email = email,
+            Alias = lastName.substring(0, 4),
+            TimeZoneSidKey = 'America/New_York',
+            LocaleSidKey = 'en_US',
+            EmailEncodingKey = 'UTF-8',
+            ProfileId = userProfile.Id,
+            LanguageLocaleKey = 'en_US',
+            Street = street,
+            City = city,
+            PostalCode = zip
+        );
+    }
+
+    @isTest
+    static void testCreateUserAndContact() {
+        Test.startTest();
+        
+        // Create a new User
+        User newUser = createUser(
+            'testuser1@example.com', 'John', 'Doe', '123 Main St', 'New York', '10001'
+        );
+        insert newUser;
+
+        // Verify Contact is created
+        Contact createdContact = [SELECT Id, Email, MailingStreet, MailingCity, MailingPostalCode FROM Contact WHERE Email = :newUser.Email];
+        System.assertEquals('123 Main St', createdContact.MailingStreet);
+        System.assertEquals('New York', createdContact.MailingCity);
+        System.assertEquals('10001', createdContact.MailingPostalCode);
+
+        Test.stopTest();
+    }
+
+    @isTest
+    static void testUpdateUserAndContactAddressChange() {
+        // Step 1: Insert initial User and Contact
+        User newUser = createUser(
+            'testuser2@example.com', 'Jane', 'Doe', '456 Maple St', 'San Francisco', '94103'
+        );
+        insert newUser;
+
+        // Check Contact was created
+        Contact existingContact = [SELECT Id, Email, MailingStreet, MailingCity, MailingPostalCode FROM Contact WHERE Email = :newUser.Email];
+        System.assertEquals('456 Maple St', existingContact.MailingStreet);
+
+        // Step 2: Update User's address
+        newUser.Street = '789 Oak St';
+        newUser.City = 'Los Angeles';
+        newUser.PostalCode = '90001';
+        update newUser;
+
+        // Step 3: Verify that Contact address is updated
+        existingContact = [SELECT MailingStreet, MailingCity, MailingPostalCode FROM Contact WHERE Email = :newUser.Email];
+        System.assertEquals('789 Oak St', existingContact.MailingStreet);
+        System.assertEquals('Los Angeles', existingContact.MailingCity);
+        System.assertEquals('90001', existingContact.MailingPostalCode);
+    }
+
+    @isTest
+    static void testNoContactUpdateWhenAddressUnchanged() {
+        // Step 1: Insert User and Contact
+        User newUser = createUser(
+            'testuser3@example.com', 'Mark', 'Smith', '111 Pine St', 'Chicago', '60601'
+        );
+        insert newUser;
+
+        // Verify Contact is created
+        Contact contact = [SELECT LastModifiedDate FROM Contact WHERE Email = :newUser.Email];
+        Datetime lastModifiedDate = contact.LastModifiedDate;
+
+        // Step 2: Update User without changing the address
+        newUser.FirstName = 'Marcus';
+        update newUser;
+
+        // Step 3: Verify that Contact address has not been updated
+        contact = [SELECT LastModifiedDate FROM Contact WHERE Email = :newUser.Email];
+        System.assertEquals(lastModifiedDate, contact.LastModifiedDate);
+    }
+
+    @isTest
+    static void testEmailSentOnAddressChange() {
+        // Step 1: Insert a User and initial Contact
+        User newUser = createUser(
+            'testuser4@example.com', 'Alice', 'Brown', '321 Elm St', 'Seattle', '98101'
+        );
+        insert newUser;
+
+        // Update User's address
+        newUser.Street = '555 Cedar St';
+        newUser.City = 'Portland';
+        newUser.PostalCode = '97201';
+
+        Test.startTest();
+        update newUser;
+        Test.stopTest();
+
+        // Verify email was sent
+        List<Messaging.InboundEmailResult> sentEmails = [SELECT Id FROM Messaging.InboundEmailResult];
+        System.assertEquals(1, sentEmails.size());
+    }
+}
+
+
+
+
+
+
+
 trigger UserAddressTrigger on User (after insert, after update) {
     // Step 1: Define variables and maps to store information
     Set<String> userEmails = new Set<String>();
