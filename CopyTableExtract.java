@@ -1,3 +1,9 @@
+Because you selected the Is Changed operator in a condition, you can’t change when to run the flow for updated records. To select an option for when to run the flow, remove all Is Changed operators from the conditions.
+
+
+
+
+
 trigger UserContactSync on User (before insert, before update) {
     // Maps to hold user and contact data
     Map<String, Contact> contactsByEmail = new Map<String, Contact>();
