@@ -1,3 +1,6 @@
+A non foreign key field cannot be referenced in a path expression: OtherAddress
+
+
 trigger UserContactSync on User (before insert, before update) {
     // Maps to hold user and contact data
     Map<String, Contact> contactsByEmail = new Map<String, Contact>();
