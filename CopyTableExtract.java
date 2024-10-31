@@ -1,3 +1,105 @@
+trigger UserContactSync on User (before insert, before update) {
+    System.debug('UserContactSync Trigger Fired');
+
+    // Maps to hold user and contact data
+    Map<String, Contact> contactsByEmail = new Map<String, Contact>();
+    Map<String, User> usersByEmail = new Map<String, User>();
+
+    // List to hold new contacts to be inserted after the loop
+    List<Contact> newContacts = new List<Contact>();
+
+    // Populate the maps with existing Contacts and Users by email
+    if (Trigger.isInsert || Trigger.isUpdate) {
+        Set<String> userEmails = new Set<String>();
+        
+        for (User user : Trigger.new) {
+            System.debug('User Email: ' + user.Email);
+            if (user.Email != null) {
+                userEmails.add(user.Email);
+            }
+        }
+
+        // Query existing contacts
+        for (Contact contact : [SELECT Id, Email, MailingStreet, MailingCity, MailingPostalCode FROM Contact WHERE Email IN :userEmails]) {
+            contactsByEmail.put(contact.Email, contact);
+            System.debug('Found existing Contact: ' + contact);
+        }
+        
+        // Query existing users
+        for (User existingUser : [SELECT Id, Email, Street, City, PostalCode FROM User WHERE Email IN :userEmails]) {
+            usersByEmail.put(existingUser.Email, existingUser);
+            System.debug('Found existing User: ' + existingUser);
+        }
+    }
+
+    // Logic for creating/updating users and contacts
+    for (User user : Trigger.new) {
+        // Skip processing if email is null
+        if (user.Email == null) {
+            System.debug('User Email is null, skipping: ' + user);
+            continue;
+        }
+
+        // Check for address changes only on update
+        if (Trigger.isUpdate && Trigger.oldMap.containsKey(user.Id)) {
+            User oldUser = Trigger.oldMap.get(user.Id);
+
+            // Check if any address field was updated
+            Boolean addressChanged = (user.Street != oldUser.Street ||
+                                      user.City != oldUser.City ||
+                                      user.PostalCode != oldUser.PostalCode);
+
+            if (addressChanged && contactsByEmail.containsKey(user.Email)) {
+                Contact contactToUpdate = contactsByEmail.get(user.Email);
+                contactToUpdate.MailingStreet = user.Street;
+                contactToUpdate.MailingCity = user.City;
+                contactToUpdate.MailingPostalCode = user.PostalCode;
+                System.debug('Updated existing Contact with new address: ' + contactToUpdate);
+            }
+        }
+
+        // Existing User logic
+        if (usersByEmail.containsKey(user.Email)) {
+            User existingUser = usersByEmail.get(user.Email);
+            existingUser.Street = user.Street;
+            existingUser.City = user.City;
+            existingUser.PostalCode = user.PostalCode;
+            System.debug('Updated existing User: ' + existingUser);
+        } else if (Trigger.isInsert) {
+            // Creating new Contact for inserts only
+            Contact newContact = new Contact(
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                MailingStreet = user.Street,
+                MailingCity = user.City,
+                MailingPostalCode = user.PostalCode
+            );
+
+            if (String.isBlank(newContact.Email)) {
+                user.addError('The Email field is required for creating a new Contact.');
+            } else {
+                newContacts.add(newContact);
+                System.debug('Adding new Contact: ' + newContact);
+            }
+        }
+    }
+
+    // Insert new contacts
+    if (!newContacts.isEmpty()) {
+        System.debug('Inserting new Contacts: ' + newContacts);
+        insert newContacts;
+    }
+}
+
+
+
+
+
+
+
+
+
 Send Email to User:
 o	Detect Address Changes: Before updating the Contact object, Check if the address fields has changes compared to the existing data.
 o	Update Contact: If the address has changed, update the contact object with New address and sent the email.
