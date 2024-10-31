@@ -1,3 +1,14 @@
+Send Email to User:
+o	Detect Address Changes: Before updating the Contact object, Check if the address fields has changes compared to the existing data.
+o	Update Contact: If the address has changed, update the contact object with New address and sent the email.
+o	Send Email Notification: After successfully updating the Contact object’s address, send an email notification to the user informing them about the change.
+“your address has been updated successfully”.
+
+
+
+
+
+
 trigger UserContactSync on User (before insert, before update) {
     // Maps to hold user and contact data
     Map<String, Contact> contactsByEmail = new Map<String, Contact>();
