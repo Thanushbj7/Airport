@@ -1,3 +1,6 @@
+Method does not exist or incorrect signature: void isEmpty() from the type String
+
+
 trigger UserContactSync on User (before insert, before update) {
     // Maps to hold user and contact data
     Map<String, Contact> contactsByEmail = new Map<String, Contact>();
