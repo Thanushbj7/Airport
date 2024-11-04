@@ -1,3 +1,10 @@
+ContactAddressSync: execution of BeforeUpdate caused by: System.DmlException: Update failed. First exception on row 0 with id 0038G00000iWuDJQA0; first error: CANNOT_INSERT_UPDATE_ACTIVATE_ENTITY, ContactAddressSync: execution of BeforeUpdate caused by: System.DmlException: Update failed. First exception on row 0 with id 0038G00000iWuMKQA0; first error: SELF_REFERENCE_FROM_TRIGGER, Object (id = 0038G00000iWuMK) is currently in trigger ContactAddressSync, therefore it cannot recursively update itself: [] Trigger.ContactAddressSync: line 65, column 1: [] Trigger.ContactAddressSync: line 65, column 1
+
+
+
+
+
+
 trigger ContactAddressSync on Contact (before update) {
     System.debug('ContactAddressSync trigger fired');
 
