@@ -1,3 +1,98 @@
+trigger ContactAddressSync on Contact (before update) {
+    // Prevent recursive execution
+    if (!ContactAddressSyncHelper.isTriggerActive) {
+        return;
+    }
+    
+    try {
+        // Set trigger as inactive to prevent recursion
+        ContactAddressSyncHelper.isTriggerActive = false;
+
+        System.debug('ContactAddressSync trigger fired');
+
+        // Maps to track contacts to update by email
+        Map<String, List<Contact>> contactsByEmail = new Map<String, List<Contact>>();
+        List<Contact> contactsToUpdate = new List<Contact>();
+
+        // Step 1: Collect emails of contacts where address fields have changed
+        Set<String> changedEmails = new Set<String>();
+
+        for (Contact contact : Trigger.new) {
+            Contact oldContact = Trigger.oldMap.get(contact.Id);
+            // Check if any of the address fields have changed
+            if (contact.Email != null && (contact.MailingStreet != oldContact.MailingStreet || 
+                                          contact.MailingCity != oldContact.MailingCity || 
+                                          contact.MailingPostalCode != oldContact.MailingPostalCode)) {
+                changedEmails.add(contact.Email);
+            }
+        }
+
+        // Step 2: Query all contacts with the same email as changed contacts
+        if (!changedEmails.isEmpty()) {
+            for (Contact relatedContact : [SELECT Id, Email, MailingStreet, MailingCity, MailingPostalCode 
+                                           FROM Contact WHERE Email IN :changedEmails]) {
+                if (!contactsByEmail.containsKey(relatedContact.Email)) {
+                    contactsByEmail.put(relatedContact.Email, new List<Contact>());
+                }
+                contactsByEmail.get(relatedContact.Email).add(relatedContact);
+            }
+        }
+
+        // Step 3: Sync address fields for contacts with the same email
+        for (Contact contact : Trigger.new) {
+            if (contact.Email != null && contactsByEmail.containsKey(contact.Email)) {
+                List<Contact> relatedContacts = contactsByEmail.get(contact.Email);
+
+                // Get the updated address fields
+                String updatedStreet = contact.MailingStreet;
+                String updatedCity = contact.MailingCity;
+                String updatedPostalCode = contact.MailingPostalCode;
+
+                for (Contact relatedContact : relatedContacts) {
+                    // Skip if this is the contact being updated
+                    if (relatedContact.Id == contact.Id) continue;
+
+                    // Update address fields if they differ from the updated contact
+                    if (relatedContact.MailingStreet != updatedStreet || 
+                        relatedContact.MailingCity != updatedCity || 
+                        relatedContact.MailingPostalCode != updatedPostalCode) {
+
+                        relatedContact.MailingStreet = updatedStreet;
+                        relatedContact.MailingCity = updatedCity;
+                        relatedContact.MailingPostalCode = updatedPostalCode;
+                        contactsToUpdate.add(relatedContact); // Add to list for bulk update
+                        
+                        System.debug('Updating Contact address for Email ' + relatedContact.Email + ': ' + relatedContact);
+                    }
+                }
+            }
+        }
+
+        // Step 4: Perform bulk update of contacts with changed addresses
+        if (!contactsToUpdate.isEmpty()) {
+            System.debug('Updating contacts with synchronized addresses: ' + contactsToUpdate);
+            update contactsToUpdate;
+        }
+    } finally {
+        // Reset the trigger control flag
+        ContactAddressSyncHelper.isTriggerActive = true;
+    }
+}
+
+
+
+
+
+
+public class ContactAddressSyncHelper {
+    public static Boolean isTriggerActive = true;
+}
+
+
+
+
+
+
 ContactAddressSync: execution of BeforeUpdate caused by: System.DmlException: Update failed. First exception on row 0 with id 0038G00000iWuDJQA0; first error: CANNOT_INSERT_UPDATE_ACTIVATE_ENTITY, ContactAddressSync: execution of BeforeUpdate caused by: System.DmlException: Update failed. First exception on row 0 with id 0038G00000iWuMKQA0; first error: SELF_REFERENCE_FROM_TRIGGER, Object (id = 0038G00000iWuMK) is currently in trigger ContactAddressSync, therefore it cannot recursively update itself: [] Trigger.ContactAddressSync: line 65, column 1: [] Trigger.ContactAddressSync: line 65, column 1
 
 
